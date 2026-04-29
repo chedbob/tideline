@@ -205,7 +205,22 @@ def _upload_decision_log_csv(log: list) -> None:
     print(f"[publish] uploaded decision_log.csv ({len(body)} bytes)")
 
 
+def _sanitize_env() -> None:
+    """Strip whitespace from secret env vars. Defends against accidental
+    leading/trailing tabs/newlines in GitHub Actions secret values."""
+    for k in ("FRED_API_KEY", "COINGECKO_DEMO_KEY",
+              "R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY",
+              "R2_BUCKET", "R2_PUBLIC_URL"):
+        v = os.environ.get(k)
+        if v is not None:
+            stripped = v.strip()
+            if stripped != v:
+                print(f"[publish] sanitized {k} (removed whitespace)")
+            os.environ[k] = stripped
+
+
 def main() -> int:
+    _sanitize_env()
     payload = build_payload()
 
     out_dir = Path(__file__).parent / "out"

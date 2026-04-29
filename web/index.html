@@ -10,12 +10,12 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="Tideline — Macro Regime Tracker">
     <meta property="og:description" content="One simple trend signal, one descriptive macro regime panel, full audit trail. Public methodology, every test documented.">
-    <meta property="og:url" content="https://tideline.example">
-    <meta property="og:image" content="https://tideline.example/og.png">
+    <meta property="og:url" content="https://tideline-b16.pages.dev">
+    <meta property="og:image" content="https://tideline-b16.pages.dev/og.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Tideline — Macro Regime Tracker">
     <meta name="twitter:description" content="One simple trend signal, one descriptive macro regime panel, full audit trail.">
-    <meta name="twitter:image" content="https://tideline.example/og.png">
+    <meta name="twitter:image" content="https://tideline-b16.pages.dev/og.png">
 
     <!-- Inline SVG favicon (matches header logo) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%2322D3EE'/><stop offset='100%25' stop-color='%230891B2'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
@@ -291,8 +291,8 @@
 // CONFIG: change DATA_URL to your Cloudflare R2 public URL at deploy time.
 // For local dev, place latest.json next to this file (or symlink to workers/out/).
 // ======================================================================
-const DATA_URL = window.TIDELINE_DATA_URL || './latest.json';
-const LOG_URL  = window.TIDELINE_LOG_URL  || './decision_log.csv';
+const DATA_URL = 'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/latest.json';
+const LOG_URL  = 'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/decision_log.csv';
 
 // State -> badge class
 const STATE_BADGE = {

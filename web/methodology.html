@@ -10,12 +10,12 @@
     <meta property="og:type" content="article">
     <meta property="og:title" content="Tideline — Methodology &amp; Audit">
     <meta property="og:description" content="Full research log, integrity claims, and known limitations of the Tideline regime tracker.">
-    <meta property="og:url" content="https://tideline.example/methodology.html">
-    <meta property="og:image" content="https://tideline.example/og.png">
+    <meta property="og:url" content="https://tideline-b16.pages.dev/methodology.html">
+    <meta property="og:image" content="https://tideline-b16.pages.dev/og.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Tideline — Methodology &amp; Audit">
     <meta name="twitter:description" content="Full research log, integrity claims, and known limitations.">
-    <meta name="twitter:image" content="https://tideline.example/og.png">
+    <meta name="twitter:image" content="https://tideline-b16.pages.dev/og.png">
 
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%2322D3EE'/><stop offset='100%25' stop-color='%230891B2'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
 
@@ -230,7 +230,7 @@
 (async function loadResearchLog() {
     const target = document.getElementById('research-log-render');
     try {
-        const r = await fetch('./research_log.md', { cache: 'no-cache' });
+        const r = await fetch('https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/research_log.md', { cache: 'no-cache' });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const md = await r.text();
         // Configure marked: GFM, no auto-linkify (avoids linkifying date strings), trust source

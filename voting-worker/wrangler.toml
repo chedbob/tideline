@@ -1,0 +1,20 @@
+name = "tideline-voting"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+# D1 binding — replace database_id after `wrangler d1 create tideline-voting`
+[[d1_databases]]
+binding = "DB"
+database_name = "tideline-voting"
+database_id = "REPLACE_WITH_D1_ID_AFTER_CREATE"
+
+# Public R2 URL of latest.json (used to read Tideline state at poll creation)
+[vars]
+TIDELINE_DATA_URL = "https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/latest.json"
+ALLOWED_ORIGIN = "*"
+
+# Cron triggers — UTC times
+# Monday 13:35 UTC = 9:35 AM ET (5 min after open) → create poll
+# Friday 21:00 UTC = 5:00 PM ET (1 hour after close) → resolve poll
+[triggers]
+crons = ["35 13 * * 1", "0 21 * * 5"]

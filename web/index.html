@@ -116,6 +116,79 @@
         .depth-divider { height: 1px; background: linear-gradient(90deg, transparent 0%, var(--ocean-border) 50%, transparent 100%); margin: 32px 0; }
         .skeleton { background: linear-gradient(90deg, var(--ocean-card) 25%, var(--ocean-border) 50%, var(--ocean-card) 75%); background-size: 200% 100%; animation: skeleton-pulse 1.5s ease-in-out infinite; border-radius: 4px; }
         @keyframes skeleton-pulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* TIDE SCORE — the hero number */
+        .tide-score-wrap {
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(34, 211, 238, 0.04) 0%, rgba(8, 145, 178, 0.10) 100%);
+            border: 1px solid var(--ocean-border);
+            padding: 48px 32px 56px;
+        }
+        .tide-score-num {
+            font-size: clamp(120px, 22vw, 240px);
+            font-weight: 700;
+            letter-spacing: -0.05em;
+            line-height: 0.9;
+            text-align: center;
+            background: linear-gradient(180deg, #E6F3FF 0%, #22D3EE 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 80px rgba(34, 211, 238, 0.25);
+            transition: all 1s ease;
+        }
+        .tide-narrative {
+            font-size: clamp(18px, 2.5vw, 26px);
+            text-align: center;
+            font-weight: 500;
+            color: var(--foam);
+            margin-top: 8px;
+        }
+        .tide-bg-wave {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 100px;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* CIRCULAR % RINGS */
+        .ring-wrap { position: relative; width: 168px; height: 168px; margin: 0 auto; }
+        .ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .ring-bg { fill: none; stroke: var(--ocean-border); stroke-width: 12; }
+        .ring-fg { fill: none; stroke-width: 12; stroke-linecap: round;
+                   transition: stroke-dasharray 1.2s ease; }
+        .ring-tideline { stroke: var(--cyan-bright); }
+        .ring-crowd    { stroke: var(--reef); }
+        .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ring-pct { font-size: 36px; font-weight: 700; line-height: 1; font-family: 'JetBrains Mono', monospace; }
+        .ring-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+        .ring-n { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+
+        /* VOTE BUTTONS */
+        .vote-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 14px 24px; border-radius: 12px; font-weight: 600; font-size: 15px;
+            border: 1px solid var(--ocean-border); background: var(--ocean-deep);
+            color: var(--foam); cursor: pointer; transition: all 0.2s ease;
+            min-width: 120px;
+        }
+        .vote-btn:hover:not(:disabled) { border-color: var(--cyan-bright); background: rgba(34, 211, 238, 0.08); transform: translateY(-1px); }
+        .vote-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .vote-btn.up    { border-color: rgba(16, 185, 129, 0.4); }
+        .vote-btn.up:hover:not(:disabled)    { background: rgba(16, 185, 129, 0.10); border-color: var(--reef); }
+        .vote-btn.down  { border-color: rgba(249, 115, 22, 0.4); }
+        .vote-btn.down:hover:not(:disabled)  { background: rgba(249, 115, 22, 0.10); border-color: var(--coral); }
+        .vote-btn.flat  { border-color: rgba(124, 58, 237, 0.4); }
+        .vote-btn.flat:hover:not(:disabled)  { background: rgba(124, 58, 237, 0.10); border-color: #A78BFA; }
+        .vote-btn.voted { background: rgba(34, 211, 238, 0.12); border-color: var(--cyan-bright); }
+        .vote-tally-bar { height: 6px; background: var(--ocean-border); border-radius: 3px; overflow: hidden; }
+        .vote-tally-fill { height: 100%; transition: width 1s ease; }
+        .tally-up    { background: var(--reef); }
+        .tally-down  { background: var(--coral); }
+        .tally-flat  { background: #A78BFA; }
     </style>
 </head>
 <body>
@@ -151,25 +224,141 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-6 py-10">
-        <!-- Hero -->
-        <div class="mb-10">
-            <h2 class="text-4xl font-semibold tracking-tight mb-3">Current Tide</h2>
-            <div class="flex items-center gap-3 mb-3 flex-wrap">
+        <!-- TIDE SCORE — Hero -->
+        <div class="tide-score-wrap mb-12">
+            <div class="text-xs uppercase tracking-widest mb-2 text-center" style="color: var(--muted);">
+                Tide Score · 0–100 · higher = calmer
+            </div>
+            <div id="tide-score-num" class="tide-score-num">—</div>
+            <div id="tide-narrative" class="tide-narrative">Loading current conditions…</div>
+            <div class="flex items-center justify-center gap-3 mt-6 flex-wrap">
                 <span class="text-xs uppercase tracking-widest" style="color: var(--muted);">Trend</span>
                 <span id="hero-z0-badge" class="regime-badge regime-neutral">
                     <span class="w-1.5 h-1.5 rounded-full pulse-dot"></span>
-                    <span id="hero-z0-state">…</span>
+                    <span id="hero-z0-state">—</span>
                 </span>
                 <span class="text-xs uppercase tracking-widest ml-3" style="color: var(--muted);">Regime</span>
                 <span id="hero-z1-badge" class="regime-badge regime-neutral">
                     <span class="w-1.5 h-1.5 rounded-full pulse-dot"></span>
-                    <span id="hero-z1-state">…</span>
+                    <span id="hero-z1-state">—</span>
                 </span>
+                <span id="hero-date" class="text-xs ml-3" style="color: var(--muted);">…</span>
             </div>
-            <p style="color: var(--muted);" class="text-sm">
-                One simple trend signal, one descriptive macro regime panel, full audit trail · <span id="hero-date">…</span>
-            </p>
+            <svg class="tide-bg-wave" viewBox="0 0 800 100" preserveAspectRatio="none">
+                <path d="M0,60 Q100,30 200,45 T400,35 T600,40 T800,30 L800,100 L0,100 Z"
+                      fill="url(#tideHeroGrad)"/>
+                <path d="M0,60 Q100,30 200,45 T400,35 T600,40 T800,30"
+                      stroke="#22D3EE" stroke-width="2" fill="none" opacity="0.5"/>
+                <defs>
+                    <linearGradient id="tideHeroGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%"  stop-color="#22D3EE" stop-opacity="0.10"/>
+                        <stop offset="100%" stop-color="#0891B2" stop-opacity="0.50"/>
+                    </linearGradient>
+                </defs>
+            </svg>
         </div>
+
+        <!-- THIS WEEK'S POLL -->
+        <section class="card rounded-xl p-6 mb-6" id="poll-section">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <div class="text-xs uppercase tracking-widest mb-1" style="color: var(--muted);">This Week's Poll</div>
+                    <h3 id="poll-question" class="text-xl font-semibold">Loading…</h3>
+                </div>
+                <span id="poll-status" class="text-xs" style="color: var(--muted);">—</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                <!-- Tideline call -->
+                <div class="rounded-xl p-4" style="background: rgba(34, 211, 238, 0.04); border: 1px solid rgba(34, 211, 238, 0.25);">
+                    <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--cyan-bright);">Tideline calls</div>
+                    <div class="flex items-baseline gap-3 mb-2">
+                        <span id="poll-tideline-call" class="text-3xl font-bold mono">—</span>
+                        <span id="poll-tideline-conf" class="text-sm" style="color: var(--muted);">—</span>
+                    </div>
+                    <p id="poll-tideline-basis" class="text-xs leading-relaxed" style="color: var(--muted);">Loading rationale…</p>
+                </div>
+                <!-- Vote buttons -->
+                <div>
+                    <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">Your call</div>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <button class="vote-btn up"   data-vote="UP">▲ UP</button>
+                        <button class="vote-btn flat" data-vote="NEUTRAL">→ FLAT</button>
+                        <button class="vote-btn down" data-vote="DOWN">▼ DOWN</button>
+                    </div>
+                    <div id="poll-vote-msg" class="text-xs" style="color: var(--muted);">Voting closes Wed end of day</div>
+                </div>
+            </div>
+
+            <!-- Live tally -->
+            <div>
+                <div class="flex items-center justify-between text-xs mb-2" style="color: var(--muted);">
+                    <span>Crowd so far</span>
+                    <span id="poll-vote-total">0 votes</span>
+                </div>
+                <div class="vote-tally-bar relative" style="height: 12px;">
+                    <div id="tally-up"   class="vote-tally-fill tally-up    inline-block"   style="height:100%; width:0%; float:left;"></div>
+                    <div id="tally-flat" class="vote-tally-fill tally-flat  inline-block"   style="height:100%; width:0%; float:left;"></div>
+                    <div id="tally-down" class="vote-tally-fill tally-down  inline-block"   style="height:100%; width:0%; float:left;"></div>
+                </div>
+                <div class="grid grid-cols-3 text-xs mt-2 mono" style="color: var(--muted);">
+                    <div>UP <span id="pct-up" class="trend-up">—</span></div>
+                    <div class="text-center">FLAT <span id="pct-flat">—</span></div>
+                    <div class="text-right">DOWN <span id="pct-down" class="trend-down">—</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCOREBOARD -->
+        <section class="card rounded-xl p-6 mb-12" id="scoreboard-section">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <div class="text-xs uppercase tracking-widest mb-1" style="color: var(--muted);">Scoreboard</div>
+                    <h3 class="text-xl font-semibold">Tideline vs Crowd · Accuracy</h3>
+                    <p class="text-xs mt-1" style="color: var(--muted);">Resolved each Friday after market close · Brier score below ring</p>
+                </div>
+                <span id="scoreboard-n" class="text-xs mono" style="color: var(--muted);">— polls resolved</span>
+            </div>
+            <div class="grid grid-cols-2 gap-6">
+                <div class="text-center">
+                    <div class="ring-wrap">
+                        <svg class="ring-svg" viewBox="0 0 100 100">
+                            <circle class="ring-bg"           cx="50" cy="50" r="42"></circle>
+                            <circle class="ring-fg ring-tideline" id="ring-tideline" cx="50" cy="50" r="42"
+                                    stroke-dasharray="0 264"></circle>
+                        </svg>
+                        <div class="ring-center">
+                            <div id="tideline-pct" class="ring-pct" style="color: var(--cyan-bright);">—</div>
+                            <div class="ring-label">Tideline</div>
+                            <div id="tideline-n" class="ring-n">n=—</div>
+                        </div>
+                    </div>
+                    <div class="text-xs mt-3" style="color: var(--muted);">
+                        Brier: <span id="tideline-brier" class="mono" style="color: var(--foam);">—</span>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="ring-wrap">
+                        <svg class="ring-svg" viewBox="0 0 100 100">
+                            <circle class="ring-bg"        cx="50" cy="50" r="42"></circle>
+                            <circle class="ring-fg ring-crowd" id="ring-crowd" cx="50" cy="50" r="42"
+                                    stroke-dasharray="0 264"></circle>
+                        </svg>
+                        <div class="ring-center">
+                            <div id="crowd-pct" class="ring-pct" style="color: var(--reef);">—</div>
+                            <div class="ring-label">Crowd</div>
+                            <div id="crowd-n" class="ring-n">n=—</div>
+                        </div>
+                    </div>
+                    <div class="text-xs mt-3" style="color: var(--muted);">
+                        Brier: <span id="crowd-brier" class="mono" style="color: var(--foam);">—</span>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 text-xs text-center" style="color: var(--muted);">
+                Lower Brier = better calibration. 0.0 = perfect, 0.667 = random three-way guess.
+            </div>
+        </section>
 
         <!-- Zone 0 + Zone 1 -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-10">
@@ -293,6 +482,8 @@
 // ======================================================================
 const DATA_URL = 'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/latest.json';
 const LOG_URL  = 'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/decision_log.csv';
+// Voting Worker base URL — set after Worker deploy
+const VOTE_API = window.TIDELINE_VOTE_API || '';
 
 // State -> badge class
 const STATE_BADGE = {
@@ -376,6 +567,167 @@ function renderComponents(components) {
     }
 }
 
+// ----------------------------------------------------------------------
+// Tide Score — compose Faber + regime into a 0-100 narrative number
+// ----------------------------------------------------------------------
+function computeTideScore(z0State, z1State) {
+    let score = 50;
+    if (z0State === 'GREEN')   score += 22;
+    if (z0State === 'CAUTION') score -= 22;
+    // Regime contribution
+    const regimeAdj = { EASY: +14, NORMAL: 0, ELEVATED: -8, STRESS: -22 };
+    score += (regimeAdj[z1State] ?? 0);
+    return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function tideNarrative(score, z0, z1) {
+    if (score >= 80) return 'The tide is calm — risk-on conditions across the board.';
+    if (score >= 60) return 'Tide rising — risk appetite favorable, no major stress signals.';
+    if (score >= 40) return `Tide neutral — ${z1?.toLowerCase() || 'mixed'} conditions, watch carefully.`;
+    if (score >= 20) return 'Tide falling — elevated stress, defensive posture warranted.';
+    return 'Tide low — multiple stress signals firing.';
+}
+
+function tideScoreColor(score) {
+    if (score >= 70) return 'var(--reef)';
+    if (score >= 50) return 'var(--cyan-bright)';
+    if (score >= 30) return 'var(--amber)';
+    return 'var(--coral)';
+}
+
+// ----------------------------------------------------------------------
+// Poll + scoreboard
+// ----------------------------------------------------------------------
+async function loadPoll() {
+    const sec = document.getElementById('poll-section');
+    if (!VOTE_API) {
+        sec.style.display = 'none';
+        return;
+    }
+    try {
+        const r = await fetch(`${VOTE_API}/poll/current`, { cache: 'no-cache' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const p = await r.json();
+        if (p.error) {
+            sec.querySelector('#poll-question').textContent = 'No poll active yet.';
+            return;
+        }
+        document.getElementById('poll-question').textContent = p.question;
+        document.getElementById('poll-tideline-call').textContent = p.tideline_call;
+        document.getElementById('poll-tideline-conf').textContent =
+            `${(p.tideline_confidence * 100).toFixed(0)}% confidence`;
+        document.getElementById('poll-tideline-basis').textContent = p.tideline_basis || '';
+
+        const total = p.votes.total || 0;
+        const up = p.votes.UP, dn = p.votes.DOWN, fl = p.votes.NEUTRAL;
+        document.getElementById('poll-vote-total').textContent = `${total} vote${total === 1 ? '' : 's'}`;
+        const pctUp = total ? (up / total * 100) : 0;
+        const pctDn = total ? (dn / total * 100) : 0;
+        const pctFl = total ? (fl / total * 100) : 0;
+        document.getElementById('tally-up').style.width = pctUp + '%';
+        document.getElementById('tally-flat').style.width = pctFl + '%';
+        document.getElementById('tally-down').style.width = pctDn + '%';
+        document.getElementById('pct-up').textContent = total ? pctUp.toFixed(0) + '%' : '—';
+        document.getElementById('pct-flat').textContent = total ? pctFl.toFixed(0) + '%' : '—';
+        document.getElementById('pct-down').textContent = total ? pctDn.toFixed(0) + '%' : '—';
+
+        const status = document.getElementById('poll-status');
+        if (p.voting_open) {
+            const close = new Date(p.voting_closes_at);
+            status.textContent = `OPEN · closes ${close.toLocaleDateString(undefined, { weekday: 'short' })} ${close.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
+            status.style.color = 'var(--reef)';
+        } else {
+            status.textContent = 'CLOSED · resolution Friday';
+            status.style.color = 'var(--muted)';
+        }
+
+        // Wire vote buttons
+        const voted = localStorage.getItem('tideline_vote_' + p.poll_id);
+        document.querySelectorAll('.vote-btn').forEach((btn) => {
+            btn.disabled = !p.voting_open || !!voted;
+            if (btn.dataset.vote === voted) btn.classList.add('voted');
+            btn.onclick = () => castVote(btn.dataset.vote, p.poll_id);
+        });
+        if (voted) {
+            document.getElementById('poll-vote-msg').textContent = `You voted ${voted}. Thanks — check back Friday for the result.`;
+        } else if (!p.voting_open) {
+            document.getElementById('poll-vote-msg').textContent = 'Voting closed for this week.';
+        }
+    } catch (e) {
+        document.getElementById('poll-question').textContent = 'Poll unavailable';
+        console.error(e);
+    }
+}
+
+async function castVote(choice, pollId) {
+    document.querySelectorAll('.vote-btn').forEach((b) => (b.disabled = true));
+    try {
+        const r = await fetch(`${VOTE_API}/vote`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ vote: choice }),
+        });
+        const data = await r.json();
+        if (data.ok) {
+            localStorage.setItem('tideline_vote_' + pollId, choice);
+            document.getElementById('poll-vote-msg').textContent = `You voted ${choice}. Thanks — check back Friday.`;
+            await loadPoll();
+        } else {
+            document.getElementById('poll-vote-msg').textContent = `Vote failed: ${data.error || 'unknown'}`;
+            document.querySelectorAll('.vote-btn').forEach((b) => (b.disabled = false));
+        }
+    } catch (e) {
+        document.getElementById('poll-vote-msg').textContent = 'Vote failed: network error';
+        document.querySelectorAll('.vote-btn').forEach((b) => (b.disabled = false));
+    }
+}
+
+function setRing(elId, pct) {
+    // Circle r=42 → circumference = 2πr ≈ 263.89
+    const C = 263.89;
+    const dash = (pct / 100) * C;
+    document.getElementById(elId).setAttribute('stroke-dasharray', `${dash} ${C}`);
+}
+
+async function loadScoreboard() {
+    const sec = document.getElementById('scoreboard-section');
+    if (!VOTE_API) {
+        sec.style.display = 'none';
+        return;
+    }
+    try {
+        const r = await fetch(`${VOTE_API}/scoreboard`, { cache: 'no-cache' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const s = await r.json();
+        document.getElementById('scoreboard-n').textContent = `${s.total_resolved} polls resolved`;
+
+        const tAcc = s.tideline.accuracy;
+        const cAcc = s.crowd.accuracy;
+        if (tAcc !== null) {
+            document.getElementById('tideline-pct').textContent = (tAcc * 100).toFixed(0) + '%';
+            document.getElementById('tideline-n').textContent = `n=${s.tideline.n}`;
+            setRing('ring-tideline', tAcc * 100);
+        } else {
+            document.getElementById('tideline-pct').textContent = '—';
+            document.getElementById('tideline-n').textContent = 'n=0 (awaiting first resolution)';
+        }
+        if (cAcc !== null) {
+            document.getElementById('crowd-pct').textContent = (cAcc * 100).toFixed(0) + '%';
+            document.getElementById('crowd-n').textContent = `n=${s.crowd.n}`;
+            setRing('ring-crowd', cAcc * 100);
+        } else {
+            document.getElementById('crowd-pct').textContent = '—';
+            document.getElementById('crowd-n').textContent = 'n=0 (awaiting votes)';
+        }
+        document.getElementById('tideline-brier').textContent =
+            s.tideline.avg_brier != null ? s.tideline.avg_brier.toFixed(3) : '—';
+        document.getElementById('crowd-brier').textContent =
+            s.crowd.avg_brier != null ? s.crowd.avg_brier.toFixed(3) : '—';
+    } catch (e) {
+        console.error(e);
+    }
+}
+
 function renderTransitions(log) {
     const list = document.getElementById('transitions-list');
     list.innerHTML = '';
@@ -432,7 +784,19 @@ async function load() {
         z0.evidence = z0.evidence || {};
         z0.historical_claim = z0.historical_claim || {};
 
-        // Hero — two distinct badges (Zone 0 + Zone 1) so colors don't conflate
+        // Hero — TIDE SCORE + two badges
+        const tide = computeTideScore(z0.state, z1.state);
+        const numEl = document.getElementById('tide-score-num');
+        numEl.textContent = tide;
+        numEl.style.color = tideScoreColor(tide);
+        // Override gradient if extreme so the color stands out
+        if (tide >= 70 || tide < 30) {
+            numEl.style.background = 'none';
+            numEl.style.webkitBackgroundClip = 'unset';
+            numEl.style.backgroundClip = 'unset';
+        }
+        document.getElementById('tide-narrative').textContent = tideNarrative(tide, z0.state, z1.state);
+
         document.getElementById('hero-z0-state').textContent = z0.state;
         document.getElementById('hero-z1-state').textContent = z1.state;
         applyBadge(document.getElementById('hero-z0-badge'),
@@ -441,7 +805,7 @@ async function load() {
         applyBadge(document.getElementById('hero-z1-badge'),
                    document.getElementById('hero-z1-badge').querySelector('.pulse-dot'),
                    z1.state);
-        document.getElementById('hero-date').textContent = 'Data as of ' + r.data_as_of;
+        document.getElementById('hero-date').textContent = '· Data as of ' + r.data_as_of;
 
         // Zone 0 — Faber
         document.getElementById('z0-state').textContent = z0.state;
@@ -498,9 +862,14 @@ async function load() {
     }
 }
 
-load();
-// Light auto-refresh: every 5 minutes (matches publish cadence)
-setInterval(load, 5 * 60 * 1000);
+async function loadAll() {
+    await load();
+    // Voting endpoints fire in parallel — failures don't block the dashboard
+    loadPoll().catch((e) => console.error('poll error', e));
+    loadScoreboard().catch((e) => console.error('scoreboard error', e));
+}
+loadAll();
+setInterval(loadAll, 5 * 60 * 1000);
 </script>
 </body>
 </html>

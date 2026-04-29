@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tideline — Macro Regime Tracker</title>
+    <meta name="description" content="One simple trend signal, one descriptive macro regime panel, full audit trail.">
+
+    <!-- OpenGraph / Twitter card (X preview when pinned) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Tideline — Macro Regime Tracker">
+    <meta property="og:description" content="One simple trend signal, one descriptive macro regime panel, full audit trail. Public methodology, every test documented.">
+    <meta property="og:url" content="https://tideline.example">
+    <meta property="og:image" content="https://tideline.example/og.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tideline — Macro Regime Tracker">
+    <meta name="twitter:description" content="One simple trend signal, one descriptive macro regime panel, full audit trail.">
+    <meta name="twitter:image" content="https://tideline.example/og.png">
+
+    <!-- Inline SVG favicon (matches header logo) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%2322D3EE'/><stop offset='100%25' stop-color='%230891B2'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ocean-deep: #0A1A2F;
+            --ocean-surface: #132544;
+            --ocean-card: #132A4A;
+            --ocean-border: #1F3A5F;
+            --foam: #E6F3FF;
+            --muted: #7A92B5;
+            --teal: #0891B2;
+            --cyan-bright: #22D3EE;
+            --reef: #10B981;
+            --coral: #F97316;
+            --deep-purple: #7C3AED;
+            --amber: #F59E0B;
+        }
+        * { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        body {
+            background: linear-gradient(180deg, var(--ocean-deep) 0%, #06101F 100%);
+            color: var(--foam);
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(at 15% 25%, rgba(34, 211, 238, 0.08) 0%, transparent 40%),
+                radial-gradient(at 85% 75%, rgba(8, 145, 178, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .card {
+            background: var(--ocean-card);
+            border: 1px solid var(--ocean-border);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            border-color: rgba(34, 211, 238, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+        .wave-container {
+            position: relative;
+            height: 100px;
+            overflow: hidden;
+            border-radius: 8px;
+            background: linear-gradient(180deg, rgba(10, 26, 47, 0.2) 0%, rgba(8, 145, 178, 0.05) 100%);
+        }
+        @keyframes wave-drift { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-2%); } }
+        .wave-svg { animation: wave-drift 12s ease-in-out infinite; }
+        @keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.2); } }
+        .pulse-dot { animation: pulse-dot 2.5s ease-in-out infinite; }
+        .regime-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .regime-easy     { background: rgba(34, 211, 238, 0.12); color: var(--cyan-bright); border: 1px solid rgba(34, 211, 238, 0.3); }
+        .regime-normal   { background: rgba(16, 185, 129, 0.12); color: var(--reef); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .regime-elevated { background: rgba(245, 158, 11, 0.12); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .regime-stress   { background: rgba(249, 115, 22, 0.12); color: var(--coral); border: 1px solid rgba(249, 115, 22, 0.3); }
+        .regime-green    { background: rgba(16, 185, 129, 0.12); color: var(--reef); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .regime-caution  { background: rgba(249, 115, 22, 0.12); color: var(--coral); border: 1px solid rgba(249, 115, 22, 0.3); }
+        .regime-neutral  { background: rgba(124, 58, 237, 0.12); color: #A78BFA; border: 1px solid rgba(124, 58, 237, 0.3); }
+        .pct-bar { height: 4px; background: var(--ocean-border); border-radius: 2px; overflow: hidden; }
+        .pct-fill { height: 100%; background: linear-gradient(90deg, var(--teal) 0%, var(--cyan-bright) 100%); transition: width 1s ease; }
+        .nav-link { position: relative; color: var(--muted); transition: color 0.2s ease; font-size: 13px; font-weight: 500; }
+        .nav-link:hover { color: var(--foam); }
+        .nav-link.active { color: var(--cyan-bright); }
+        .nav-link.active::after {
+            content: ''; position: absolute; bottom: -18px; left: 0; right: 0; height: 2px;
+            background: var(--cyan-bright); border-radius: 2px;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--ocean-deep); }
+        ::-webkit-scrollbar-thumb { background: var(--ocean-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--teal); }
+        .main-container { position: relative; z-index: 1; }
+        .trend-up { color: var(--reef); }
+        .trend-down { color: var(--coral); }
+        .trend-flat { color: var(--muted); }
+        .depth-divider { height: 1px; background: linear-gradient(90deg, transparent 0%, var(--ocean-border) 50%, transparent 100%); margin: 32px 0; }
+        .skeleton { background: linear-gradient(90deg, var(--ocean-card) 25%, var(--ocean-border) 50%, var(--ocean-card) 75%); background-size: 200% 100%; animation: skeleton-pulse 1.5s ease-in-out infinite; border-radius: 4px; }
+        @keyframes skeleton-pulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
+</head>
+<body>
+<div class="main-container">
+    <header class="border-b sticky top-0 z-50" style="background: rgba(10, 26, 47, 0.85); backdrop-filter: blur(12px); border-color: rgba(31, 58, 95, 0.5);">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+            <div class="flex items-center gap-10">
+                <div class="flex items-center gap-3">
+                    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                        <path d="M2 16 Q8 10 14 16 T26 16 L30 16" stroke="url(#logoGrad)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M2 22 Q8 16 14 22 T26 22 L30 22" stroke="url(#logoGrad)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                                <stop offset="0%" style="stop-color:#22D3EE"/>
+                                <stop offset="100%" style="stop-color:#0891B2"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <h1 class="text-lg font-semibold tracking-tight">Tideline</h1>
+                </div>
+                <nav class="flex items-center gap-8">
+                    <a href="./index.html" class="nav-link active">Dashboard</a>
+                    <a href="./methodology.html" class="nav-link">Methodology</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="last-updated" class="text-xs flex items-center gap-2" style="color: var(--muted);">
+                    <span class="w-2 h-2 rounded-full pulse-dot" style="background: var(--cyan-bright);"></span>
+                    Loading…
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+        <!-- Hero -->
+        <div class="mb-10">
+            <h2 class="text-4xl font-semibold tracking-tight mb-3">Current Tide</h2>
+            <div class="flex items-center gap-3 mb-3 flex-wrap">
+                <span class="text-xs uppercase tracking-widest" style="color: var(--muted);">Trend</span>
+                <span id="hero-z0-badge" class="regime-badge regime-neutral">
+                    <span class="w-1.5 h-1.5 rounded-full pulse-dot"></span>
+                    <span id="hero-z0-state">…</span>
+                </span>
+                <span class="text-xs uppercase tracking-widest ml-3" style="color: var(--muted);">Regime</span>
+                <span id="hero-z1-badge" class="regime-badge regime-neutral">
+                    <span class="w-1.5 h-1.5 rounded-full pulse-dot"></span>
+                    <span id="hero-z1-state">…</span>
+                </span>
+            </div>
+            <p style="color: var(--muted);" class="text-sm">
+                One simple trend signal, one descriptive macro regime panel, full audit trail · <span id="hero-date">…</span>
+            </p>
+        </div>
+
+        <!-- Zone 0 + Zone 1 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-10">
+            <!-- Zone 0: Faber Trend Signal -->
+            <div class="card rounded-xl p-6">
+                <div class="flex items-start justify-between mb-5">
+                    <div>
+                        <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">Trend Signal · Zone 0</div>
+                        <div id="z0-state" class="text-2xl font-semibold mb-1">…</div>
+                        <div id="z0-evidence" class="text-xs" style="color: var(--muted);">SPY vs 200/50-day moving averages</div>
+                    </div>
+                    <span id="z0-badge" class="regime-badge regime-neutral">
+                        <span class="w-1.5 h-1.5 rounded-full"></span>
+                        <span id="z0-badge-text">…</span>
+                    </span>
+                </div>
+                <div class="wave-container mb-5">
+                    <svg viewBox="0 0 800 100" preserveAspectRatio="none" class="absolute inset-0 w-full h-full wave-svg">
+                        <defs>
+                            <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#22D3EE;stop-opacity:0.05"/>
+                                <stop offset="100%" style="stop-color:#0891B2;stop-opacity:0.35"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M0,60 Q100,30 200,45 T400,35 T600,40 T800,30 L800,100 L0,100 Z" fill="url(#waveGrad1)"/>
+                        <path d="M0,60 Q100,30 200,45 T400,35 T600,40 T800,30" stroke="#22D3EE" stroke-width="1.5" fill="none" opacity="0.7"/>
+                    </svg>
+                </div>
+                <div class="text-xs space-y-1.5" style="color: var(--muted);">
+                    <div class="flex justify-between"><span>SPY</span><span class="mono" id="z0-spy">—</span></div>
+                    <div class="flex justify-between"><span>50DMA</span><span class="mono" id="z0-ma50">—</span></div>
+                    <div class="flex justify-between"><span>200DMA</span><span class="mono" id="z0-ma200">—</span></div>
+                </div>
+                <div class="mt-5 pt-4 border-t" style="border-color: rgba(31, 58, 95, 0.5);">
+                    <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--muted);">Historical Claim (1997–2026)</div>
+                    <div class="text-xs" id="z0-claim" style="color: var(--foam);">…</div>
+                    <div class="text-xs mt-1.5" style="color: var(--muted);" id="z0-baseline">…</div>
+                </div>
+            </div>
+
+            <!-- Zone 1: Regime State -->
+            <div class="card rounded-xl p-6">
+                <div class="flex items-start justify-between mb-5">
+                    <div>
+                        <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">Regime State · Zone 1</div>
+                        <div id="z1-state" class="text-2xl font-semibold mb-1">…</div>
+                        <div class="text-xs" style="color: var(--muted);">
+                            Descriptive only — no forward-direction claim
+                        </div>
+                    </div>
+                    <span id="z1-badge" class="regime-badge regime-neutral">
+                        <span class="w-1.5 h-1.5 rounded-full"></span>
+                        <span id="z1-badge-text">…</span>
+                    </span>
+                </div>
+                <div class="wave-container mb-5">
+                    <svg viewBox="0 0 800 100" preserveAspectRatio="none" class="absolute inset-0 w-full h-full wave-svg" style="animation-delay: -4s;">
+                        <defs>
+                            <linearGradient id="waveGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#7C3AED;stop-opacity:0.05"/>
+                                <stop offset="100%" style="stop-color:#0891B2;stop-opacity:0.3"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M0,55 Q100,65 200,55 T400,50 T600,60 T800,55 L800,100 L0,100 Z" fill="url(#waveGrad2)"/>
+                        <path d="M0,55 Q100,65 200,55 T400,50 T600,60 T800,55" stroke="#A78BFA" stroke-width="1.5" fill="none" opacity="0.65"/>
+                    </svg>
+                </div>
+                <p id="z1-description" class="text-sm mb-4" style="color: var(--foam);">…</p>
+                <div class="text-xs space-y-1.5" style="color: var(--muted);">
+                    <div class="flex justify-between"><span>Days in state</span><span class="mono" id="z1-days">—</span></div>
+                    <div class="flex justify-between"><span>Last transition</span><span class="mono" id="z1-last">—</span></div>
+                    <div class="flex justify-between"><span>Last trigger</span><span class="mono" id="z1-trigger">—</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zone 2: Component Panel -->
+        <div class="mb-10">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-xs uppercase tracking-widest" style="color: var(--muted);">Macro Components · Zone 2</h3>
+                <span class="text-xs" style="color: var(--muted);">Describes the environment — does not generate the call</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="components-grid">
+                <!-- 4 component cards rendered by JS -->
+            </div>
+        </div>
+
+        <!-- Recent transitions -->
+        <div class="card rounded-xl p-6 mb-10">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h3 class="text-lg font-semibold">Recent Transitions</h3>
+                    <p class="text-xs mt-1" style="color: var(--muted);">Last 10 state changes · <a href="./methodology.html#decision-log" class="underline hover:text-cyan-300">full log</a></p>
+                </div>
+                <span class="text-xs mono" style="color: var(--muted);" id="log-count">— total</span>
+            </div>
+            <div id="transitions-list" class="space-y-1"></div>
+        </div>
+
+        <div class="depth-divider"></div>
+
+        <!-- Footer with integrity info -->
+        <div class="text-center text-xs py-8 space-y-2" style="color: var(--muted);">
+            <div>
+                Rule version <span class="mono" id="rule-version">…</span> ·
+                <span class="mono text-[10px]" id="rule-sha" style="color: var(--cyan-bright);">…</span>
+            </div>
+            <div id="disclaimer">…</div>
+            <div>
+                Built with <span style="color: var(--cyan-bright);">Tideline</span> ·
+                <a href="./methodology.html" class="underline hover:text-cyan-300">Methodology &amp; research log</a>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+// ======================================================================
+// CONFIG: change DATA_URL to your Cloudflare R2 public URL at deploy time.
+// For local dev, place latest.json next to this file (or symlink to workers/out/).
+// ======================================================================
+const DATA_URL = window.TIDELINE_DATA_URL || './latest.json';
+const LOG_URL  = window.TIDELINE_LOG_URL  || './decision_log.csv';
+
+// State -> badge class
+const STATE_BADGE = {
+    EASY: 'regime-easy', NORMAL: 'regime-normal', ELEVATED: 'regime-elevated', STRESS: 'regime-stress',
+    GREEN: 'regime-green', CAUTION: 'regime-caution', NEUTRAL: 'regime-neutral'
+};
+const STATE_DOT = {
+    EASY: 'var(--cyan-bright)', NORMAL: 'var(--reef)', ELEVATED: 'var(--amber)', STRESS: 'var(--coral)',
+    GREEN: 'var(--reef)', CAUTION: 'var(--coral)', NEUTRAL: '#A78BFA'
+};
+
+function fmtPct(v) {
+    if (v === null || v === undefined) return '—';
+    return (v * 100).toFixed(1) + '%';
+}
+function fmtNum(v, dp=2) {
+    if (v === null || v === undefined) return '—';
+    return Number(v).toFixed(dp);
+}
+function relativeTime(dateStr) {
+    const d = new Date(dateStr);
+    const diffMs = Date.now() - d.getTime();
+    const m = Math.floor(diffMs / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + 'm ago';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + 'h ago';
+    const days = Math.floor(h / 24);
+    return days + 'd ago';
+}
+function applyBadge(el, dot, state, classMap=STATE_BADGE) {
+    el.className = 'regime-badge ' + (classMap[state] || 'regime-neutral');
+    if (dot) dot.style.background = STATE_DOT[state] || '#A78BFA';
+}
+
+function renderError(msg) {
+    document.getElementById('hero-z0-state').textContent = '—';
+    document.getElementById('hero-z1-state').textContent = '—';
+    document.getElementById('hero-date').textContent = 'Data unavailable: ' + msg;
+    const lu = document.getElementById('last-updated');
+    lu.textContent = ''; lu.style.color = 'var(--coral)'; lu.textContent = 'offline';
+    document.getElementById('z0-state').textContent = '—';
+    document.getElementById('z1-state').textContent = '—';
+    document.getElementById('z1-description').textContent = msg;
+    document.getElementById('disclaimer').textContent = '';
+}
+
+function renderComponents(components) {
+    const grid = document.getElementById('components-grid');
+    grid.innerHTML = '';
+    const order = [
+        ['hy_oas',     'Credit Spread (BAA10Y)',     'Moody\'s Baa minus 10Y Treasury'],
+        ['vix',        'Equity Vol (VIX)',           'Front-month implied volatility'],
+        ['curve_3m10y','Yield Curve (3m–10y)',       'Slope; positive = healthy expansion'],
+        ['nfci_lagged','Financial Conditions (NFCI)','Chicago Fed; T+5 release lag'],
+    ];
+    for (const [key, title, sub] of order) {
+        const c = components[key];
+        if (!c) continue;
+        const pct = c.percentile_5y;
+        const value = c.value;
+        const unit = c.unit || '';
+        const stateLabel = (c.state || '').replace(/_/g, ' ');
+        const card = document.createElement('div');
+        card.className = 'card rounded-xl p-5';
+        card.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs uppercase tracking-wider" style="color: var(--muted);">${title}</span>
+                <span class="text-xs" style="color: var(--muted);">${stateLabel}</span>
+            </div>
+            <div class="flex items-baseline gap-2 mb-3">
+                <span class="text-2xl font-semibold mono">${fmtNum(value)}${unit}</span>
+            </div>
+            ${pct !== null && pct !== undefined ? `
+              <div class="text-[10px] uppercase tracking-wider mb-1.5" style="color: var(--muted);">5y percentile · ${(pct*100).toFixed(0)}%</div>
+              <div class="pct-bar"><div class="pct-fill" style="width: ${(pct*100).toFixed(1)}%"></div></div>
+            ` : ''}
+            <div class="text-[11px] mt-3" style="color: var(--muted);">${sub}</div>
+        `;
+        grid.appendChild(card);
+    }
+}
+
+function renderTransitions(log) {
+    const list = document.getElementById('transitions-list');
+    list.innerHTML = '';
+    const recent = log.slice(0, 10);
+    for (const row of recent) {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between py-3 border-b';
+        div.style.borderColor = 'rgba(31, 58, 95, 0.4)';
+        const stateClass = STATE_BADGE[row.new_state] || 'regime-neutral';
+        div.innerHTML = `
+            <div class="flex items-center gap-3">
+                <span class="regime-badge ${stateClass}">
+                    <span class="w-1.5 h-1.5 rounded-full" style="background: ${STATE_DOT[row.new_state] || '#A78BFA'};"></span>
+                    ${row.new_state}
+                </span>
+                <span class="text-xs" style="color: var(--muted);">via ${(row.trigger||'').replace(/_/g,' ')}</span>
+            </div>
+            <div class="text-right">
+                <div class="text-sm mono">${row.date}</div>
+                <div class="text-xs" style="color: var(--muted);">SPY ${fmtNum(row.spy)} · VIX ${fmtNum(row.vix)} · HY ${fmtNum(row.hy_oas)}%</div>
+            </div>
+        `;
+        list.appendChild(div);
+    }
+    document.getElementById('log-count').textContent = log.length + ' total since ' + (log[log.length-1]?.date || '—');
+}
+
+async function load() {
+    try {
+        const resp = await fetch(DATA_URL, { cache: 'no-cache' });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+
+        // Header — DOM construction (avoid innerHTML for hardening)
+        const lu = document.getElementById('last-updated');
+        lu.textContent = '';
+        lu.style.color = 'var(--muted)';
+        const dot = document.createElement('span');
+        dot.className = 'w-2 h-2 rounded-full pulse-dot';
+        dot.style.background = 'var(--cyan-bright)';
+        lu.appendChild(dot);
+        lu.appendChild(document.createTextNode(' Live · updated ' + relativeTime(data.generated_at)));
+
+        // Error case
+        if (data.regime && data.regime.error) {
+            renderError(data.regime.error);
+            return;
+        }
+
+        const r = data.regime || {};
+        if (!r.zones) { renderError('regime payload missing zones'); return; }
+        const z0 = r.zones.trend_signal || {};
+        const z1 = r.zones.regime_state || {};
+        z0.evidence = z0.evidence || {};
+        z0.historical_claim = z0.historical_claim || {};
+
+        // Hero — two distinct badges (Zone 0 + Zone 1) so colors don't conflate
+        document.getElementById('hero-z0-state').textContent = z0.state;
+        document.getElementById('hero-z1-state').textContent = z1.state;
+        applyBadge(document.getElementById('hero-z0-badge'),
+                   document.getElementById('hero-z0-badge').querySelector('.pulse-dot'),
+                   z0.state);
+        applyBadge(document.getElementById('hero-z1-badge'),
+                   document.getElementById('hero-z1-badge').querySelector('.pulse-dot'),
+                   z1.state);
+        document.getElementById('hero-date').textContent = 'Data as of ' + r.data_as_of;
+
+        // Zone 0 — Faber
+        document.getElementById('z0-state').textContent = z0.state;
+        const z0Sub = z0.state === 'GREEN' ? 'Both 50DMA and 200DMA bullish — risk-on posture' :
+                      z0.state === 'CAUTION' ? 'Both 50DMA and 200DMA bearish — risk-off posture' :
+                      'Indicators disagree — neutral posture';
+        document.getElementById('z0-evidence').textContent = z0Sub;
+        applyBadge(document.getElementById('z0-badge'),
+                   document.getElementById('z0-badge').querySelector('.w-1\\.5'),
+                   z0.state);
+        document.getElementById('z0-badge-text').textContent = z0.state;
+        document.getElementById('z0-spy').textContent = fmtNum(z0.evidence.spy_close);
+        document.getElementById('z0-ma50').textContent = fmtNum(z0.evidence.ma_50);
+        document.getElementById('z0-ma200').textContent = fmtNum(z0.evidence.ma_200);
+
+        const claim = z0.historical_claim;
+        if (claim && claim.caution_down_rate_20d != null) {
+            document.getElementById('z0-claim').innerHTML =
+                `When CAUTION fires, SPY 20-day DOWN rate has been <strong>${(claim.caution_down_rate_20d*100).toFixed(1)}%</strong> ` +
+                `vs <strong>${(claim.baseline_down_rate_20d*100).toFixed(1)}%</strong> baseline ` +
+                `(<span class="mono">+${claim.edge_pp.toFixed(1)}pp</span>, n=${(claim.n_caution_days || 0).toLocaleString()}).`;
+            const ci = claim.block_bootstrap_ci_95 || ['—','—'];
+            document.getElementById('z0-baseline').innerHTML =
+                `Block-bootstrap 95% CI: <span class="mono">[${ci[0]}%, ${ci[1]}%]</span> · ${claim.framing || ''}.`;
+        } else {
+            document.getElementById('z0-claim').textContent = 'Historical claim unavailable.';
+            document.getElementById('z0-baseline').textContent = '';
+        }
+
+        // Zone 1 — Regime
+        document.getElementById('z1-state').textContent = z1.state;
+        applyBadge(document.getElementById('z1-badge'),
+                   document.getElementById('z1-badge').querySelector('.w-1\\.5'),
+                   z1.state);
+        document.getElementById('z1-badge-text').textContent = z1.state;
+        document.getElementById('z1-description').textContent = z1.description;
+        document.getElementById('z1-days').textContent = z1.days_in_state + ' trading days';
+        document.getElementById('z1-last').textContent = z1.last_transition_date || '—';
+        document.getElementById('z1-trigger').textContent = (z1.last_transition_trigger || '—').replace(/_/g, ' ');
+
+        // Zone 2 — Components
+        renderComponents(r.zones.components);
+
+        // Recent transitions
+        renderTransitions(data.decision_log || []);
+
+        // Footer integrity
+        document.getElementById('rule-version').textContent = r.rule_version;
+        document.getElementById('rule-sha').textContent = (r.rule_sha256 || '').slice(0, 16) + '…';
+        document.getElementById('disclaimer').textContent = r.disclaimer || '';
+    } catch (err) {
+        console.error(err);
+        renderError('fetch failed: ' + err.message);
+    }
+}
+
+load();
+// Light auto-refresh: every 5 minutes (matches publish cadence)
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>

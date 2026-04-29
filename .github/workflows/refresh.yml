@@ -1,0 +1,38 @@
+name: Refresh Tideline data
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # every 5 min (GitHub may delay 5-15 min under load)
+  workflow_dispatch: {}      # manual trigger
+
+concurrency:
+  group: tideline-refresh
+  cancel-in-progress: false  # let slow runs finish; don't skip
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: workers/requirements.txt
+
+      - name: Install deps
+        working-directory: workers
+        run: pip install -r requirements.txt
+
+      - name: Publish snapshot
+        working-directory: workers
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          COINGECKO_DEMO_KEY: ${{ secrets.COINGECKO_DEMO_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: python publish.py

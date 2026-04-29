@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+workers/out/
+.env
+.env.local
+node_modules/
+.next/
+out/
+
+# ICE-licensed historical data — private research only, never commit
+workers/data_archive/hy_oas_bamls_archived_*.csv
+workers/data_archive/hy_oas_spliced.csv

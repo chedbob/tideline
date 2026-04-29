@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-04-22 03:05:28.640369+00:00",
+  "splice_date": "2023-04-24",
+  "archive_source": "Wayback Machine snapshot of fred.stlouisfed.org/graph/fredgraph.csv (2025-11-04)",
+  "live_source": "FRED API BAMLH0A0HYM2 (2023-04-24 onwards only)",
+  "archive_n": 7622,
+  "live_n": 785,
+  "overlap_n": 664,
+  "overlap_max_abs_diff_bp": 0.0,
+  "overlap_mean_abs_diff_bp": 0.0,
+  "combined_n": 7737,
+  "combined_range": [
+    "1996-12-31",
+    "2026-04-20"
+  ],
+  "usage_boundary": "PRIVATE RESEARCH ONLY. Do not re-publish historical HY OAS in public product."
+}

@@ -49,6 +49,13 @@ wrangler d1 execute tideline-voting --remote --file=schema.sql
 
 You'll see "Executed N queries". Schema applied.
 
+> **If you've previously deployed and the schema changed (it did — house priors + user_id columns):** drop and recreate the tables first. No real data was published yet.
+>
+> ```
+> wrangler d1 execute tideline-voting --remote --command="DROP TABLE IF EXISTS votes; DROP TABLE IF EXISTS polls;"
+> wrangler d1 execute tideline-voting --remote --file=schema.sql
+> ```
+
 ### 5. Deploy the Worker
 
 ```

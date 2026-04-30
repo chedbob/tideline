@@ -37,7 +37,9 @@ CREATE INDEX IF NOT EXISTS polls_resolved_idx ON polls(resolved_at);
 
 CREATE TABLE IF NOT EXISTS votes (
     poll_id INTEGER NOT NULL,
-    ip_hash TEXT NOT NULL,                   -- sha256 of (IP + daily salt)
+    ip_hash TEXT NOT NULL,                   -- sha256 of (IP + daily salt) — dedup
+    user_id TEXT,                            -- anonymous opaque ID from client localStorage
+                                              -- NULL for legacy/IP-only votes; not used for dedup
     vote TEXT NOT NULL CHECK (vote IN ('UP', 'DOWN', 'NEUTRAL')),
     voted_at TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (poll_id, ip_hash),
@@ -45,3 +47,4 @@ CREATE TABLE IF NOT EXISTS votes (
 );
 
 CREATE INDEX IF NOT EXISTS votes_poll_idx ON votes(poll_id);
+CREATE INDEX IF NOT EXISTS votes_user_idx ON votes(user_id) WHERE user_id IS NOT NULL;

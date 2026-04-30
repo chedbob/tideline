@@ -365,6 +365,35 @@
                     </div>
                 </div>
             </div>
+            <!-- YOUR TRACK RECORD — personal voting tracker -->
+            <div class="mt-8 pt-6 border-t" id="me-section" style="border-color: var(--ocean-border); display: none;">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <div class="text-xs uppercase tracking-widest mb-1" style="color: var(--muted);">Your Track Record</div>
+                        <h4 class="text-base font-semibold">How you've called it</h4>
+                    </div>
+                    <span id="me-id" class="text-[10px] mono" style="color: var(--muted);">—</span>
+                </div>
+                <div class="grid grid-cols-3 gap-4 text-center mb-4">
+                    <div>
+                        <div id="me-pct" class="text-2xl font-bold mono" style="color: var(--cyan-bright);">—</div>
+                        <div class="text-[10px] uppercase tracking-wider" style="color: var(--muted);">your accuracy</div>
+                        <div id="me-n" class="text-[10px] mono mt-1" style="color: var(--muted);">n=—</div>
+                    </div>
+                    <div>
+                        <div id="me-brier" class="text-2xl font-bold mono">—</div>
+                        <div class="text-[10px] uppercase tracking-wider" style="color: var(--muted);">your Brier</div>
+                        <div class="text-[10px] mt-1" style="color: var(--muted);">lower = better</div>
+                    </div>
+                    <div>
+                        <div id="me-vs-house" class="text-2xl font-bold mono" style="color: var(--reef);">—</div>
+                        <div class="text-[10px] uppercase tracking-wider" style="color: var(--muted);">vs house when you disagreed</div>
+                        <div id="me-disagree-n" class="text-[10px] mono mt-1" style="color: var(--muted);">—</div>
+                    </div>
+                </div>
+                <div id="me-history" class="space-y-1 mt-4"></div>
+            </div>
+
             <!-- Disagreement panel — where the narrative lives once both rings cluster -->
             <div class="mt-6 pt-6 border-t" style="border-color: var(--ocean-border);">
                 <div class="text-xs uppercase tracking-widest mb-3 text-center" style="color: var(--muted);">
@@ -519,6 +548,19 @@ const DATA_URL = 'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/latest.jso
 const LOG_URL  = 'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/decision_log.csv';
 // Voting Worker base URL — set after Worker deploy
 const VOTE_API = window.TIDELINE_VOTE_API || '';
+
+// Anonymous opaque user identity for personal tracking. Generated on first vote
+// (or first page load), stored in localStorage. No signup, no PII.
+function getOrCreateUserId() {
+    let uid = localStorage.getItem('tideline_user_id');
+    if (!uid || !/^[a-f0-9]{16,64}$/.test(uid)) {
+        const bytes = new Uint8Array(16);
+        crypto.getRandomValues(bytes);
+        uid = [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
+        localStorage.setItem('tideline_user_id', uid);
+    }
+    return uid;
+}
 
 // State -> badge class
 const STATE_BADGE = {
@@ -702,17 +744,21 @@ async function loadPoll() {
 
 async function castVote(choice, pollId) {
     document.querySelectorAll('.vote-btn').forEach((b) => (b.disabled = true));
+    const uid = getOrCreateUserId();
     try {
         const r = await fetch(`${VOTE_API}/vote`, {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ vote: choice }),
+            body: JSON.stringify({ vote: choice, user_id: uid }),
         });
         const data = await r.json();
         if (data.ok) {
+            // Worker may have generated a new uid (if our localStorage was stale); persist whatever it returns
+            if (data.user_id) localStorage.setItem('tideline_user_id', data.user_id);
             localStorage.setItem('tideline_vote_' + pollId, choice);
             document.getElementById('poll-vote-msg').textContent = `You voted ${choice}. Thanks — check back Friday.`;
             await loadPoll();
+            await loadMe();
         } else {
             document.getElementById('poll-vote-msg').textContent = `Vote failed: ${data.error || 'unknown'}`;
             document.querySelectorAll('.vote-btn').forEach((b) => (b.disabled = false));
@@ -720,6 +766,63 @@ async function castVote(choice, pollId) {
     } catch (e) {
         document.getElementById('poll-vote-msg').textContent = 'Vote failed: network error';
         document.querySelectorAll('.vote-btn').forEach((b) => (b.disabled = false));
+    }
+}
+
+async function loadMe() {
+    const sec = document.getElementById('me-section');
+    if (!VOTE_API) { sec.style.display = 'none'; return; }
+    const uid = localStorage.getItem('tideline_user_id');
+    if (!uid) { sec.style.display = 'none'; return; }
+    try {
+        const r = await fetch(`${VOTE_API}/me/${uid}`, { cache: 'no-cache' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const me = await r.json();
+        if (me.error) { sec.style.display = 'none'; return; }
+        if (me.n_total_votes === 0) { sec.style.display = 'none'; return; }
+
+        sec.style.display = '';
+        document.getElementById('me-id').textContent = `id ${uid.slice(0, 8)}…`;
+        document.getElementById('me-pct').textContent =
+            me.accuracy != null ? (me.accuracy * 100).toFixed(0) + '%' : '—';
+        document.getElementById('me-n').textContent =
+            `n=${me.n_resolved} resolved · ${me.n_total_votes - me.n_resolved} pending`;
+        document.getElementById('me-brier').textContent =
+            me.avg_brier != null ? me.avg_brier.toFixed(3) : '—';
+        const vh = me.vs_house || {};
+        document.getElementById('me-vs-house').textContent =
+            vh.user_acc_on_disagree != null ? (vh.user_acc_on_disagree * 100).toFixed(0) + '%' : '—';
+        document.getElementById('me-disagree-n').textContent =
+            vh.disagreements != null ? `${vh.user_right_when_disagreed}/${vh.disagreements} disagreements` : '—';
+
+        // Recent history list
+        const list = document.getElementById('me-history');
+        list.innerHTML = '';
+        for (const v of me.history.slice(0, 8)) {
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between py-2 border-b text-sm';
+            div.style.borderColor = 'rgba(31, 58, 95, 0.3)';
+            const status = v.outcome
+                ? (v.your_vote === v.outcome
+                    ? `<span class="trend-up">✓ correct</span>`
+                    : `<span class="trend-down">✗ ${v.your_vote} → was ${v.outcome}</span>`)
+                : `<span style="color:var(--muted);">pending</span>`;
+            const houseMatch = v.your_vote === v.house_call ? '·' : '⚔ disagreed with house';
+            div.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="mono text-xs" style="color: var(--muted);">${v.week_start}</span>
+                    <span class="regime-badge ${STATE_BADGE[v.your_vote === 'NEUTRAL' ? 'NEUTRAL' : v.your_vote] || 'regime-neutral'}">
+                        you · ${v.your_vote}
+                    </span>
+                    <span class="text-[10px]" style="color: var(--muted);">${houseMatch}</span>
+                </div>
+                <div class="text-xs">${status}</div>
+            `;
+            list.appendChild(div);
+        }
+    } catch (e) {
+        console.error('loadMe error', e);
+        sec.style.display = 'none';
     }
 }
 
@@ -916,6 +1019,7 @@ async function loadAll() {
     // Voting endpoints fire in parallel — failures don't block the dashboard
     loadPoll().catch((e) => console.error('poll error', e));
     loadScoreboard().catch((e) => console.error('scoreboard error', e));
+    loadMe().catch((e) => console.error('me error', e));
 }
 loadAll();
 setInterval(loadAll, 5 * 60 * 1000);

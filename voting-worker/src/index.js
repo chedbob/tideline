@@ -283,6 +283,13 @@ async function getCurrent(env) {
     });
 }
 
+function newUserId() {
+    // 22-char URL-safe random ID (~131 bits of entropy)
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function castVote(req, env) {
     let body;
     try {
@@ -293,6 +300,12 @@ async function castVote(req, env) {
     const choice = String(body?.vote || '').toUpperCase();
     if (!['UP', 'DOWN', 'NEUTRAL'].includes(choice)) {
         return json({ error: 'invalid_vote' }, { status: 400 });
+    }
+    // Anonymous opaque user ID: client supplies it from localStorage; if absent, we
+    // generate one and return it for the client to persist.
+    let userId = String(body?.user_id || '').trim();
+    if (!userId.match(/^[a-f0-9]{16,64}$/)) {
+        userId = newUserId();
     }
 
     const monday = mondayOfWeek(new Date());
@@ -309,13 +322,73 @@ async function castVote(req, env) {
     const hash = await ipHash(req);
     try {
         await env.DB.prepare(
-            `INSERT INTO votes (poll_id, ip_hash, vote) VALUES (?, ?, ?)`
-        ).bind(poll.id, hash, choice).run();
+            `INSERT INTO votes (poll_id, ip_hash, user_id, vote) VALUES (?, ?, ?, ?)`
+        ).bind(poll.id, hash, userId, choice).run();
     } catch (e) {
-        // Likely UNIQUE PK violation = already voted
-        return json({ error: 'already_voted' }, { status: 409 });
+        // Likely UNIQUE PK violation = already voted from this IP
+        return json({ error: 'already_voted', user_id: userId }, { status: 409 });
     }
-    return json({ ok: true, vote: choice });
+    return json({ ok: true, vote: choice, user_id: userId });
+}
+
+async function getMe(env, userId) {
+    if (!userId.match(/^[a-f0-9]{16,64}$/)) {
+        return json({ error: 'invalid_user_id' }, { status: 400 });
+    }
+    const r = await env.DB.prepare(`
+        SELECT v.vote AS your_vote,
+               v.voted_at,
+               p.id AS poll_id,
+               p.week_start, p.week_end, p.question,
+               p.faber_state, p.prior_up, p.prior_flat, p.prior_down,
+               p.tideline_call AS house_call,
+               p.outcome,
+               p.spy_open, p.spy_close
+          FROM votes v
+          JOIN polls p ON p.id = v.poll_id
+         WHERE v.user_id = ?
+         ORDER BY p.week_start DESC
+         LIMIT 100
+    `).bind(userId).all();
+
+    const rows = r.results || [];
+    let n = 0, hits = 0, total_brier = 0, n_brier = 0;
+    let n_disagree_house = 0, n_disagree_house_user_right = 0;
+    for (const v of rows) {
+        if (!v.outcome) continue;                  // unresolved still
+        n++;
+        // Outcome enum: 'UP'/'DOWN'/'NEUTRAL' (NEUTRAL == FLAT)
+        const correct = (v.your_vote === v.outcome) ? 1 : 0;
+        hits += correct;
+        // User Brier: the user picks one bucket = 1.0 prob there, 0 elsewhere
+        const oneHotKey = v.outcome === 'NEUTRAL' ? 'FLAT' : v.outcome;
+        const userPickKey = v.your_vote === 'NEUTRAL' ? 'FLAT' : v.your_vote;
+        const b =
+            (((userPickKey === 'UP'   ? 1 : 0) - (oneHotKey === 'UP'   ? 1 : 0)) ** 2) +
+            (((userPickKey === 'FLAT' ? 1 : 0) - (oneHotKey === 'FLAT' ? 1 : 0)) ** 2) +
+            (((userPickKey === 'DOWN' ? 1 : 0) - (oneHotKey === 'DOWN' ? 1 : 0)) ** 2);
+        total_brier += b;
+        n_brier++;
+        // Disagreement vs house: where user's pick differs from house's modal call
+        if (v.your_vote !== v.house_call) {
+            n_disagree_house++;
+            if (correct) n_disagree_house_user_right++;
+        }
+    }
+
+    return json({
+        user_id: userId,
+        n_total_votes: rows.length,
+        n_resolved: n,
+        accuracy: n ? hits / n : null,
+        avg_brier: n_brier ? total_brier / n_brier : null,
+        vs_house: {
+            disagreements: n_disagree_house,
+            user_right_when_disagreed: n_disagree_house_user_right,
+            user_acc_on_disagree: n_disagree_house ? n_disagree_house_user_right / n_disagree_house : null,
+        },
+        history: rows,
+    });
 }
 
 async function getScoreboard(env) {
@@ -403,6 +476,11 @@ export default {
             if (url.pathname === '/history'      && req.method === 'GET')   {
                 const limit = url.searchParams.get('limit');
                 return getHistory(env, limit);
+            }
+            // /me/<user_id>  —  personal vote history + accuracy
+            if (url.pathname.startsWith('/me/')   && req.method === 'GET')   {
+                const uid = url.pathname.slice(4);
+                return getMe(env, uid);
             }
             if (url.pathname === '/health'       && req.method === 'GET')   return text('ok');
             // Manual cron triggers for testing — admin only

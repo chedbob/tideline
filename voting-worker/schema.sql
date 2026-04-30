@@ -7,11 +7,19 @@ CREATE TABLE IF NOT EXISTS polls (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     week_start TEXT NOT NULL UNIQUE,         -- e.g. "2026-04-27" (Monday)
     week_end TEXT NOT NULL,                  -- "2026-05-01" (Friday)
-    question TEXT NOT NULL,                  -- "Will SPY close higher this Friday than Monday's close?"
+    question TEXT NOT NULL,
     spy_open REAL,                           -- SPY close on week_start (the reference)
-    tideline_call TEXT NOT NULL,             -- 'UP' | 'DOWN' | 'NEUTRAL'
-    tideline_basis TEXT,                     -- e.g. "Faber GREEN — both 50DMA and 200DMA bullish"
-    tideline_confidence REAL NOT NULL,       -- 0.0–1.0; for Brier scoring
+    -- House prior: probability vector for the 3-way poll target.
+    -- Derived from empirical Mon-open-to-Fri-close frequencies in 1997-2026,
+    -- conditioned on Faber state at week start, shrunk toward unconditional
+    -- base rate. NOT a confidence claim — it's posted odds.
+    faber_state TEXT NOT NULL,               -- 'GREEN' | 'NEUTRAL' | 'CAUTION' at week start
+    prior_up REAL NOT NULL,
+    prior_flat REAL NOT NULL,
+    prior_down REAL NOT NULL,
+    tideline_basis TEXT,                     -- explanatory text for UI
+    -- Modal call (highest-probability bucket) for headline display:
+    tideline_call TEXT NOT NULL,             -- 'UP' | 'DOWN' | 'NEUTRAL'/'FLAT'
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     -- resolution fields (filled Friday after close)
     resolved_at TEXT,

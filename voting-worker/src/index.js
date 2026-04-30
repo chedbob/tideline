@@ -77,37 +77,46 @@ async function fetchTidelineState(env) {
     return await r.json();
 }
 
-function tidelineCallFromState(data) {
-    // Use Faber zone signal as the directional call. Fall back to crowd-bias
-    // baseline only if regime is degraded.
+// ----------------------------------------------------------------------
+// House priors (empirical, frozen at compute_house_priors.py run)
+// Source: 1,489 weeks of SPY 1997-10-15 to 2026-04-30, Mon-open to Fri-close
+// 3-way bucket with ±0.25% FLAT band. Conditional on Faber state at week
+// start, shrunk toward unconditional base rate (Beta-binomial-style, n=200).
+// These are POSTED ODDS, not a confidence claim.
+// ----------------------------------------------------------------------
+const HOUSE_PRIORS = {
+    GREEN:   { UP: 0.5046, FLAT: 0.1162, DOWN: 0.3791, n: 1007 },
+    NEUTRAL: { UP: 0.5158, FLAT: 0.1138, DOWN: 0.3704, n: 164  },
+    CAUTION: { UP: 0.4938, FLAT: 0.0796, DOWN: 0.4266, n: 318  },
+};
+const PRIOR_PROVENANCE = '1,489 weeks 1997-2026, conditional on Faber state, shrunk to base rate';
+
+function tidelinePriorFromState(data) {
     const regime = data?.regime;
     if (!regime || regime.error) {
-        return { call: 'NEUTRAL', confidence: 0.5, basis: 'data_unavailable' };
+        return {
+            faber_state: 'UNKNOWN',
+            prior: { UP: 0.504, FLAT: 0.107, DOWN: 0.389 },
+            call: 'UP',
+            basis: 'Data unavailable; using unconditional base rate.',
+        };
     }
     const z0 = regime.zones?.trend_signal;
     const state = z0?.state || 'NEUTRAL';
     const evidence = z0?.evidence || {};
-    if (state === 'GREEN') {
-        // Both 50DMA and 200DMA bullish — historical UP-rate ~65.6%
-        return {
-            call: 'UP',
-            confidence: 0.66,
-            basis: `Faber GREEN — SPY ${evidence.spy_close} above 200DMA ${evidence.ma_200}, 50DMA also above 200DMA`,
-        };
-    }
-    if (state === 'CAUTION') {
-        // Both bearish — historical DOWN-rate ~46% (vs 37% baseline)
-        return {
-            call: 'DOWN',
-            confidence: 0.55,
-            basis: `Faber CAUTION — SPY ${evidence.spy_close} below 200DMA ${evidence.ma_200}, 50DMA below 200DMA`,
-        };
-    }
-    // Mixed — confidence-weighted neutral, but lean UP per unconditional baseline
+    const prior = HOUSE_PRIORS[state] || HOUSE_PRIORS.NEUTRAL;
+    // Modal call — highest probability bucket
+    const order = ['UP', 'FLAT', 'DOWN'];
+    const call = order.reduce((a, b) => (prior[a] >= prior[b] ? a : b));
+    const stateBlurb =
+        state === 'GREEN'   ? `Trend filter is GREEN — SPY ${evidence.spy_close} above 200DMA, 50DMA also above 200DMA.`
+      : state === 'CAUTION' ? `Trend filter is CAUTION — SPY ${evidence.spy_close} below 200DMA, 50DMA below 200DMA.`
+      :                       `Trend filter is NEUTRAL — moving averages mixed.`;
     return {
-        call: 'UP',
-        confidence: 0.55,
-        basis: `Faber NEUTRAL — indicators mixed; defaulting to baseline up-rate (~63%)`,
+        faber_state: state,
+        prior: { UP: prior.UP, FLAT: prior.FLAT, DOWN: prior.DOWN },
+        call,
+        basis: `${stateBlurb} House prior: of ${prior.n} similar weeks since 1997, SPY closed UP ${(prior.UP*100).toFixed(0)}%, FLAT ${(prior.FLAT*100).toFixed(0)}%, DOWN ${(prior.DOWN*100).toFixed(0)}%. Posted odds, not a forecast.`,
     };
 }
 
@@ -121,15 +130,19 @@ async function createPollIfMissing(env) {
     if (existing) return { skipped: true, week_start: weekStart };
 
     const data = await fetchTidelineState(env);
-    const { call, confidence, basis } = tidelineCallFromState(data);
+    const { faber_state, prior, call, basis } = tidelinePriorFromState(data);
     const spyOpen = data?.regime?.zones?.trend_signal?.evidence?.spy_close ?? null;
 
-    const question = `Will SPY close higher on Friday ${weekEnd} than today's open ${spyOpen?.toFixed?.(2) || ''}?`;
+    const question = `Where does SPY close on Friday ${weekEnd} relative to today's open ${spyOpen?.toFixed?.(2) || ''}?`;
     await env.DB.prepare(`
-        INSERT INTO polls (week_start, week_end, question, spy_open, tideline_call, tideline_basis, tideline_confidence)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).bind(weekStart, weekEnd, question, spyOpen, call, basis, confidence).run();
-    return { created: true, week_start: weekStart, tideline_call: call };
+        INSERT INTO polls (week_start, week_end, question, spy_open, faber_state,
+                           prior_up, prior_flat, prior_down, tideline_basis, tideline_call)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+        weekStart, weekEnd, question, spyOpen, faber_state,
+        prior.UP, prior.FLAT, prior.DOWN, basis, call
+    ).run();
+    return { created: true, week_start: weekStart, faber_state, prior };
 }
 
 async function resolveOpenPolls(env) {
@@ -173,22 +186,27 @@ async function resolveOpenPolls(env) {
         }
         const crowdCorrect = crowdMajority ? (crowdMajority === outcome ? 1 : 0) : null;
 
-        // Brier scoring (3-way)
+        // Brier scoring (3-way) — house prior is a real probability vector now
         const oneHot = (k) => (k === outcome ? 1 : 0);
-        const tidelineProb = {
-            UP: poll.tideline_call === 'UP' ? poll.tideline_confidence : (1 - poll.tideline_confidence) / 2,
-            DOWN: poll.tideline_call === 'DOWN' ? poll.tideline_confidence : (1 - poll.tideline_confidence) / 2,
-            NEUTRAL: poll.tideline_call === 'NEUTRAL' ? poll.tideline_confidence : (1 - poll.tideline_confidence) / 2,
-        };
+        // Prior buckets from D1: prior_up / prior_flat / prior_down
+        // The poll's outcome and the vote bucket use 'NEUTRAL' (legacy enum value
+        // in vote check constraint). We treat NEUTRAL == FLAT here.
+        const priorOutcomeKey = outcome === 'NEUTRAL' ? 'FLAT' : outcome;
         const tidelineBrier =
-            ['UP', 'DOWN', 'NEUTRAL'].reduce((s, k) => s + (tidelineProb[k] - oneHot(k)) ** 2, 0);
+            (poll.prior_up   - (priorOutcomeKey === 'UP'   ? 1 : 0)) ** 2 +
+            (poll.prior_flat - (priorOutcomeKey === 'FLAT' ? 1 : 0)) ** 2 +
+            (poll.prior_down - (priorOutcomeKey === 'DOWN' ? 1 : 0)) ** 2;
 
         let crowdBrier = null;
         if (totalVotes > 0) {
-            crowdBrier = ['UP', 'DOWN', 'NEUTRAL'].reduce(
-                (s, k) => s + (counts[k] / totalVotes - oneHot(k)) ** 2,
-                0
-            );
+            // counts uses keys 'UP', 'DOWN', 'NEUTRAL'; map NEUTRAL to FLAT semantics
+            const cUp = counts.UP / totalVotes;
+            const cFlat = counts.NEUTRAL / totalVotes;
+            const cDown = counts.DOWN / totalVotes;
+            crowdBrier =
+                (cUp   - (priorOutcomeKey === 'UP'   ? 1 : 0)) ** 2 +
+                (cFlat - (priorOutcomeKey === 'FLAT' ? 1 : 0)) ** 2 +
+                (cDown - (priorOutcomeKey === 'DOWN' ? 1 : 0)) ** 2;
         }
 
         await env.DB.prepare(`
@@ -249,9 +267,15 @@ async function getCurrent(env) {
         week_start: poll.week_start,
         week_end: poll.week_end,
         question: poll.question,
-        tideline_call: poll.tideline_call,
-        tideline_confidence: poll.tideline_confidence,
-        tideline_basis: poll.tideline_basis,
+        faber_state: poll.faber_state,
+        // House prior — probability vector for the 3-way target
+        prior: {
+            UP:   poll.prior_up,
+            FLAT: poll.prior_flat,
+            DOWN: poll.prior_down,
+        },
+        modal_call: poll.tideline_call,         // headline display
+        basis: poll.tideline_basis,
         spy_open: poll.spy_open,
         votes: { ...counts, total },
         voting_open: open,
@@ -306,6 +330,16 @@ async function getScoreboard(env) {
           FROM polls
          WHERE outcome IS NOT NULL
     `).first();
+    // Disagreement subset — where the crowd's modal vote differs from house prior's modal call
+    const dis = await env.DB.prepare(`
+        SELECT COUNT(*) AS n_dis,
+               SUM(CASE WHEN tideline_correct = 1 THEN 1 ELSE 0 END) AS t_hits_dis,
+               SUM(CASE WHEN crowd_correct    = 1 THEN 1 ELSE 0 END) AS c_hits_dis
+          FROM polls
+         WHERE outcome IS NOT NULL
+           AND crowd_majority IS NOT NULL
+           AND tideline_call != crowd_majority
+    `).first();
     const recent = await env.DB.prepare(`
         SELECT week_start, week_end, tideline_call, outcome, tideline_correct, crowd_majority, crowd_correct
           FROM polls
@@ -327,6 +361,13 @@ async function getScoreboard(env) {
             hits: rs.c_hits || 0,
             accuracy: rs.c_n ? (rs.c_hits || 0) / rs.c_n : null,
             avg_brier: rs.c_brier ?? null,
+        },
+        disagreement: {
+            n: dis.n_dis || 0,
+            house_hits: dis.t_hits_dis || 0,
+            crowd_hits: dis.c_hits_dis || 0,
+            house_acc: dis.n_dis ? (dis.t_hits_dis || 0) / dis.n_dis : null,
+            crowd_acc: dis.n_dis ? (dis.c_hits_dis || 0) / dis.n_dis : null,
         },
         recent: recent.results || [],
     });

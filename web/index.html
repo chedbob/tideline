@@ -269,14 +269,24 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                <!-- Tideline call -->
+                <!-- House Prior (mechanical, posted odds) -->
                 <div class="rounded-xl p-4" style="background: rgba(34, 211, 238, 0.04); border: 1px solid rgba(34, 211, 238, 0.25);">
-                    <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--cyan-bright);">Tideline calls</div>
-                    <div class="flex items-baseline gap-3 mb-2">
-                        <span id="poll-tideline-call" class="text-3xl font-bold mono">—</span>
-                        <span id="poll-tideline-conf" class="text-sm" style="color: var(--muted);">—</span>
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-xs uppercase tracking-widest" style="color: var(--cyan-bright);">House Prior</div>
+                        <span id="prior-faber-state" class="text-[10px] mono uppercase" style="color: var(--muted);">—</span>
                     </div>
-                    <p id="poll-tideline-basis" class="text-xs leading-relaxed" style="color: var(--muted);">Loading rationale…</p>
+                    <!-- 3-bar prior visualization -->
+                    <div class="vote-tally-bar mb-2" style="height: 18px;">
+                        <div id="prior-bar-up"   class="vote-tally-fill tally-up"   style="height:100%; width:0%; float:left;"></div>
+                        <div id="prior-bar-flat" class="vote-tally-fill tally-flat" style="height:100%; width:0%; float:left;"></div>
+                        <div id="prior-bar-down" class="vote-tally-fill tally-down" style="height:100%; width:0%; float:left;"></div>
+                    </div>
+                    <div class="grid grid-cols-3 text-xs mono mb-3" style="color: var(--foam);">
+                        <div>UP <span id="prior-pct-up" class="trend-up">—</span></div>
+                        <div class="text-center">FLAT <span id="prior-pct-flat">—</span></div>
+                        <div class="text-right">DOWN <span id="prior-pct-down" class="trend-down">—</span></div>
+                    </div>
+                    <p id="poll-tideline-basis" class="text-[11px] leading-relaxed" style="color: var(--muted);">Loading…</p>
                 </div>
                 <!-- Vote buttons -->
                 <div>
@@ -314,8 +324,8 @@
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <div class="text-xs uppercase tracking-widest mb-1" style="color: var(--muted);">Scoreboard</div>
-                    <h3 class="text-xl font-semibold">Tideline vs Crowd · Accuracy</h3>
-                    <p class="text-xs mt-1" style="color: var(--muted);">Resolved each Friday after market close · Brier score below ring</p>
+                    <h3 class="text-xl font-semibold">House Prior vs Crowd · Calibration</h3>
+                    <p class="text-xs mt-1" style="color: var(--muted);">House posts mechanical odds from history. Crowd posts a vote. Brier scored each Friday — lower is better calibrated.</p>
                 </div>
                 <span id="scoreboard-n" class="text-xs mono" style="color: var(--muted);">— polls resolved</span>
             </div>
@@ -329,7 +339,7 @@
                         </svg>
                         <div class="ring-center">
                             <div id="tideline-pct" class="ring-pct" style="color: var(--cyan-bright);">—</div>
-                            <div class="ring-label">Tideline</div>
+                            <div class="ring-label">House Prior</div>
                             <div id="tideline-n" class="ring-n">n=—</div>
                         </div>
                     </div>
@@ -355,6 +365,31 @@
                     </div>
                 </div>
             </div>
+            <!-- Disagreement panel — where the narrative lives once both rings cluster -->
+            <div class="mt-6 pt-6 border-t" style="border-color: var(--ocean-border);">
+                <div class="text-xs uppercase tracking-widest mb-3 text-center" style="color: var(--muted);">
+                    When the crowd disagrees with the house
+                </div>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <div id="disagree-n" class="text-2xl font-bold mono">—</div>
+                        <div class="text-[10px] uppercase tracking-wider" style="color: var(--muted);">disagreed weeks</div>
+                    </div>
+                    <div>
+                        <div id="disagree-house-acc" class="text-2xl font-bold mono" style="color: var(--cyan-bright);">—</div>
+                        <div class="text-[10px] uppercase tracking-wider" style="color: var(--muted);">house was right</div>
+                    </div>
+                    <div>
+                        <div id="disagree-crowd-acc" class="text-2xl font-bold mono" style="color: var(--reef);">—</div>
+                        <div class="text-[10px] uppercase tracking-wider" style="color: var(--muted);">crowd was right</div>
+                    </div>
+                </div>
+                <div class="mt-3 text-xs text-center" style="color: var(--muted);">
+                    Disagreement = crowd's modal vote ≠ house prior's modal call. Most weeks they'll agree (both pick UP);
+                    the disagreement bucket is where we learn who actually reads the market better.
+                </div>
+            </div>
+
             <div class="mt-6 text-xs text-center" style="color: var(--muted);">
                 Lower Brier = better calibration. 0.0 = perfect, 0.667 = random three-way guess.
             </div>
@@ -613,10 +648,16 @@ async function loadPoll() {
             return;
         }
         document.getElementById('poll-question').textContent = p.question;
-        document.getElementById('poll-tideline-call').textContent = p.tideline_call;
-        document.getElementById('poll-tideline-conf').textContent =
-            `${(p.tideline_confidence * 100).toFixed(0)}% confidence`;
-        document.getElementById('poll-tideline-basis').textContent = p.tideline_basis || '';
+        // House prior = probability vector (UP/FLAT/DOWN), NOT a confidence claim
+        const pri = p.prior || { UP: 0.5, FLAT: 0.1, DOWN: 0.4 };
+        document.getElementById('prior-faber-state').textContent = `Trend filter: ${p.faber_state || '—'}`;
+        document.getElementById('prior-bar-up').style.width   = (pri.UP   * 100).toFixed(1) + '%';
+        document.getElementById('prior-bar-flat').style.width = (pri.FLAT * 100).toFixed(1) + '%';
+        document.getElementById('prior-bar-down').style.width = (pri.DOWN * 100).toFixed(1) + '%';
+        document.getElementById('prior-pct-up').textContent   = (pri.UP   * 100).toFixed(0) + '%';
+        document.getElementById('prior-pct-flat').textContent = (pri.FLAT * 100).toFixed(0) + '%';
+        document.getElementById('prior-pct-down').textContent = (pri.DOWN * 100).toFixed(0) + '%';
+        document.getElementById('poll-tideline-basis').textContent = p.basis || '';
 
         const total = p.votes.total || 0;
         const up = p.votes.UP, dn = p.votes.DOWN, fl = p.votes.NEUTRAL;
@@ -723,6 +764,14 @@ async function loadScoreboard() {
             s.tideline.avg_brier != null ? s.tideline.avg_brier.toFixed(3) : '—';
         document.getElementById('crowd-brier').textContent =
             s.crowd.avg_brier != null ? s.crowd.avg_brier.toFixed(3) : '—';
+
+        // Disagreement panel
+        const d = s.disagreement || {};
+        document.getElementById('disagree-n').textContent = d.n != null ? d.n : '—';
+        document.getElementById('disagree-house-acc').textContent =
+            d.house_acc != null ? (d.house_acc * 100).toFixed(0) + '%' : '—';
+        document.getElementById('disagree-crowd-acc').textContent =
+            d.crowd_acc != null ? (d.crowd_acc * 100).toFixed(0) + '%' : '—';
     } catch (e) {
         console.error(e);
     }

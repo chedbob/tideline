@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tideline · Proto 7 · Bento</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #F2E5C2;
+    --paper: #FAF3E0;
+    --ink: #1A1410;
+    --ink-soft: #6B5C4A;
+    --water-shallow: #88C8D0;
+    --water-mid: #4A8B96;
+    --water-deep: #1F3F4F;
+    --sand: #DCC089;
+    --sand-warm: #C9A674;
+    --wood: #8B6F47;
+    --good: #2F8B59;
+    --warn: #D49E5C;
+    --bad: #B85544;
+    --line: rgba(26, 20, 16, 0.10);
+}
+* { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+html, body { background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+/* Subtle paper texture */
+body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+    background-image:
+        radial-gradient(at 10% 0%, rgba(245, 222, 179, 0.4) 0%, transparent 40%),
+        radial-gradient(at 90% 100%, rgba(136, 200, 208, 0.25) 0%, transparent 40%);
+}
+
+.page { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+/* Header */
+.header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; margin-bottom: 24px;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
+}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; }
+.brand-mark { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, var(--water-shallow), var(--water-deep)); }
+.live-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 999px; font-size: 11px; color: var(--ink-soft);
+    background: rgba(47, 139, 89, 0.10); border: 1px solid rgba(47, 139, 89, 0.2);
+}
+.live-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* Bento grid */
+.bento {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: 140px;
+    gap: 16px;
+}
+@media (max-width: 900px) { .bento { grid-template-columns: repeat(2, 1fr); } }
+
+.tile {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(.2,.7,.2,1), box-shadow 0.3s;
+    animation: rise 0.5s cubic-bezier(.2,.7,.2,1) both;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.tile:nth-child(2) { animation-delay: 60ms; }
+.tile:nth-child(3) { animation-delay: 120ms; }
+.tile:nth-child(4) { animation-delay: 180ms; }
+.tile:nth-child(5) { animation-delay: 240ms; }
+.tile:nth-child(6) { animation-delay: 300ms; }
+.tile:nth-child(7) { animation-delay: 360ms; }
+.tile:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(31, 63, 79, 0.12); }
+
+/* Hero tile — score */
+.tile-hero {
+    grid-column: span 4;
+    grid-row: span 3;
+    background:
+        radial-gradient(at 100% 100%, rgba(136, 200, 208, 0.30) 0%, transparent 60%),
+        linear-gradient(135deg, var(--paper) 0%, var(--sand) 100%);
+    padding: 32px;
+    display: flex; flex-direction: column; justify-content: space-between;
+}
+.tile-hero .meta { font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink-soft); }
+.tile-hero .score-block {
+    display: flex; align-items: baseline; gap: 16px;
+}
+.tile-hero .score {
+    font-size: clamp(120px, 16vw, 200px);
+    font-weight: 800; letter-spacing: -0.05em; line-height: 0.85;
+    background: linear-gradient(180deg, var(--ink) 0%, var(--water-mid) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.tile-hero .narrative { font-size: 22px; font-weight: 500; max-width: 520px; line-height: 1.35; margin-top: 12px; }
+
+.arrow-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 999px;
+    background: rgba(47, 139, 89, 0.15); color: #1F6A47;
+    font-weight: 600; font-size: 14px;
+    border: 1px solid rgba(47, 139, 89, 0.3);
+}
+
+/* Stat tiles */
+.tile-stat .label { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px; }
+.tile-stat .value { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }
+.tile-stat .sub { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+.tile-stat .delta { font-size: 12px; font-weight: 600; margin-top: 6px; }
+.delta.up { color: var(--good); }
+.delta.down { color: var(--bad); }
+
+.tile-trend { grid-column: span 2; }
+.tile-faber { grid-column: span 2; background: linear-gradient(135deg, rgba(47, 139, 89, 0.08) 0%, var(--paper) 100%); }
+.tile-vol { grid-column: span 2; }
+.tile-credit { grid-column: span 2; }
+.tile-spark { grid-column: span 2; grid-row: span 2; padding: 20px; display: flex; flex-direction: column; }
+.tile-spark .label { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 4px; }
+.tile-spark .title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+.tile-spark svg { flex: 1; width: 100%; }
+
+.tile-transitions { grid-column: span 4; padding: 20px 24px; }
+.tile-transitions h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.tile-transitions h3 small { font-size: 11px; color: var(--ink-soft); font-weight: 500; }
+.transitions-list { display: flex; gap: 0; align-items: stretch; height: 80px; }
+.tx-segment {
+    flex: 1; position: relative; cursor: pointer;
+    transition: flex 0.3s ease;
+}
+.tx-segment:hover { flex: 1.5; }
+.tx-segment.green { background: rgba(47, 139, 89, 0.20); }
+.tx-segment.normal { background: rgba(74, 139, 150, 0.20); }
+.tx-segment.elevated { background: rgba(212, 158, 92, 0.30); }
+.tx-segment.stress { background: rgba(184, 85, 68, 0.30); }
+.tx-segment:first-child { border-radius: 8px 0 0 8px; }
+.tx-segment:last-child { border-radius: 0 8px 8px 0; }
+.tx-segment .label-tx {
+    position: absolute; bottom: -22px; left: 0;
+    font-size: 10px; color: var(--ink-soft); font-family: 'JetBrains Mono', monospace;
+    opacity: 0; transition: opacity 0.2s;
+}
+.tx-segment:hover .label-tx { opacity: 1; }
+
+.proto-label {
+    position: fixed; top: 20px; left: 20px; background: var(--ink); color: var(--paper);
+    padding: 6px 12px; border-radius: 999px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    z-index: 99; font-weight: 600;
+}
+.back-link { position: fixed; top: 20px; right: 20px; color: var(--ink-soft); font-size: 12px; text-decoration: none; z-index: 99; padding: 6px 12px; background: var(--paper); border-radius: 999px; border: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="proto-label">Proto 7 · Bento</div>
+<a href="./index.html" class="back-link">← all 10</a>
+
+<div class="page">
+    <div class="header">
+        <div class="brand">
+            <div class="brand-mark"></div>
+            <span>Tideline</span>
+        </div>
+        <div class="live-pill"><span class="dot"></span> Live · 2m ago</div>
+    </div>
+
+    <div class="bento">
+        <!-- HERO -->
+        <div class="tile tile-hero">
+            <div class="meta">▲ Tide Score · Apr 30, 2026</div>
+            <div>
+                <div class="score-block">
+                    <div class="score">72</div>
+                    <div>
+                        <div class="arrow-pill">▲ +4 this week</div>
+                    </div>
+                </div>
+                <div class="narrative">The tide is rising. Risk-on conditions firming up across the board.</div>
+            </div>
+        </div>
+
+        <!-- FABER -->
+        <div class="tile tile-stat tile-faber">
+            <div class="label">Trend Signal</div>
+            <div class="value" style="color: var(--good);">GREEN</div>
+            <div class="sub">SPY +6.3% above 200DMA</div>
+            <div class="delta up">▲ persistent</div>
+        </div>
+
+        <!-- TREND VEL -->
+        <div class="tile tile-stat tile-trend">
+            <div class="label">Tide Velocity</div>
+            <div class="value">+4.2 <small style="font-size: 14px; color: var(--ink-soft);">/ wk</small></div>
+            <div class="sub">3mo avg: +1.8</div>
+        </div>
+
+        <!-- VOL -->
+        <div class="tile tile-stat tile-vol">
+            <div class="label">VIX</div>
+            <div class="value">18.0</div>
+            <div class="sub">5y pct: 51%</div>
+            <div class="delta up" style="color: var(--good);">▼ −1.2 today</div>
+        </div>
+
+        <!-- CREDIT -->
+        <div class="tile tile-stat tile-credit">
+            <div class="label">Credit Spread</div>
+            <div class="value">1.70%</div>
+            <div class="sub">5y pct: 30% · tight</div>
+            <div class="delta up">stable</div>
+        </div>
+
+        <!-- SPARK -->
+        <div class="tile tile-spark">
+            <div class="label">90-Day Tide</div>
+            <div class="title">Trending higher</div>
+            <svg viewBox="0 0 200 80" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="g7" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#88C8D0" stop-opacity="0.6"/>
+                        <stop offset="100%" stop-color="#88C8D0" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <path d="M0,55 Q20,52 35,48 T70,42 T105,40 T140,32 T175,28 T200,20 L200,80 L0,80 Z" fill="url(#g7)"/>
+                <path d="M0,55 Q20,52 35,48 T70,42 T105,40 T140,32 T175,28 T200,20" fill="none" stroke="#4A8B96" stroke-width="2"/>
+            </svg>
+        </div>
+
+        <!-- TRANSITIONS -->
+        <div class="tile tile-transitions">
+            <h3>State Map · Last 90 Days <small>hover to inspect</small></h3>
+            <div class="transitions-list">
+                <div class="tx-segment normal" style="flex: 2;"><span class="label-tx">NORMAL · 22d</span></div>
+                <div class="tx-segment elevated" style="flex: 1;"><span class="label-tx">ELEVATED · 8d</span></div>
+                <div class="tx-segment stress" style="flex: 0.5;"><span class="label-tx">STRESS · 3d</span></div>
+                <div class="tx-segment elevated" style="flex: 1;"><span class="label-tx">ELEVATED · 9d</span></div>
+                <div class="tx-segment normal" style="flex: 1.5;"><span class="label-tx">NORMAL · 13d</span></div>
+                <div class="tx-segment green" style="flex: 4;"><span class="label-tx">EASY · 35d</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tideline · Proto 6 · Liquid Glass</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+    --sky-1: #FAF3E0;
+    --sky-2: #F5DEB3;
+    --water-shallow: #88C8D0;
+    --water-mid: #4A8B96;
+    --water-deep: #1F3F4F;
+    --sand: #E0C68A;
+    --sand-warm: #C9A674;
+    --sand-deep: #8B6F47;
+    --ink: #1A1410;
+    --ink-soft: #6B5C4A;
+    --glass-tint: 245, 233, 203;
+}
+* { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+html, body { background: var(--sky-1); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
+
+/* Ambient gradient backdrop — vibrant beach scene */
+.backdrop {
+    position: fixed; inset: 0; z-index: -2;
+    background:
+        radial-gradient(at 20% 10%, var(--sky-2) 0%, transparent 50%),
+        radial-gradient(at 80% 25%, rgba(255, 200, 130, 0.4) 0%, transparent 55%),
+        radial-gradient(at 50% 70%, var(--water-shallow) 0%, transparent 60%),
+        radial-gradient(at 75% 90%, var(--sand) 0%, transparent 50%),
+        linear-gradient(180deg, var(--sky-1) 0%, var(--sand) 100%);
+}
+/* Subtle noise overlay for premium grain */
+.backdrop::after {
+    content: ''; position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+    opacity: 0.06; mix-blend-mode: overlay; pointer-events: none;
+}
+
+/* Distant orbs that drift */
+.orb {
+    position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none;
+    z-index: -1; animation: drift 30s ease-in-out infinite;
+}
+.orb-1 { top: -10%; left: -5%; width: 500px; height: 500px; background: rgba(136, 200, 208, 0.55); }
+.orb-2 { bottom: -10%; right: -5%; width: 600px; height: 600px; background: rgba(245, 222, 179, 0.6); animation-delay: -15s; }
+.orb-3 { top: 40%; right: 15%; width: 350px; height: 350px; background: rgba(74, 139, 150, 0.4); animation-delay: -8s; }
+@keyframes drift {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(30px, -40px) scale(1.05); }
+}
+
+/* Glass primitives */
+.glass {
+    background: rgba(var(--glass-tint), 0.45);
+    backdrop-filter: blur(28px) saturate(1.4);
+    -webkit-backdrop-filter: blur(28px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        0 20px 60px rgba(31, 63, 79, 0.10),
+        0 4px 12px rgba(31, 63, 79, 0.06);
+}
+
+/* Page layout */
+.page { max-width: 1280px; margin: 0 auto; padding: 32px; min-height: 100vh; }
+
+/* Header */
+.header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; border-radius: 999px;
+    margin-bottom: 32px;
+}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.brand-mark {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--water-shallow), var(--sand), var(--water-shallow));
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
+}
+.cmd-hint {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 8px;
+    background: rgba(255,255,255,0.5);
+    font-size: 12px; color: var(--ink-soft);
+    border: 1px solid rgba(255,255,255,0.6);
+}
+.kbd { padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.06); font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+
+/* Hero glass card */
+.hero {
+    border-radius: 32px;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+    animation: rise 0.8s cubic-bezier(.2,.7,.2,1) both;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+.hero-meta {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--ink-soft); margin-bottom: 24px;
+}
+.hero-meta .pulse { width: 6px; height: 6px; border-radius: 50%; background: #2F8B59; box-shadow: 0 0 0 0 rgba(47, 139, 89, 0.5); animation: pulse 2s infinite; }
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(47, 139, 89, 0.5); }
+    70% { box-shadow: 0 0 0 10px rgba(47, 139, 89, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(47, 139, 89, 0); }
+}
+
+.score-row { display: flex; align-items: baseline; gap: 16px; }
+.score {
+    font-size: clamp(120px, 18vw, 220px);
+    font-weight: 800; letter-spacing: -0.05em; line-height: 0.85;
+    background: linear-gradient(180deg, var(--ink) 0%, var(--water-mid) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.score-arrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 999px;
+    background: rgba(47, 139, 89, 0.15);
+    color: #1F6A47; font-weight: 600; font-size: 14px;
+    border: 1px solid rgba(47, 139, 89, 0.25);
+}
+.narrative {
+    font-size: 26px; font-weight: 500; max-width: 720px;
+    margin-top: 16px; line-height: 1.35; color: var(--ink);
+}
+
+/* Floating glass chips below score */
+.chips { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+.chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    font-size: 13px; font-weight: 500;
+    backdrop-filter: blur(12px);
+    transition: transform 0.3s cubic-bezier(.2,.7,.2,1);
+}
+.chip:hover { transform: translateY(-2px); }
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+/* Bento side cards under hero */
+.bento {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+}
+@media (max-width: 768px) { .bento { grid-template-columns: 1fr; } }
+.tile {
+    border-radius: 24px;
+    padding: 24px;
+    transition: transform 0.4s cubic-bezier(.2,.7,.2,1);
+}
+.tile:hover { transform: translateY(-4px); }
+.tile-label { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 12px; }
+.tile-value { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }
+.tile-sub { font-size: 13px; color: var(--ink-soft); margin-top: 6px; }
+
+/* Tide indicator: subtle rising/falling animation */
+.tide-vis {
+    position: relative; height: 60px; margin-top: 16px;
+    border-radius: 12px; overflow: hidden;
+    background: linear-gradient(180deg, transparent 0%, rgba(136, 200, 208, 0.2) 100%);
+}
+.tide-vis::after {
+    content: ''; position: absolute; left: -50%; right: -50%; bottom: 0; height: 80%;
+    background: linear-gradient(180deg, var(--water-shallow) 0%, var(--water-mid) 100%);
+    border-radius: 50% 50% 0 0 / 8% 8% 0 0;
+    animation: tide 6s ease-in-out infinite;
+    opacity: 0.6;
+}
+@keyframes tide { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+.proto-label {
+    position: fixed; top: 20px; left: 20px; background: var(--ink); color: var(--sky-1);
+    padding: 6px 12px; border-radius: 999px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    z-index: 99; font-weight: 600;
+}
+.back-link { position: fixed; top: 20px; right: 20px; color: var(--ink-soft); font-size: 12px; text-decoration: none; z-index: 99; padding: 6px 12px; background: rgba(255,255,255,0.5); border-radius: 999px; backdrop-filter: blur(10px); }
+</style>
+</head>
+<body>
+<div class="proto-label">Proto 6 · Liquid Glass</div>
+<a href="./index.html" class="back-link">← all 10</a>
+
+<div class="backdrop"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="page">
+    <div class="header glass">
+        <div class="brand">
+            <div class="brand-mark"></div>
+            <span>Tideline</span>
+        </div>
+        <div class="cmd-hint">
+            <span>Search markets, regimes</span>
+            <span class="kbd">⌘ K</span>
+        </div>
+    </div>
+
+    <div class="hero glass">
+        <div class="hero-meta">
+            <span class="pulse"></span>
+            Live · Tide Score · Updated 2m ago
+        </div>
+        <div class="score-row">
+            <div class="score">72</div>
+            <span class="score-arrow">▲ Rising · +4</span>
+        </div>
+        <div class="narrative">The tide is rising. Risk-on conditions firming up across the board.</div>
+        <div class="chips">
+            <span class="chip"><span class="dot" style="background: #2F8B59"></span> Trend · GREEN</span>
+            <span class="chip"><span class="dot" style="background: #4A8B96"></span> Regime · NORMAL</span>
+            <span class="chip"><span class="dot" style="background: #B89968"></span> 11 days in state</span>
+            <span class="chip"><span class="dot" style="background: #C46B5C"></span> 3 transitions this month</span>
+        </div>
+    </div>
+
+    <div class="bento">
+        <div class="tile glass">
+            <div class="tile-label">Tide Velocity</div>
+            <div class="tile-value">+4.2/wk</div>
+            <div class="tile-sub">Rising at 3-month average pace</div>
+            <div class="tide-vis"></div>
+        </div>
+        <div class="tile glass">
+            <div class="tile-label">Faber Trend</div>
+            <div class="tile-value">GREEN</div>
+            <div class="tile-sub">SPY +6.3% above 200DMA</div>
+        </div>
+        <div class="tile glass">
+            <div class="tile-label">Last Transition</div>
+            <div class="tile-value">14d ago</div>
+            <div class="tile-sub">ELEVATED → NORMAL · Apr 14</div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

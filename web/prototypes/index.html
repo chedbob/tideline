@@ -3,82 +3,161 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tideline · Prototypes</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-:root { --bg: #FAF3E0; --ink: #2A2520; --muted: #7A6242; --accent: #4A8B96; --line: rgba(42, 37, 32, 0.12); }
-* { font-family: 'Inter', sans-serif; box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); margin: 0; min-height: 100vh; padding: 60px 32px; }
-.wrap { max-width: 920px; margin: 0 auto; }
-h1 { font-size: 36px; font-weight: 700; margin: 0 0 8px; }
-.intro { font-size: 16px; color: var(--muted); margin-bottom: 40px; max-width: 640px; line-height: 1.6; }
-.grid { display: grid; gap: 16px; }
+:root { --bg: #FAF3E0; --paper: #FFFFFF; --ink: #1A1410; --muted: #6B5C4A; --accent: #2F6E80; --water: #88C8D0; --sand: #DCC089; --line: rgba(26, 20, 16, 0.10); }
+* { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+body { background: var(--bg); color: var(--ink); min-height: 100vh; padding: 60px 24px; }
+.wrap { max-width: 1100px; margin: 0 auto; }
+.header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 8px; }
+h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; }
+.subtitle { font-size: 13px; color: var(--muted); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; }
+.intro { font-size: 16px; color: var(--muted); margin-bottom: 32px; max-width: 720px; line-height: 1.6; }
+
+.section-title {
+    font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted);
+    margin: 40px 0 16px; padding-top: 24px; border-top: 1px solid var(--line);
+}
+
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); }
 .card {
-    display: flex; align-items: center; gap: 24px;
-    padding: 24px; background: white;
+    display: flex; align-items: stretch; gap: 0;
+    background: var(--paper);
     border: 1px solid var(--line); border-radius: 16px;
     text-decoration: none; color: var(--ink);
-    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+    transition: transform 0.25s cubic-bezier(.2,.7,.2,1), border-color 0.2s, box-shadow 0.25s;
 }
-.card:hover { transform: translateX(4px); border-color: var(--accent); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
-.num { font-size: 48px; font-weight: 800; color: var(--accent); flex-shrink: 0; line-height: 1; }
-.title { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
-.desc { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.5; }
-.arrow { margin-left: auto; font-size: 22px; color: var(--muted); }
+.card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 12px 32px rgba(31, 63, 79, 0.10); }
+.card-num {
+    flex-shrink: 0;
+    width: 64px;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 800; color: var(--accent);
+    border-right: 1px solid var(--line);
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.02em;
+}
+.card-body { padding: 16px 20px; flex: 1; }
+.card-title { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+.card-tag {
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px;
+    font-family: 'JetBrains Mono', monospace;
+}
+.card-desc { font-size: 13px; color: var(--muted); line-height: 1.45; }
+
+.legend {
+    margin-top: 56px; padding: 24px;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
+    font-size: 13px; color: var(--muted); line-height: 1.7;
+}
+.legend strong { color: var(--ink); }
 </style>
 </head>
 <body>
 <div class="wrap">
-    <h1>Tideline · 5 Hero Prototypes</h1>
+    <div class="header">
+        <h1>Tideline · 10 hero prototypes</h1>
+        <div class="subtitle">Pick one · Sand · Water · Beach palette</div>
+    </div>
     <p class="intro">
-        Different visual directions for the dashboard hero. Each shows the same data (Tide Score 72, GREEN/NORMAL, rising) so you can compare apples-to-apples. Pick the one that resonates and we'll build out the full UI in that direction.
+        Two batches. Round one (1–5) explored conceptual directions. Round two (6–10) is 2026-native: glassmorphism, ambient AI, bento grids, spatial parallax, editorial typography.
+        All preserve the sand/water palette. Each shows the same data (Tide Score 72, GREEN, NORMAL, rising) for direct comparison.
     </p>
 
+    <div class="section-title">Round 2 — 2026 design language</div>
     <div class="grid">
-        <a class="card" href="./proto1-crosssection.html">
-            <div class="num">1</div>
-            <div>
-                <div class="title">Cross-Section</div>
-                <p class="desc">Side-view beach scene. Water rises and falls with the score. Score floats on the water surface. Most literal interpretation of the tide metaphor.</p>
+        <a class="card" href="./proto6-liquidglass.html">
+            <div class="card-num">6</div>
+            <div class="card-body">
+                <div class="card-tag">Glassmorphism · Ambient orbs · Bento</div>
+                <div class="card-title">Liquid Glass Beach</div>
+                <div class="card-desc">Frosted glass cards over a vibrant beach gradient. Drifting orbs, command palette hint, micro-stats grid below.</div>
             </div>
-            <span class="arrow">→</span>
         </a>
-        <a class="card" href="./proto2-sandbox.html">
-            <div class="num">2</div>
-            <div>
-                <div class="title">Sandbox Topdown</div>
-                <p class="desc">Bird's-eye sandbox. Wet sand patch grows with the score. Direct visual reference to your @StockSandbox brand. Wood frame, sand grain texture, tiny shovel.</p>
+        <a class="card" href="./proto7-bento.html">
+            <div class="card-num">7</div>
+            <div class="card-body">
+                <div class="card-tag">Modular bento · Tile choreography</div>
+                <div class="card-title">Bento Dashboard</div>
+                <div class="card-desc">Modern modular grid. Hero score tile + stat tiles + sparkline + 90-day state map. Cards lift on hover with staggered entrance.</div>
             </div>
-            <span class="arrow">→</span>
         </a>
-        <a class="card" href="./proto3-gauge.html">
-            <div class="num">3</div>
-            <div>
-                <div class="title">Gauge / Beaker</div>
-                <p class="desc">Vertical glass filling with water. Tick marks at 25/50/75/100. Cleanest, most minimal. Matches a tide-gauge instrument feel.</p>
+        <a class="card" href="./proto8-ambient.html">
+            <div class="card-num">8</div>
+            <div class="card-body">
+                <div class="card-tag">Calm UI · AI insight · ⌘K</div>
+                <div class="card-title">Ambient Companion</div>
+                <div class="card-desc">Disappearing UI. Big breathing halo, light typography, command bar, AI insight surfaces from below. Most calm, most intelligent.</div>
             </div>
-            <span class="arrow">→</span>
         </a>
-        <a class="card" href="./proto4-retro.html">
-            <div class="num">4</div>
-            <div>
-                <div class="title">Coastal Retro</div>
-                <p class="desc">70s travel-poster vibe. Stacked horizon (sky, sea, sand), big sun, serif display type, drop-shadow. Most playful and brand-forward.</p>
+        <a class="card" href="./proto9-spatial.html">
+            <div class="card-num">9</div>
+            <div class="card-body">
+                <div class="card-tag">3D depth · Mouse parallax</div>
+                <div class="card-title">Spatial Parallax</div>
+                <div class="card-desc">Layered scene with explicit Z-depth. Move your mouse — sky/sun/water/sand drift independently. Most immersive.</div>
             </div>
-            <span class="arrow">→</span>
         </a>
-        <a class="card" href="./proto5-dial.html">
-            <div class="num">5</div>
-            <div>
-                <div class="title">Tide Dial</div>
-                <p class="desc">Round analog tide clock. Needle points to current score. Sand bottom half, water top half. Reference to coastal tide instruments.</p>
+        <a class="card" href="./proto10-editorial.html">
+            <div class="card-num">10</div>
+            <div class="card-body">
+                <div class="card-tag">Magazine type · Pull quotes · Stripe Press</div>
+                <div class="card-title">Editorial</div>
+                <div class="card-desc">Premium magazine layout. Serif display, masthead, pull quotes, stat columns, embedded tide chart. Most "publication" feel.</div>
             </div>
-            <span class="arrow">→</span>
         </a>
     </div>
 
-    <div style="margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted);">
-        Once you pick one, I'll build out the full dashboard (poll/scoreboard/components/methodology) in that direction with all functionality wired.
+    <div class="section-title">Round 1 — Conceptual directions</div>
+    <div class="grid">
+        <a class="card" href="./proto1-crosssection.html">
+            <div class="card-num">1</div>
+            <div class="card-body">
+                <div class="card-tag">Side-view · Animated</div>
+                <div class="card-title">Cross-Section</div>
+                <div class="card-desc">Beach scene. Water rises with score, score floats on the surface. Most literal tide metaphor.</div>
+            </div>
+        </a>
+        <a class="card" href="./proto2-sandbox.html">
+            <div class="card-num">2</div>
+            <div class="card-body">
+                <div class="card-tag">Top-down · Brand-cohesive</div>
+                <div class="card-title">Sandbox Topdown</div>
+                <div class="card-desc">Bird's eye sandbox. Wet patch grows with score. Direct nod to your @StockSandbox brand.</div>
+            </div>
+        </a>
+        <a class="card" href="./proto3-gauge.html">
+            <div class="card-num">3</div>
+            <div class="card-body">
+                <div class="card-tag">Minimal · Instrument</div>
+                <div class="card-title">Gauge / Beaker</div>
+                <div class="card-desc">Vertical glass filling. Clean minimal. Tide-gauge instrument feel.</div>
+            </div>
+        </a>
+        <a class="card" href="./proto4-retro.html">
+            <div class="card-num">4</div>
+            <div class="card-body">
+                <div class="card-tag">Travel poster · Serif display</div>
+                <div class="card-title">Coastal Retro</div>
+                <div class="card-desc">70s travel-poster aesthetic. Big sun, stacked horizons, drop shadow. Most playful.</div>
+            </div>
+        </a>
+        <a class="card" href="./proto5-dial.html">
+            <div class="card-num">5</div>
+            <div class="card-body">
+                <div class="card-tag">Round dial · Coastal clock</div>
+                <div class="card-title">Tide Dial</div>
+                <div class="card-desc">Analog tide clock. Needle points to score. Reference to coastal-town tide instruments.</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="legend">
+        <strong>How to use this:</strong> open each, scroll, hover. They're hero-only — the rest of the page (poll, components, decision log) will inherit the chosen visual language. Pick one and tell me, or mix-and-match (e.g. "hero from #6, color treatment from #10"). I'll Frankenstein it.
     </div>
 </div>
 </body>

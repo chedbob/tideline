@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tideline · Proto 9 · Spatial</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+    --sky-1: #FAF3E0;
+    --sky-2: #F5DEB3;
+    --sky-3: #E8C68C;
+    --water-1: #88C8D0;
+    --water-2: #4A8B96;
+    --water-3: #1F3F4F;
+    --sand-1: #F0DEB0;
+    --sand-2: #DCC089;
+    --sand-3: #A88254;
+    --ink: #1A1410;
+    --ink-soft: #6B5C4A;
+    --good: #2F8B59;
+}
+* { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+html, body { height: 100%; overflow: hidden; background: var(--sky-1); color: var(--ink); }
+
+/* Stage — perspective container */
+.stage {
+    position: relative;
+    width: 100vw; height: 100vh;
+    perspective: 1200px;
+    overflow: hidden;
+}
+
+/* Layered backdrop — depth via z translation + parallax via mouse */
+.layer {
+    position: absolute;
+    inset: 0;
+    transition: transform 0.4s cubic-bezier(.2,.7,.2,1);
+    will-change: transform;
+}
+
+/* Sky gradient (deepest) */
+.layer-sky {
+    background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 40%, var(--sky-3) 60%, var(--water-1) 65%, var(--water-2) 80%, var(--water-3) 100%);
+}
+
+/* Sun */
+.layer-sun {
+    transform: translateZ(-200px);
+}
+.sun {
+    position: absolute;
+    top: 12%; left: 50%; transform: translateX(-50%);
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #FFE5A8 0%, rgba(255, 200, 110, 0.6) 50%, transparent 75%);
+    box-shadow: 0 0 120px rgba(255, 200, 110, 0.6);
+}
+
+/* Distant mountains/horizon */
+.layer-distant {
+    transform: translateZ(-100px);
+    bottom: 38%;
+}
+.layer-distant svg {
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 80px;
+}
+
+/* Mid water */
+.layer-water-mid {
+    transform: translateZ(-50px);
+    bottom: 25%; height: 200px;
+}
+.water-line {
+    position: absolute; left: 0; right: 0; height: 3px;
+    background: rgba(255, 255, 255, 0.5);
+    animation: shimmer 6s ease-in-out infinite;
+}
+.water-line:nth-child(1) { top: 20px; animation-delay: 0s; }
+.water-line:nth-child(2) { top: 60px; animation-delay: -2s; opacity: 0.4; }
+.water-line:nth-child(3) { top: 100px; animation-delay: -4s; opacity: 0.3; }
+@keyframes shimmer {
+    0%, 100% { transform: translateX(0) scaleX(1); opacity: 0.5; }
+    50% { transform: translateX(20px) scaleX(0.95); opacity: 0.7; }
+}
+
+/* Foreground sand */
+.layer-sand {
+    transform: translateZ(50px);
+    bottom: 0; height: 28%;
+    background: linear-gradient(180deg, var(--sand-1) 0%, var(--sand-2) 50%, var(--sand-3) 100%);
+    border-top-left-radius: 50% 100%;
+    border-top-right-radius: 50% 100%;
+    box-shadow: 0 -20px 40px rgba(0,0,0,0.10);
+}
+.sand-grain {
+    position: absolute; inset: 0;
+    background-image:
+        radial-gradient(rgba(168, 130, 84, 0.4) 1.5px, transparent 1.5px),
+        radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1px);
+    background-size: 18px 18px, 11px 11px;
+    background-position: 0 0, 6px 6px;
+    opacity: 0.6;
+}
+
+/* Score — dead center foreground */
+.score-card {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) translateZ(200px);
+    text-align: center;
+    z-index: 10;
+    transition: transform 0.4s cubic-bezier(.2,.7,.2,1);
+}
+.eyebrow {
+    font-size: 11px; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--ink); opacity: 0.7;
+    margin-bottom: 8px;
+}
+.score {
+    font-size: clamp(180px, 22vw, 320px);
+    font-weight: 800; letter-spacing: -0.06em; line-height: 0.85;
+    color: var(--ink);
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.6),
+        0 12px 30px rgba(31, 63, 79, 0.30);
+}
+.arrow-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    color: var(--good);
+    font-weight: 700; font-size: 14px;
+    border: 1px solid rgba(47, 139, 89, 0.3);
+    margin-top: 12px;
+    box-shadow: 0 4px 16px rgba(31, 63, 79, 0.12);
+}
+.narrative {
+    font-size: 22px; font-weight: 500;
+    margin-top: 20px;
+    color: var(--ink);
+    max-width: 640px;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Header floating in space */
+.header {
+    position: absolute;
+    top: 24px; left: 24px; right: 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    z-index: 20;
+    transform: translateZ(150px);
+}
+.brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 18px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    font-weight: 600; font-size: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+}
+.brand-mark { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, var(--water-1), var(--water-3)); }
+.live-pill {
+    padding: 8px 14px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    font-size: 12px; color: var(--ink-soft);
+    display: inline-flex; align-items: center; gap: 8px;
+}
+.live-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
+
+/* Floating chips bottom */
+.chips {
+    position: absolute;
+    bottom: 32px; left: 50%; transform: translateX(-50%) translateZ(180px);
+    display: flex; gap: 12px; flex-wrap: wrap;
+    z-index: 10;
+}
+.chip {
+    padding: 10px 18px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    font-size: 13px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 8px;
+    box-shadow: 0 8px 24px rgba(31, 63, 79, 0.12);
+}
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+.proto-label {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--sky-1);
+    padding: 6px 12px; border-radius: 999px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    z-index: 99; font-weight: 600;
+}
+.back-link { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); color: var(--ink-soft); font-size: 11px; text-decoration: none; z-index: 99; }
+
+.hint { position: fixed; bottom: 12px; left: 12px; font-size: 10px; color: var(--ink-soft); z-index: 99; }
+</style>
+</head>
+<body>
+<div class="proto-label">Proto 9 · Spatial</div>
+<a href="./index.html" class="back-link">← all 10</a>
+<div class="hint">move your mouse</div>
+
+<div class="stage" id="stage">
+    <!-- Sky / horizon -->
+    <div class="layer layer-sky"></div>
+
+    <!-- Sun -->
+    <div class="layer layer-sun" data-depth="0.5">
+        <div class="sun"></div>
+    </div>
+
+    <!-- Distant horizon line -->
+    <div class="layer layer-distant" data-depth="1">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+            <path d="M0,60 Q360,30 720,40 T1440,30 L1440,80 L0,80 Z" fill="#4A8B96" opacity="0.5"/>
+        </svg>
+    </div>
+
+    <!-- Mid water shimmer -->
+    <div class="layer layer-water-mid" data-depth="2">
+        <div class="water-line"></div>
+        <div class="water-line"></div>
+        <div class="water-line"></div>
+    </div>
+
+    <!-- Foreground sand -->
+    <div class="layer layer-sand" data-depth="3.5">
+        <div class="sand-grain"></div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="brand">
+            <div class="brand-mark"></div>
+            Tideline
+        </div>
+        <div class="live-pill"><span class="dot"></span> Live · 2m ago</div>
+    </div>
+
+    <!-- Score (foreground, deepest forward) -->
+    <div class="score-card" data-depth="4">
+        <div class="eyebrow">Tide Score</div>
+        <div class="score">72</div>
+        <div class="arrow-pill">▲ Rising +4 this week</div>
+        <div class="narrative">The tide is rising. Risk-on conditions firming up across the board.</div>
+    </div>
+
+    <!-- Floating chips -->
+    <div class="chips" data-depth="3">
+        <span class="chip"><span class="dot" style="background: var(--good)"></span> Trend · GREEN</span>
+        <span class="chip"><span class="dot" style="background: var(--water-2)"></span> Regime · NORMAL</span>
+        <span class="chip"><span class="dot" style="background: var(--sand-3)"></span> 11 days</span>
+    </div>
+</div>
+
+<script>
+// Subtle mouse parallax across layers
+const stage = document.getElementById('stage');
+let frame = null;
+stage.addEventListener('mousemove', (e) => {
+    if (frame) cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 2;
+        const y = (e.clientY / window.innerHeight - 0.5) * 2;
+        document.querySelectorAll('[data-depth]').forEach(el => {
+            const d = parseFloat(el.dataset.depth);
+            const dx = x * d * 8;
+            const dy = y * d * 6;
+            const existing = el.style.transform.match(/translateZ\([^)]+\)/);
+            const z = existing ? existing[0] : '';
+            el.style.transform = `translate(${dx}px, ${dy}px) ${z}`;
+        });
+        // Score card stays centered + adds parallax on top of its centering transform
+        const score = document.querySelector('.score-card');
+        score.style.transform = `translate(calc(-50% + ${x * 32}px), calc(-50% + ${y * 24}px)) translateZ(200px)`;
+    });
+});
+</script>
+</body>
+</html>

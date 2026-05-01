@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tideline · Proto 10 · Editorial</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+    --paper: #FAF3E0;
+    --paper-deep: #F0E5C7;
+    --ink: #1A1410;
+    --ink-soft: #5C5040;
+    --ink-faint: #8C7E68;
+    --water: #2F6E80;
+    --water-soft: #88C8D0;
+    --sand: #C9A674;
+    --good: #2A6B49;
+    --bad: #A04638;
+    --line: rgba(26, 20, 16, 0.15);
+    --line-soft: rgba(26, 20, 16, 0.08);
+}
+* { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+.serif { font-family: 'Instrument Serif', serif; font-weight: 400; }
+.mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
+html, body { background: var(--paper); color: var(--ink); min-height: 100vh; line-height: 1.5; }
+
+/* Tiny grain texture */
+body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 99;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.04; mix-blend-mode: multiply;
+}
+
+/* Masthead */
+.masthead {
+    border-bottom: 1px solid var(--ink);
+    padding: 16px 0;
+    margin-bottom: 48px;
+}
+.masthead-inner {
+    max-width: 1200px; margin: 0 auto; padding: 0 32px;
+    display: flex; align-items: baseline; justify-content: space-between;
+}
+.masthead-title {
+    font-family: 'Instrument Serif', serif; font-size: 36px;
+    letter-spacing: -0.01em;
+}
+.masthead-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex; gap: 24px;
+}
+
+.page { max-width: 1200px; margin: 0 auto; padding: 0 32px 80px; }
+
+/* Date + tagline above hero */
+.dateline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 32px;
+    display: flex; justify-content: space-between;
+}
+.dateline .live { color: var(--good); display: flex; align-items: center; gap: 6px; }
+.dateline .live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
+
+/* Hero — magazine cover style */
+.hero {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 64px;
+    align-items: center;
+    padding: 24px 0 56px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 56px;
+}
+@media (max-width: 880px) { .hero { grid-template-columns: 1fr; gap: 32px; } }
+
+.hero-text {
+    animation: fade-up 0.8s cubic-bezier(.2,.7,.2,1) both;
+}
+@keyframes fade-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+.kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--water);
+    margin-bottom: 20px;
+}
+.headline {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(56px, 7vw, 100px);
+    line-height: 0.92; letter-spacing: -0.02em;
+    color: var(--ink);
+}
+.headline em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    color: var(--water);
+}
+.deck {
+    font-size: 19px; line-height: 1.5;
+    color: var(--ink-soft); margin-top: 24px; max-width: 540px;
+}
+.byline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+}
+
+/* Score card — like a magazine pull stat */
+.score-card {
+    border: 1.5px solid var(--ink);
+    padding: 40px 36px;
+    background: var(--paper);
+    position: relative;
+    box-shadow: 8px 8px 0 var(--sand);
+    animation: fade-up 1s 0.2s cubic-bezier(.2,.7,.2,1) both;
+}
+.score-corner {
+    position: absolute;
+    top: 12px; right: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ink-faint);
+}
+.score-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--ink-soft); margin-bottom: 12px;
+}
+.score-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(140px, 18vw, 200px);
+    line-height: 0.85; letter-spacing: -0.04em;
+}
+.score-arrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--good);
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+}
+.score-arrow .delta { font-size: 22px; font-weight: 600; }
+
+/* Pull quote */
+.pullquote {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1.2; letter-spacing: -0.01em;
+    color: var(--ink);
+    border-left: 4px solid var(--water);
+    padding-left: 24px;
+    margin-bottom: 56px;
+    max-width: 880px;
+}
+.pullquote em { color: var(--water); font-style: italic; }
+.pullquote-attr {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-top: 16px;
+}
+
+/* Stats row */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    padding: 40px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+}
+@media (max-width: 720px) { .stats-row { grid-template-columns: repeat(2, 1fr); gap: 24px; } }
+.stat-cell { padding-right: 20px; }
+.stat-cell + .stat-cell { border-left: 1px solid var(--line-soft); padding-left: 20px; }
+.stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 8px;
+}
+.stat-value {
+    font-family: 'Instrument Serif', serif;
+    font-size: 38px; line-height: 1;
+}
+.stat-sub { font-size: 12px; color: var(--ink-soft); margin-top: 8px; }
+
+/* Chart embed */
+.chart-card {
+    margin-top: 56px;
+    padding: 32px;
+    background: var(--paper-deep);
+    border: 1px solid var(--line);
+}
+.chart-title { font-family: 'Instrument Serif', serif; font-size: 28px; margin-bottom: 4px; }
+.chart-sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 24px; }
+.chart-card svg { width: 100%; height: 200px; }
+
+.proto-label {
+    position: fixed; top: 20px; left: 20px; background: var(--ink); color: var(--paper);
+    padding: 6px 12px; border-radius: 999px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    z-index: 99; font-weight: 600;
+}
+.back-link { position: fixed; top: 20px; right: 20px; color: var(--ink-soft); font-size: 12px; text-decoration: none; z-index: 99; padding: 6px 12px; background: var(--paper); border-radius: 999px; border: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="proto-label">Proto 10 · Editorial</div>
+<a href="./index.html" class="back-link">← all 10</a>
+
+<div class="masthead">
+    <div class="masthead-inner">
+        <div class="masthead-title">Tideline</div>
+        <div class="masthead-meta">
+            <span>Vol. 1 · No. 14</span>
+            <span>Apr 30, 2026</span>
+            <span>Live</span>
+        </div>
+    </div>
+</div>
+
+<div class="page">
+    <div class="dateline">
+        <span>Issue · Live · Apr 30 · 4:32 PM ET</span>
+        <span class="live">Live · updated 2m ago</span>
+    </div>
+
+    <div class="hero">
+        <div class="hero-text">
+            <div class="kicker">The Weekly Read</div>
+            <h1 class="headline">The tide is <em>rising.</em></h1>
+            <p class="deck">
+                Risk-on conditions firming up across the board. Credit spreads compressed, vol contained, breadth healthy. The trend signal has held for 53 trading days.
+            </p>
+            <div class="byline">By Tideline · Macro Regime Tracker</div>
+        </div>
+
+        <div class="score-card">
+            <div class="score-corner">Tide Score</div>
+            <div class="score-label">As of close · Apr 30</div>
+            <div class="score-num">72</div>
+            <div class="score-arrow">
+                <span>This week</span>
+                <span class="delta">▲ +4</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="pullquote">
+        "When the tide crossed 70 from below in 2017, 2019, and 2024, it stayed there for an average of <em>six weeks</em>. We've now been above 70 for eleven days."
+        <div class="pullquote-attr">Tideline Decision Log · 27 years of state transitions</div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-cell">
+            <div class="stat-label">Trend</div>
+            <div class="stat-value" style="color: var(--good);">GREEN</div>
+            <div class="stat-sub">SPY +6.3% above 200DMA</div>
+        </div>
+        <div class="stat-cell">
+            <div class="stat-label">Regime</div>
+            <div class="stat-value">Normal</div>
+            <div class="stat-sub">11 trading days in state</div>
+        </div>
+        <div class="stat-cell">
+            <div class="stat-label">VIX</div>
+            <div class="stat-value">18.0</div>
+            <div class="stat-sub">5-yr percentile · 51%</div>
+        </div>
+        <div class="stat-cell">
+            <div class="stat-label">Credit</div>
+            <div class="stat-value">170<span style="font-size: 18px; color: var(--ink-faint);">bps</span></div>
+            <div class="stat-sub">5-yr percentile · 30% · tight</div>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-title">Tide history · last 90 days</div>
+        <div class="chart-sub">Score 0–100 · daily close</div>
+        <svg viewBox="0 0 800 200" preserveAspectRatio="none">
+            <defs>
+                <linearGradient id="grad10" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#88C8D0" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="#88C8D0" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+            <line x1="0" y1="100" x2="800" y2="100" stroke="rgba(26,20,16,0.1)" stroke-dasharray="2 6"/>
+            <text x="6" y="96" font-family="JetBrains Mono" font-size="9" fill="rgba(26,20,16,0.4)">50 · neutral</text>
+            <path d="M0,140 Q60,135 100,128 T200,118 T300,102 T400,95 T500,80 T600,72 T700,68 T800,56 L800,200 L0,200 Z" fill="url(#grad10)"/>
+            <path d="M0,140 Q60,135 100,128 T200,118 T300,102 T400,95 T500,80 T600,72 T700,68 T800,56" fill="none" stroke="#2F6E80" stroke-width="2"/>
+            <circle cx="800" cy="56" r="5" fill="#2A6B49"/>
+            <text x="780" y="44" font-family="Instrument Serif" font-size="14" fill="#1A1410" text-anchor="end">72 ▲</text>
+        </svg>
+    </div>
+</div>
+</body>
+</html>

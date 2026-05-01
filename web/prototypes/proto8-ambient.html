@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tideline · Proto 8 · Ambient</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #FAF3E0;
+    --bg-soft: #F5E9CB;
+    --paper: #FFFFFF;
+    --ink: #1A1410;
+    --ink-soft: #6B5C4A;
+    --ink-faint: #A89B82;
+    --water-shallow: #88C8D0;
+    --water-mid: #4A8B96;
+    --water-deep: #1F3F4F;
+    --sand: #E0C68A;
+    --good: #2F8B59;
+    --line: rgba(26, 20, 16, 0.08);
+}
+* { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+.mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
+html, body { background: var(--bg); color: var(--ink); min-height: 100vh; overflow-x: hidden; font-weight: 300; }
+
+/* The ambient halo — a calm pulsing presence around the score */
+.ambient-halo {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 900px; height: 900px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(74, 139, 150, 0.18) 0%, rgba(136, 200, 208, 0.10) 30%, transparent 60%);
+    z-index: -1;
+    animation: breathe 8s ease-in-out infinite;
+}
+@keyframes breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+    50% { transform: translate(-50%, -50%) scale(1.06); opacity: 1; }
+}
+
+/* Ambient drift particles */
+.particle {
+    position: fixed; pointer-events: none; z-index: -1;
+    border-radius: 50%; background: var(--water-shallow);
+    animation: float linear infinite;
+}
+@keyframes float {
+    from { transform: translateY(110vh); opacity: 0; }
+    10%, 90% { opacity: 0.4; }
+    to { transform: translateY(-10vh); opacity: 0; }
+}
+
+.page { max-width: 1280px; margin: 0 auto; padding: 32px; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Disappearing header — only visible at top, fades on scroll-feel */
+.header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0;
+    margin-bottom: 80px;
+}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 500; font-size: 14px; }
+.brand-mark { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+.command-bar {
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 10px 18px; border-radius: 999px;
+    background: var(--paper); border: 1px solid var(--line);
+    font-size: 13px; color: var(--ink-soft);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.command-bar:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.command-bar svg { width: 14px; height: 14px; }
+.command-bar .kbd { padding: 2px 8px; border-radius: 4px; background: var(--bg); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+/* Hero — centered, calm */
+.hero {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding-bottom: 120px;
+}
+
+.eyebrow {
+    font-size: 12px; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 500;
+    margin-bottom: 20px;
+    animation: fade-in 1s ease both;
+}
+@keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.score-presence {
+    position: relative;
+    animation: fade-in-late 1.5s 0.2s ease both;
+}
+@keyframes fade-in-late {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+}
+.score {
+    font-size: clamp(180px, 26vw, 360px);
+    font-weight: 200;
+    letter-spacing: -0.06em; line-height: 0.85;
+    background: linear-gradient(180deg, var(--ink) 0%, var(--water-mid) 75%, var(--water-deep) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.score-soft-glow {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle at center, rgba(136, 200, 208, 0.4) 0%, transparent 50%);
+    filter: blur(60px);
+    z-index: -1;
+}
+
+.tide-direction {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 18px; border-radius: 999px;
+    background: rgba(47, 139, 89, 0.10);
+    color: var(--good); font-weight: 500; font-size: 14px;
+    margin-top: 16px;
+    animation: fade-in 1.2s 0.5s ease both;
+}
+
+.narrative {
+    font-size: 28px; font-weight: 300; line-height: 1.4;
+    max-width: 640px; margin-top: 32px; color: var(--ink);
+    animation: fade-in 1.4s 0.7s ease both;
+}
+
+/* AI insight callout — appears like a calm thought */
+.ai-callout {
+    position: fixed;
+    bottom: 32px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px;
+    background: var(--paper); border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 13px; color: var(--ink-soft);
+    box-shadow: 0 8px 32px rgba(31, 63, 79, 0.10);
+    max-width: 640px;
+    animation: surface 1s 1.5s cubic-bezier(.2,.7,.2,1) both;
+    backdrop-filter: blur(20px);
+}
+@keyframes surface { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.ai-mark {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: conic-gradient(from 90deg, var(--water-shallow), var(--water-deep), var(--water-shallow));
+    flex-shrink: 0;
+    animation: rotate 4s linear infinite;
+}
+@keyframes rotate { to { transform: rotate(360deg); } }
+.ai-callout strong { color: var(--ink); font-weight: 600; }
+
+/* Mini stats — minimal, secondary */
+.mini-stats {
+    display: flex; gap: 32px;
+    margin-top: 60px;
+    animation: fade-in 1.6s 0.9s ease both;
+}
+.mini-stat { text-align: center; }
+.mini-stat .v { font-size: 18px; font-weight: 500; }
+.mini-stat .l { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink-faint); margin-top: 4px; }
+.mini-stat .v small { font-size: 12px; color: var(--ink-faint); margin-left: 2px; }
+
+.proto-label {
+    position: fixed; top: 20px; left: 20px; background: var(--ink); color: var(--bg);
+    padding: 6px 12px; border-radius: 999px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    z-index: 99; font-weight: 600;
+}
+.back-link { position: fixed; top: 20px; right: 20px; color: var(--ink-soft); font-size: 12px; text-decoration: none; z-index: 99; padding: 6px 12px; background: var(--paper); border-radius: 999px; border: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="proto-label">Proto 8 · Ambient</div>
+<a href="./index.html" class="back-link">← all 10</a>
+
+<div class="ambient-halo"></div>
+<div class="particle" style="left: 12%; bottom: 0; width: 5px; height: 5px; animation-duration: 24s; animation-delay: -5s;"></div>
+<div class="particle" style="left: 68%; bottom: 0; width: 3px; height: 3px; animation-duration: 30s; animation-delay: -12s;"></div>
+<div class="particle" style="left: 89%; bottom: 0; width: 4px; height: 4px; animation-duration: 28s; animation-delay: -2s;"></div>
+<div class="particle" style="left: 34%; bottom: 0; width: 6px; height: 6px; animation-duration: 32s; animation-delay: -18s;"></div>
+
+<div class="page">
+    <div class="header">
+        <div class="brand">
+            <div class="brand-mark"></div>
+            Tideline
+        </div>
+        <div class="command-bar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
+            <span>Ask anything · "Why is the tide rising?"</span>
+            <span class="kbd">⌘ K</span>
+        </div>
+    </div>
+
+    <div class="hero">
+        <div class="eyebrow">Tide Score · Live</div>
+        <div class="score-presence">
+            <div class="score-soft-glow"></div>
+            <div class="score">72</div>
+        </div>
+        <div class="tide-direction">▲ Rising at +4 this week</div>
+        <div class="narrative">The tide is rising. Risk-on conditions firming up across the board.</div>
+
+        <div class="mini-stats">
+            <div class="mini-stat">
+                <div class="v">GREEN</div>
+                <div class="l">Trend</div>
+            </div>
+            <div class="mini-stat">
+                <div class="v">NORMAL</div>
+                <div class="l">Regime</div>
+            </div>
+            <div class="mini-stat">
+                <div class="v">11<small>d</small></div>
+                <div class="l">In State</div>
+            </div>
+            <div class="mini-stat">
+                <div class="v">18.0</div>
+                <div class="l">VIX</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ai-callout">
+        <div class="ai-mark"></div>
+        <span><strong>Tideline · ambient</strong> · The tide has risen 11 points since Apr 14. Last time it crossed 70 from below, it stayed above for ~6 weeks on average.</span>
+    </div>
+</div>
+</body>
+</html>

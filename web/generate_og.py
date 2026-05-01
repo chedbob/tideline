@@ -14,16 +14,17 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-# Brand palette (from index.html CSS variables)
+# Brand palette — sandbox warmth on ocean depth
 OCEAN_DEEP    = (10,  26,  47)   # #0A1A2F
 OCEAN_DARK    = (6,   16,  31)   # #06101F
-OCEAN_CARD    = (19,  42,  74)   # #132A4A
-OCEAN_BORDER  = (31,  58,  95)   # #1F3A5F
-FOAM          = (230, 243, 255)  # #E6F3FF
-MUTED         = (122, 146, 181)  # #7A92B5
-CYAN_BRIGHT   = (34,  211, 238)  # #22D3EE
-TEAL          = (8,   145, 178)  # #0891B2
-REEF          = (16,  185, 129)
+OCEAN_CARD    = (20,  40,  63)   # #14283F
+OCEAN_BORDER  = (42,  64,  96)   # #2A4060
+FOAM          = (240, 230, 210)  # #F0E6D2  warm cream
+MUTED         = (168, 155, 130)  # #A89B82  muted sand
+CYAN_BRIGHT   = (232, 221, 200)  # #E8DDC8  light sand (was cyan)
+TEAL          = (184, 149, 106)  # #B8956A  wood
+SAND          = (212, 185, 140)  # #D4B98C  mid-sand accent
+REEF          = (123, 163, 122)  # #7BA37A  soft sage
 
 W, H = 1200, 630
 

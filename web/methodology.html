@@ -24,9 +24,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --ocean-deep: #0A1A2F; --ocean-card: #132A4A; --ocean-border: #1F3A5F;
-            --foam: #E6F3FF; --muted: #7A92B5; --teal: #0891B2; --cyan-bright: #22D3EE;
-            --reef: #10B981; --coral: #F97316; --amber: #F59E0B;
+            --ocean-deep: #0A1A2F; --ocean-card: #14283F; --ocean-border: #2A4060;
+            --foam: #F0E6D2; --muted: #A89B82; --teal: #B8956A; --cyan-bright: #E8DDC8;
+            --sand: #D4B98C;
+            --reef: #7BA37A; --coral: #C46B5C; --amber: #D4A85A;
         }
         * { font-family: 'Inter', sans-serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
@@ -35,7 +36,7 @@
             color: var(--foam); min-height: 100vh; background-attachment: fixed;
         }
         body::before { content: ''; position: fixed; inset: 0;
-            background-image: radial-gradient(at 15% 25%, rgba(34, 211, 238, 0.08) 0%, transparent 40%), radial-gradient(at 85% 75%, rgba(8, 145, 178, 0.1) 0%, transparent 40%);
+            background-image: radial-gradient(at 15% 25%, rgba(232, 221, 200, 0.04) 0%, transparent 40%), radial-gradient(at 85% 75%, rgba(184, 149, 106, 0.06) 0%, transparent 40%);
             pointer-events: none; z-index: 0; }
         .nav-link { position: relative; color: var(--muted); transition: color 0.2s ease; font-size: 13px; font-weight: 500; }
         .nav-link:hover { color: var(--foam); }
@@ -59,8 +60,8 @@
                         <path d="M2 22 Q8 16 14 22 T26 22 L30 22" stroke="url(#logoGrad)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
                         <defs>
                             <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
-                                <stop offset="0%" style="stop-color:#22D3EE"/>
-                                <stop offset="100%" style="stop-color:#0891B2"/>
+                                <stop offset="0%" style="stop-color:#E8DDC8"/>
+                                <stop offset="100%" style="stop-color:#B8956A"/>
                             </linearGradient>
                         </defs>
                     </svg>

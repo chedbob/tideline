@@ -26,18 +26,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
+            /* Ocean base — deep, calm, professional */
             --ocean-deep: #0A1A2F;
-            --ocean-surface: #132544;
-            --ocean-card: #132A4A;
-            --ocean-border: #1F3A5F;
-            --foam: #E6F3FF;
-            --muted: #7A92B5;
-            --teal: #0891B2;
-            --cyan-bright: #22D3EE;
-            --reef: #10B981;
-            --coral: #F97316;
-            --deep-purple: #7C3AED;
-            --amber: #F59E0B;
+            --ocean-surface: #122438;
+            --ocean-card: #14283F;
+            --ocean-border: #2A4060;
+            /* Sandbox warmth — replaces neon cyan with refined cream/sand */
+            --foam: #F0E6D2;          /* warm cream — primary text + hero number */
+            --muted: #A89B82;         /* muted sand — secondary text/labels */
+            --teal: #B8956A;          /* wood — secondary accent (was teal) */
+            --cyan-bright: #E8DDC8;   /* light sand — primary accent / hero glow */
+            --sand: #D4B98C;          /* mid sand — buttons, highlights */
+            /* Semantic colors — warmer, less neon */
+            --reef: #7BA37A;          /* soft sage green — risk-on / good */
+            --coral: #C46B5C;         /* warm rust — risk-off / bad */
+            --amber: #D4A85A;         /* tan-amber — elevated / caution */
+            --deep-purple: #8E7AB0;   /* muted lavender — neutral */
         }
         * { font-family: 'Inter', sans-serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
@@ -52,8 +56,8 @@
             position: fixed;
             inset: 0;
             background-image:
-                radial-gradient(at 15% 25%, rgba(34, 211, 238, 0.08) 0%, transparent 40%),
-                radial-gradient(at 85% 75%, rgba(8, 145, 178, 0.1) 0%, transparent 40%);
+                radial-gradient(at 15% 25%, rgba(232, 221, 200, 0.04) 0%, transparent 40%),
+                radial-gradient(at 85% 75%, rgba(184, 149, 106, 0.06) 0%, transparent 40%);
             pointer-events: none;
             z-index: 0;
         }
@@ -89,15 +93,15 @@
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
-        .regime-easy     { background: rgba(34, 211, 238, 0.12); color: var(--cyan-bright); border: 1px solid rgba(34, 211, 238, 0.3); }
-        .regime-normal   { background: rgba(16, 185, 129, 0.12); color: var(--reef); border: 1px solid rgba(16, 185, 129, 0.3); }
-        .regime-elevated { background: rgba(245, 158, 11, 0.12); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.3); }
-        .regime-stress   { background: rgba(249, 115, 22, 0.12); color: var(--coral); border: 1px solid rgba(249, 115, 22, 0.3); }
-        .regime-green    { background: rgba(16, 185, 129, 0.12); color: var(--reef); border: 1px solid rgba(16, 185, 129, 0.3); }
-        .regime-caution  { background: rgba(249, 115, 22, 0.12); color: var(--coral); border: 1px solid rgba(249, 115, 22, 0.3); }
-        .regime-neutral  { background: rgba(124, 58, 237, 0.12); color: #A78BFA; border: 1px solid rgba(124, 58, 237, 0.3); }
+        .regime-easy     { background: rgba(232, 221, 200, 0.10); color: var(--cyan-bright); border: 1px solid rgba(232, 221, 200, 0.30); }
+        .regime-normal   { background: rgba(123, 163, 122, 0.10); color: var(--reef);        border: 1px solid rgba(123, 163, 122, 0.30); }
+        .regime-elevated { background: rgba(212, 168,  90, 0.10); color: var(--amber);       border: 1px solid rgba(212, 168,  90, 0.30); }
+        .regime-stress   { background: rgba(196, 107,  92, 0.12); color: var(--coral);       border: 1px solid rgba(196, 107,  92, 0.35); }
+        .regime-green    { background: rgba(123, 163, 122, 0.10); color: var(--reef);        border: 1px solid rgba(123, 163, 122, 0.30); }
+        .regime-caution  { background: rgba(196, 107,  92, 0.12); color: var(--coral);       border: 1px solid rgba(196, 107,  92, 0.35); }
+        .regime-neutral  { background: rgba(142, 122, 176, 0.10); color: var(--deep-purple); border: 1px solid rgba(142, 122, 176, 0.30); }
         .pct-bar { height: 4px; background: var(--ocean-border); border-radius: 2px; overflow: hidden; }
-        .pct-fill { height: 100%; background: linear-gradient(90deg, var(--teal) 0%, var(--cyan-bright) 100%); transition: width 1s ease; }
+        .pct-fill { height: 100%; background: linear-gradient(90deg, var(--teal) 0%, var(--sand) 100%); transition: width 1s ease; }
         .nav-link { position: relative; color: var(--muted); transition: color 0.2s ease; font-size: 13px; font-weight: 500; }
         .nav-link:hover { color: var(--foam); }
         .nav-link.active { color: var(--cyan-bright); }
@@ -122,7 +126,7 @@
             position: relative;
             border-radius: 24px;
             overflow: hidden;
-            background: linear-gradient(180deg, rgba(34, 211, 238, 0.04) 0%, rgba(8, 145, 178, 0.10) 100%);
+            background: linear-gradient(180deg, rgba(232, 221, 200, 0.03) 0%, rgba(184, 149, 106, 0.08) 100%);
             border: 1px solid var(--ocean-border);
             padding: 48px 32px 56px;
         }
@@ -132,11 +136,11 @@
             letter-spacing: -0.05em;
             line-height: 0.9;
             text-align: center;
-            background: linear-gradient(180deg, #E6F3FF 0%, #22D3EE 100%);
+            background: linear-gradient(180deg, #F5EDD8 0%, #D4B98C 100%);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            text-shadow: 0 0 80px rgba(34, 211, 238, 0.25);
+            text-shadow: 0 0 80px rgba(232, 221, 200, 0.20);
             transition: all 1s ease;
         }
         .tide-narrative {
@@ -202,8 +206,8 @@
                         <path d="M2 22 Q8 16 14 22 T26 22 L30 22" stroke="url(#logoGrad)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
                         <defs>
                             <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
-                                <stop offset="0%" style="stop-color:#22D3EE"/>
-                                <stop offset="100%" style="stop-color:#0891B2"/>
+                                <stop offset="0%" style="stop-color:#E8DDC8"/>
+                                <stop offset="100%" style="stop-color:#B8956A"/>
                             </linearGradient>
                         </defs>
                     </svg>
@@ -216,7 +220,7 @@
             </div>
             <div class="flex items-center gap-4">
                 <span id="last-updated" class="text-xs flex items-center gap-2" style="color: var(--muted);">
-                    <span class="w-2 h-2 rounded-full pulse-dot" style="background: var(--cyan-bright);"></span>
+                    <span class="w-2 h-2 rounded-full pulse-dot" style="background: var(--sand);"></span>
                     Loading…
                 </span>
             </div>
@@ -248,11 +252,11 @@
                 <path d="M0,60 Q100,30 200,45 T400,35 T600,40 T800,30 L800,100 L0,100 Z"
                       fill="url(#tideHeroGrad)"/>
                 <path d="M0,60 Q100,30 200,45 T400,35 T600,40 T800,30"
-                      stroke="#22D3EE" stroke-width="2" fill="none" opacity="0.5"/>
+                      stroke="#D4B98C" stroke-width="2" fill="none" opacity="0.45"/>
                 <defs>
                     <linearGradient id="tideHeroGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%"  stop-color="#22D3EE" stop-opacity="0.10"/>
-                        <stop offset="100%" stop-color="#0891B2" stop-opacity="0.50"/>
+                        <stop offset="0%"  stop-color="#E8DDC8" stop-opacity="0.06"/>
+                        <stop offset="100%" stop-color="#B8956A" stop-opacity="0.35"/>
                     </linearGradient>
                 </defs>
             </svg>

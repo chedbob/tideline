@@ -12,3 +12,7 @@ out/
 # ICE-licensed historical data — private research only, never commit
 workers/data_archive/hy_oas_bamls_archived_*.csv
 workers/data_archive/hy_oas_spliced.csv
+
+# Wrangler local state/cache (contains auth tokens — never commit)
+voting-worker/.wrangler/
+**/.wrangler/

@@ -483,12 +483,17 @@ export default {
                 return getMe(env, uid);
             }
             if (url.pathname === '/health'       && req.method === 'GET')   return text('ok');
-            // Manual cron triggers for testing — admin only
+            // Admin endpoints — require shared secret in X-Admin-Secret header.
+            // Set the secret via:  wrangler secret put ADMIN_SECRET
+            const adminAuthOk = (env.ADMIN_SECRET &&
+                req.headers.get('x-admin-secret') === env.ADMIN_SECRET);
             if (url.pathname === '/_admin/create' && req.method === 'POST') {
+                if (!adminAuthOk) return json({ error: 'unauthorized' }, { status: 401 });
                 const r = await createPollIfMissing(env);
                 return json(r);
             }
             if (url.pathname === '/_admin/resolve' && req.method === 'POST') {
+                if (!adminAuthOk) return json({ error: 'unauthorized' }, { status: 401 });
                 const r = await resolveOpenPolls(env);
                 return json(r);
             }

@@ -546,8 +546,8 @@
 // ======================================================================
 const DATA_URL = 'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/latest.json';
 const LOG_URL  = 'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/decision_log.csv';
-// Voting Worker base URL — set after Worker deploy
-const VOTE_API = window.TIDELINE_VOTE_API || '';
+// Voting Worker base URL
+const VOTE_API = window.TIDELINE_VOTE_API || 'https://tideline-voting.nathantt14.workers.dev';
 
 // Anonymous opaque user identity for personal tracking. Generated on first vote
 // (or first page load), stored in localStorage. No signup, no PII.

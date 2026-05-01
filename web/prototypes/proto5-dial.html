@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tideline · Proto 5 · Tide Dial</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #F0E0BD;
+    --paper: #FAF3E0;
+    --ink: #1F2A2C;
+    --ink-muted: #6E7B7E;
+    --water: #4F90A0;
+    --water-deep: #1F4654;
+    --water-foam: #DCEEF0;
+    --sand: #E0C68A;
+    --sand-warm: #C4A671;
+    --wood: #8B6F47;
+    --wood-light: #C0966A;
+    --tide-good: #2F8B59;
+    --tide-bad: #B85544;
+}
+* { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+body { background: var(--bg); color: var(--ink); margin: 0; min-height: 100vh; }
+
+.page { max-width: 1200px; margin: 48px auto; padding: 0 32px; }
+
+.header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 32px;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-name { font-size: 18px; font-weight: 700; letter-spacing: 0.02em; }
+
+.scene {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: 24px;
+    padding: 56px 48px;
+    box-shadow: 8px 8px 0 var(--wood);
+}
+.scene-grid {
+    display: grid;
+    grid-template-columns: 460px 1fr;
+    gap: 56px;
+    align-items: center;
+}
+@media (max-width: 880px) { .scene-grid { grid-template-columns: 1fr; } }
+
+/* Dial */
+.dial-wrap {
+    position: relative;
+    width: 460px; height: 460px;
+    margin: 0 auto;
+}
+.dial-svg { width: 100%; height: 100%; }
+
+/* Center readout */
+.dial-center {
+    position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+.dial-label-top { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ink-muted); }
+.dial-num { font-size: 132px; font-weight: 700; letter-spacing: -0.04em; line-height: 0.9; }
+.dial-arrow { font-size: 28px; color: var(--tide-good); margin-left: 6px; vertical-align: middle; }
+.dial-direction {
+    font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;
+    margin-top: 6px; color: var(--ink-muted);
+}
+
+/* Right side */
+.right { padding-left: 8px; }
+.headline { font-size: 26px; font-weight: 600; line-height: 1.3; max-width: 420px; }
+.sub { font-size: 13px; color: var(--ink-muted); margin-top: 10px; }
+.chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
+.chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+    background: var(--bg); color: var(--ink);
+    border: 1px solid rgba(31, 42, 44, 0.18);
+}
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+.proto-label {
+    position: fixed; top: 20px; left: 20px; background: var(--ink); color: var(--bg);
+    padding: 6px 12px; border-radius: 999px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+<div class="proto-label">Proto 5 · Tide Dial</div>
+<a href="./index.html" style="position: fixed; top: 20px; right: 20px; color: var(--ink-muted); font-size: 12px; text-decoration: none;">← all 5</a>
+
+<div class="page">
+    <div class="header">
+        <div class="brand">
+            <svg width="32" height="32" viewBox="0 0 32 32">
+                <path d="M2 16 Q8 10 14 16 T26 16 L30 16" stroke="#1F2A2C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M2 22 Q8 16 14 22 T26 22 L30 22" stroke="#1F2A2C" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+            </svg>
+            <span class="brand-name">Tideline</span>
+        </div>
+        <span style="font-size: 12px; color: var(--ink-muted);">Live · 2m ago</span>
+    </div>
+
+    <div class="scene">
+        <div class="scene-grid">
+            <!-- DIAL -->
+            <div class="dial-wrap">
+                <svg class="dial-svg" viewBox="0 0 200 200">
+                    <!-- outer ring -->
+                    <circle cx="100" cy="100" r="92" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/>
+                    <!-- inner sand ring -->
+                    <circle cx="100" cy="100" r="84" fill="var(--sand)" stroke="none"/>
+                    <!-- water arc — top half -->
+                    <path d="M 16,100 A 84,84 0 0 1 184,100 Z" fill="var(--water)"/>
+                    <!-- waves in water -->
+                    <path d="M 22,86 Q 40,80 58,86 T 94,86 T 130,86 T 166,86" stroke="var(--water-foam)" stroke-width="1.5" fill="none" opacity="0.7"/>
+                    <path d="M 22,72 Q 40,66 58,72 T 94,72 T 130,72 T 166,72" stroke="var(--water-foam)" stroke-width="1.2" fill="none" opacity="0.5"/>
+
+                    <!-- tick marks every 30 degrees, with major at cardinal directions -->
+                    <!-- 0/100 mark at top, 50 at right, etc -->
+                    <g stroke="var(--ink)" stroke-width="1.5">
+                        <!-- 12 ticks around full circle -->
+                        <line x1="100" y1="10" x2="100" y2="20" stroke-width="3"/>
+                        <line x1="183" y1="59" x2="175" y2="64"/>
+                        <line x1="190" y1="100" x2="180" y2="100" stroke-width="3"/>
+                        <line x1="183" y1="141" x2="175" y2="136"/>
+                        <line x1="100" y1="190" x2="100" y2="180" stroke-width="3"/>
+                        <line x1="17"  y1="141" x2="25"  y2="136"/>
+                        <line x1="10"  y1="100" x2="20"  y2="100" stroke-width="3"/>
+                        <line x1="17"  y1="59"  x2="25"  y2="64"/>
+                    </g>
+
+                    <!-- labels -->
+                    <text x="100" y="32" text-anchor="middle" fill="var(--ink)" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">100 · HIGH</text>
+                    <text x="170" y="103" text-anchor="middle" fill="var(--ink)" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">75</text>
+                    <text x="100" y="174" text-anchor="middle" fill="var(--ink)" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">50</text>
+                    <text x="30"  y="103" text-anchor="middle" fill="var(--ink)" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">25</text>
+
+                    <!-- needle at score=72 (rotation: 0=top, clockwise. 0->100 over 360°. 72 = 259.2°) -->
+                    <!-- but for dial: top = 100, going clockwise to 0 at top again. So 72 = 360 - (72/100)*360 + offset -->
+                    <!-- Simpler: 0 at bottom, 100 at top, going clockwise from 0. Score 72 -> 72/100 of 360 starting from bottom. -->
+                    <!-- Actually: place score=72 such that needle points up-right. 72/100 along an arc from 0(bottom) to 100(top) clockwise -->
+                    <g transform="rotate(-101 100 100)">  <!-- 72 → -101° (calibrated for visible position) -->
+                        <line x1="100" y1="100" x2="100" y2="22" stroke="var(--tide-good)" stroke-width="3.5" stroke-linecap="round"/>
+                        <circle cx="100" cy="22" r="5" fill="var(--tide-good)" stroke="var(--paper)" stroke-width="1.5"/>
+                    </g>
+                    <!-- center hub -->
+                    <circle cx="100" cy="100" r="6" fill="var(--ink)"/>
+                    <circle cx="100" cy="100" r="2" fill="var(--paper)"/>
+                </svg>
+                <div class="dial-center">
+                    <div class="dial-label-top">Tide Score</div>
+                    <div>
+                        <span class="dial-num">72</span>
+                        <span class="dial-arrow">▲</span>
+                    </div>
+                    <div class="dial-direction">Rising</div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE -->
+            <div class="right">
+                <div class="headline">The tide is rising. Risk-on conditions firming up across the board.</div>
+                <div class="sub">Apr 30, 2026 · Live · updated 2m ago</div>
+                <div class="chips">
+                    <span class="chip"><span class="dot" style="background: var(--tide-good)"></span> Trend · GREEN</span>
+                    <span class="chip"><span class="dot" style="background: var(--water)"></span> Regime · NORMAL</span>
+                    <span class="chip"><span class="dot" style="background: var(--wood)"></span> 11 days in state</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tideline · Prototypes</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #FAF3E0; --ink: #2A2520; --muted: #7A6242; --accent: #4A8B96; --line: rgba(42, 37, 32, 0.12); }
+* { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); margin: 0; min-height: 100vh; padding: 60px 32px; }
+.wrap { max-width: 920px; margin: 0 auto; }
+h1 { font-size: 36px; font-weight: 700; margin: 0 0 8px; }
+.intro { font-size: 16px; color: var(--muted); margin-bottom: 40px; max-width: 640px; line-height: 1.6; }
+.grid { display: grid; gap: 16px; }
+.card {
+    display: flex; align-items: center; gap: 24px;
+    padding: 24px; background: white;
+    border: 1px solid var(--line); border-radius: 16px;
+    text-decoration: none; color: var(--ink);
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.card:hover { transform: translateX(4px); border-color: var(--accent); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.num { font-size: 48px; font-weight: 800; color: var(--accent); flex-shrink: 0; line-height: 1; }
+.title { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+.desc { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.5; }
+.arrow { margin-left: auto; font-size: 22px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <h1>Tideline · 5 Hero Prototypes</h1>
+    <p class="intro">
+        Different visual directions for the dashboard hero. Each shows the same data (Tide Score 72, GREEN/NORMAL, rising) so you can compare apples-to-apples. Pick the one that resonates and we'll build out the full UI in that direction.
+    </p>
+
+    <div class="grid">
+        <a class="card" href="./proto1-crosssection.html">
+            <div class="num">1</div>
+            <div>
+                <div class="title">Cross-Section</div>
+                <p class="desc">Side-view beach scene. Water rises and falls with the score. Score floats on the water surface. Most literal interpretation of the tide metaphor.</p>
+            </div>
+            <span class="arrow">→</span>
+        </a>
+        <a class="card" href="./proto2-sandbox.html">
+            <div class="num">2</div>
+            <div>
+                <div class="title">Sandbox Topdown</div>
+                <p class="desc">Bird's-eye sandbox. Wet sand patch grows with the score. Direct visual reference to your @StockSandbox brand. Wood frame, sand grain texture, tiny shovel.</p>
+            </div>
+            <span class="arrow">→</span>
+        </a>
+        <a class="card" href="./proto3-gauge.html">
+            <div class="num">3</div>
+            <div>
+                <div class="title">Gauge / Beaker</div>
+                <p class="desc">Vertical glass filling with water. Tick marks at 25/50/75/100. Cleanest, most minimal. Matches a tide-gauge instrument feel.</p>
+            </div>
+            <span class="arrow">→</span>
+        </a>
+        <a class="card" href="./proto4-retro.html">
+            <div class="num">4</div>
+            <div>
+                <div class="title">Coastal Retro</div>
+                <p class="desc">70s travel-poster vibe. Stacked horizon (sky, sea, sand), big sun, serif display type, drop-shadow. Most playful and brand-forward.</p>
+            </div>
+            <span class="arrow">→</span>
+        </a>
+        <a class="card" href="./proto5-dial.html">
+            <div class="num">5</div>
+            <div>
+                <div class="title">Tide Dial</div>
+                <p class="desc">Round analog tide clock. Needle points to current score. Sand bottom half, water top half. Reference to coastal tide instruments.</p>
+            </div>
+            <span class="arrow">→</span>
+        </a>
+    </div>
+
+    <div style="margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted);">
+        Once you pick one, I'll build out the full dashboard (poll/scoreboard/components/methodology) in that direction with all functionality wired.
+    </div>
+</div>
+</body>
+</html>

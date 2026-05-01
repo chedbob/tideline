@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tideline · Proto 1 · Cross-Section</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+    --sky-1: #FAF3E0;
+    --sky-2: #F5E6C8;
+    --water-foam: #DCEEF0;
+    --water-shallow: #88C8D0;
+    --water-mid: #4A8B96;
+    --water-deep: #1F3F4F;
+    --water-ink: #0F2A38;
+    --sand-dry: #F0DEB0;
+    --sand-mid: #E0C68A;
+    --sand-wet: #B0905C;
+    --sand-dark: #6B5634;
+    --ink: #2A2520;
+    --ink-muted: #6B5F4A;
+}
+* { font-family: 'Inter', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+body { background: var(--sky-1); color: var(--ink); margin: 0; }
+
+.scene {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 40px auto;
+    height: 540px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(43, 37, 32, 0.12);
+    background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 100%);
+}
+
+/* Sun — soft, warm */
+.sun {
+    position: absolute;
+    top: 60px; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #FFE9B3 0%, #FFD479 60%, transparent 75%);
+    opacity: 0.7;
+}
+
+/* Water — height controlled by --tide-score */
+.water-layer {
+    position: absolute;
+    bottom: 100px;          /* sand height */
+    left: 0; right: 0;
+    height: calc(var(--tide-pct, 70) * 3px);  /* 0–100 → 0–300px */
+    background: linear-gradient(180deg, var(--water-shallow) 0%, var(--water-mid) 60%, var(--water-deep) 100%);
+    transition: height 1.4s cubic-bezier(.4,.0,.2,1);
+}
+
+/* Animated wavy crest */
+.water-crest {
+    position: absolute;
+    bottom: calc(100px + var(--tide-pct, 70) * 3px - 10px);
+    left: 0; right: 0;
+    height: 30px;
+    transition: bottom 1.4s cubic-bezier(.4,.0,.2,1);
+    z-index: 2;
+}
+.wave-svg {
+    width: 200%;
+    height: 100%;
+    animation: wave-x 8s linear infinite;
+}
+@keyframes wave-x {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+/* Sand */
+.sand-layer {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 100px;
+    background: linear-gradient(180deg, var(--sand-mid) 0%, var(--sand-wet) 70%, var(--sand-dark) 100%);
+}
+.sand-grain {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 100px;
+    background-image:
+        radial-gradient(rgba(107, 86, 52, 0.18) 1px, transparent 1px),
+        radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+    background-size: 12px 12px, 8px 8px;
+    background-position: 0 0, 4px 4px;
+    opacity: 0.6;
+}
+
+/* Tide Score number — floating on the water */
+.tide-readout {
+    position: absolute;
+    bottom: calc(100px + var(--tide-pct, 70) * 3px + 30px);
+    left: 50%; transform: translateX(-50%);
+    text-align: center;
+    color: var(--ink);
+    z-index: 3;
+    transition: bottom 1.4s cubic-bezier(.4,.0,.2,1);
+}
+.tide-num {
+    font-size: 156px; font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    color: var(--ink);
+    text-shadow: 0 4px 12px rgba(255,255,255,0.5);
+}
+.tide-direction {
+    display: inline-block; margin-left: 8px;
+    font-size: 32px; vertical-align: top; margin-top: 30px;
+}
+.tide-direction.up   { color: #2A8059; }
+.tide-direction.down { color: #B0473D; }
+.tide-label-top {
+    font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--ink-muted); margin-bottom: 4px;
+}
+
+/* Tick marks on right edge of water */
+.tide-ticks {
+    position: absolute;
+    right: 24px;
+    top: 80px; bottom: 110px;
+    width: 80px;
+    display: flex; flex-direction: column-reverse; justify-content: space-between;
+    pointer-events: none;
+}
+.tick {
+    font-size: 10px; color: var(--ink-muted); font-family: 'JetBrains Mono', monospace;
+    text-align: right; padding-right: 22px; position: relative;
+}
+.tick::after {
+    content: ''; position: absolute; right: 0; top: 50%; width: 16px; height: 1px; background: var(--ink-muted); opacity: 0.4;
+}
+
+/* State badges below the scene */
+.under-scene {
+    max-width: 1200px; margin: 0 auto; padding: 0 32px 60px;
+}
+.badges { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+.badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 999px;
+    font-size: 13px; font-weight: 600;
+    background: white; color: var(--ink); border: 1px solid rgba(43, 37, 32, 0.15);
+    box-shadow: 0 2px 8px rgba(43, 37, 32, 0.04);
+}
+.badge .dot { width: 8px; height: 8px; border-radius: 50%; }
+.narrative { font-size: 22px; font-weight: 500; color: var(--ink); margin-top: 28px; max-width: 720px; }
+.narrative-meta { font-size: 13px; color: var(--ink-muted); margin-top: 8px; }
+.proto-label {
+    position: fixed; top: 20px; left: 20px; background: var(--ink); color: var(--sky-1);
+    padding: 6px 12px; border-radius: 999px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+<div class="proto-label">Proto 1 · Cross-Section</div>
+<a href="./index.html" style="position: fixed; top: 20px; right: 20px; color: var(--ink-muted); font-size: 12px; text-decoration: none;">← all 5</a>
+
+<div class="scene" style="--tide-pct: 72;">
+    <div class="sun"></div>
+
+    <!-- water -->
+    <div class="water-layer"></div>
+    <div class="water-crest">
+        <svg class="wave-svg" viewBox="0 0 800 30" preserveAspectRatio="none">
+            <path d="M0,15 Q100,5 200,15 T400,15 T600,15 T800,15 L800,30 L0,30 Z" fill="#88C8D0"/>
+            <path d="M0,18 Q100,8 200,18 T400,18 T600,18 T800,18" stroke="#DCEEF0" stroke-width="2" fill="none"/>
+        </svg>
+    </div>
+
+    <!-- sand -->
+    <div class="sand-layer"></div>
+    <div class="sand-grain"></div>
+
+    <!-- ticks -->
+    <div class="tide-ticks">
+        <div class="tick">100 high</div>
+        <div class="tick">75</div>
+        <div class="tick">50</div>
+        <div class="tick">25</div>
+        <div class="tick">0 low</div>
+    </div>
+
+    <!-- score floating on water surface -->
+    <div class="tide-readout">
+        <div class="tide-label-top">Tide Score</div>
+        <div>
+            <span class="tide-num">72</span>
+            <span class="tide-direction up">▲</span>
+        </div>
+    </div>
+</div>
+
+<div class="under-scene">
+    <div class="narrative">The tide is rising. Risk-on conditions across the board, no major stress signals.</div>
+    <div class="narrative-meta">Data as of 2026-04-30 · Live · updated 2m ago</div>
+    <div class="badges">
+        <span class="badge"><span class="dot" style="background: #2A8059"></span> Trend · GREEN</span>
+        <span class="badge"><span class="dot" style="background: #4A8B96"></span> Regime · NORMAL</span>
+        <span class="badge"><span class="dot" style="background: #B89968"></span> 11 trading days in state</span>
+    </div>
+</div>
+</body>
+</html>

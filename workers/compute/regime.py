@@ -301,6 +301,83 @@ def build_regime_snapshot(df_states: pd.DataFrame, today_row: pd.Series, pct: di
     }
 
 
+def _tide_score(faber: str, regime: str) -> int:
+    """Mirrors web/index.html computeTideScore — 0..100."""
+    s = 50
+    if faber == "GREEN":
+        s += 22
+    elif faber == "CAUTION":
+        s -= 22
+    s += {"EASY": 14, "NORMAL": 0, "ELEVATED": -8, "STRESS": -22}.get(regime, 0)
+    return max(0, min(100, s))
+
+
+def compute_tide_history(df_states: pd.DataFrame, days: int = 90) -> list[dict]:
+    """Daily Tide Score + state + forward returns + verdict for the last N days.
+
+    Each entry:
+      date, tide_score, faber, regime, spy_close,
+      spy_5d_fwd_return, spy_20d_fwd_return,
+      spy_5d_outcome   ('UP' / 'DOWN' / 'FLAT' / null),
+      spy_20d_outcome  (...),
+      verdict_5d       ('hit' / 'miss' / null)   — based on Faber call
+      verdict_20d      (...)
+
+    Verdict logic (matches the bootstrap-validated Faber claim):
+      GREEN   → predicts UP  → hit if forward return > 0
+      CAUTION → predicts DOWN → hit if forward return < 0
+      NEUTRAL → no call      → verdict null
+    """
+    df = df_states.copy()
+    spy = df["spy"]
+    df["spy_5d_fwd"]  = spy.shift(-5)  / spy - 1
+    df["spy_20d_fwd"] = spy.shift(-20) / spy - 1
+
+    df["faber"] = [faber_signal(s, m50, m200) for s, m50, m200 in
+                   zip(df["spy"], df["ma_50"], df["ma_200"])]
+
+    tail = df.tail(days)
+    out = []
+    for date, row in tail.iterrows():
+        faber = row["faber"]
+        regime = row["state"]
+        score = _tide_score(faber, regime)
+
+        def bucket(r, threshold=0.005):
+            if pd.isna(r):
+                return None
+            if r > threshold:  return "UP"
+            if r < -threshold: return "DOWN"
+            return "FLAT"
+
+        out_5d  = bucket(row["spy_5d_fwd"])
+        out_20d = bucket(row["spy_20d_fwd"])
+
+        def verdict(call_state, outcome):
+            if outcome is None:
+                return None  # not yet resolved
+            if call_state == "GREEN":
+                return "hit" if outcome == "UP" else ("miss" if outcome == "DOWN" else "flat")
+            if call_state == "CAUTION":
+                return "hit" if outcome == "DOWN" else ("miss" if outcome == "UP" else "flat")
+            return None  # NEUTRAL = no call
+
+        out.append({
+            "date": str(date.date()),
+            "tide_score": score,
+            "faber": faber,
+            "regime": regime,
+            "spy_close": round(float(row["spy"]), 2),
+            "spy_5d_fwd_return": None if pd.isna(row["spy_5d_fwd"]) else round(float(row["spy_5d_fwd"]) * 100, 2),
+            "spy_20d_fwd_return": None if pd.isna(row["spy_20d_fwd"]) else round(float(row["spy_20d_fwd"]) * 100, 2),
+            "spy_5d_outcome": out_5d,
+            "spy_20d_outcome": out_20d,
+            "verdict_5d": verdict(faber, out_5d),
+            "verdict_20d": verdict(faber, out_20d),
+        })
+    return out
+
+
 def compute_decision_log(df_states: pd.DataFrame) -> list[dict]:
     """Return list of every state transition, newest first."""
     changes = df_states["state"].ne(df_states["state"].shift())
@@ -330,10 +407,12 @@ def run(api_key: str) -> dict:
     today_row = df_states.iloc[-1]
     snapshot = build_regime_snapshot(df_states, today_row, pct, i_today)
     decision_log = compute_decision_log(df_states)
+    tide_history = compute_tide_history(df_states, days=180)  # ~6 months
 
     return {
         "snapshot": snapshot,
         "decision_log": decision_log,
+        "tide_history": tide_history,
         "panel_meta": {
             "start": str(df_states.index.min().date()),
             "end": str(df_states.index.max().date()),

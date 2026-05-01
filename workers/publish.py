@@ -135,6 +135,7 @@ def build_payload() -> dict:
         "rule_version": "v1",
         "regime": regime_payload.get("snapshot") if "error" not in regime_payload else {"error": regime_payload.get("error")},
         "decision_log": regime_payload.get("decision_log", []),
+        "tide_history": regime_payload.get("tide_history", []),
         "panel_meta": regime_payload.get("panel_meta", {}),
         "raw": {
             "yahoo": yh,
@@ -148,6 +149,32 @@ def build_payload() -> dict:
         },
     }
     return payload
+
+
+def _upload_tide_history(history: list) -> None:
+    """Mirror tide history (180 days of score + state + forward returns + verdicts)
+    to R2 alongside latest.json so the history page can fetch it from the same origin."""
+    if not history:
+        return
+    body = json.dumps({"history": history}, default=str).encode()
+    # Local mirror
+    out_path = Path(__file__).parent / "out" / "tide_history.json"
+    out_path.write_bytes(body)
+    # R2
+    account = os.environ.get("R2_ACCOUNT_ID")
+    akey = os.environ.get("R2_ACCESS_KEY_ID")
+    skey = os.environ.get("R2_SECRET_ACCESS_KEY")
+    bucket = os.environ.get("R2_BUCKET")
+    if not all([account, akey, skey, bucket]):
+        return
+    import boto3
+    client = boto3.client("s3",
+        endpoint_url=f"https://{account}.r2.cloudflarestorage.com",
+        aws_access_key_id=akey, aws_secret_access_key=skey, region_name="auto")
+    client.put_object(Bucket=bucket, Key="tide_history.json", Body=body,
+        ContentType="application/json",
+        CacheControl="public, max-age=60, s-maxage=300")
+    print(f"[publish] uploaded tide_history.json ({len(body)} bytes, {len(history)} days)")
 
 
 def _upload_research_log() -> None:
@@ -242,6 +269,7 @@ def main() -> int:
     _upload_r2(payload)
     _upload_decision_log_csv(log)
     _upload_research_log()
+    _upload_tide_history(payload.get("tide_history", []))
     return 0
 
 

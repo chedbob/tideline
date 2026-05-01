@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tideline — Tide History</title>
+    <meta name="description" content="Historical tide score with backtest verdict day by day.">
+
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Tideline — Tide History">
+    <meta property="og:description" content="Last 180 days of Tide Score with daily verdicts.">
+    <meta property="og:url" content="https://tideline-b16.pages.dev/history.html">
+    <meta property="og:image" content="https://tideline-b16.pages.dev/og.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tideline — Tide History">
+    <meta name="twitter:description" content="Last 180 days with verdict day by day.">
+    <meta name="twitter:image" content="https://tideline-b16.pages.dev/og.png">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%23E8DDC8'/><stop offset='100%25' stop-color='%23B8956A'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ocean-deep: #0A1A2F;
+            --ocean-surface: #122438;
+            --ocean-card: #14283F;
+            --ocean-border: #2A4060;
+            --foam: #F0E6D2;
+            --muted: #A89B82;
+            --teal: #B8956A;
+            --cyan-bright: #E8DDC8;
+            --sand: #D4B98C;
+            --reef: #7BA37A;
+            --coral: #C46B5C;
+            --amber: #D4A85A;
+        }
+        * { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
+        body {
+            background: linear-gradient(180deg, var(--ocean-deep) 0%, #06101F 100%);
+            color: var(--foam);
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(at 15% 25%, rgba(232, 221, 200, 0.04) 0%, transparent 40%),
+                radial-gradient(at 85% 75%, rgba(184, 149, 106, 0.06) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .card {
+            background: var(--ocean-card);
+            border: 1px solid var(--ocean-border);
+        }
+        .nav-link { position: relative; color: var(--muted); transition: color 0.2s ease; font-size: 13px; font-weight: 500; }
+        .nav-link:hover { color: var(--foam); }
+        .nav-link.active { color: var(--cyan-bright); }
+        .nav-link.active::after {
+            content: ''; position: absolute; bottom: -18px; left: 0; right: 0; height: 2px;
+            background: var(--cyan-bright); border-radius: 2px;
+        }
+        .main-container { position: relative; z-index: 1; }
+
+        /* Verdict badges */
+        .v-hit  { color: var(--reef); }
+        .v-miss { color: var(--coral); }
+        .v-flat { color: var(--muted); }
+        .v-none { color: var(--muted); opacity: 0.5; }
+
+        /* State badge */
+        .badge-state {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 3px 8px; border-radius: 4px;
+            font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+        }
+        .b-EASY     { background: rgba(232, 221, 200, 0.10); color: var(--cyan-bright); }
+        .b-NORMAL   { background: rgba(123, 163, 122, 0.10); color: var(--reef); }
+        .b-ELEVATED { background: rgba(212, 168,  90, 0.10); color: var(--amber); }
+        .b-STRESS   { background: rgba(196, 107,  92, 0.12); color: var(--coral); }
+        .b-GREEN    { background: rgba(123, 163, 122, 0.10); color: var(--reef); }
+        .b-CAUTION  { background: rgba(196, 107,  92, 0.12); color: var(--coral); }
+        .b-NEUTRAL  { background: rgba(168, 155, 130, 0.10); color: var(--muted); }
+
+        /* Score chart bar */
+        .score-row {
+            display: grid; grid-template-columns: 90px 80px 70px 70px 70px 70px 70px;
+            gap: 12px; align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(31, 58, 95, 0.4);
+            font-size: 13px;
+        }
+        .score-row:hover { background: rgba(232, 221, 200, 0.03); }
+        .score-row .date { color: var(--muted); font-size: 12px; }
+        .score-row .score-cell { font-weight: 600; }
+        .score-row .ret { font-weight: 500; }
+        .score-row .ret.up { color: var(--reef); }
+        .score-row .ret.down { color: var(--coral); }
+        @media (max-width: 768px) {
+            .score-row { grid-template-columns: 80px 60px 70px 60px; gap: 8px; font-size: 11px; }
+            .hide-sm { display: none; }
+        }
+
+        /* Period selector */
+        .period-btn {
+            padding: 6px 14px; font-size: 12px; font-weight: 500;
+            background: transparent; color: var(--muted);
+            border: 1px solid var(--ocean-border); border-radius: 6px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .period-btn:hover { color: var(--foam); border-color: var(--sand); }
+        .period-btn.active { background: rgba(212, 185, 140, 0.15); color: var(--sand); border-color: var(--sand); }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--ocean-deep); }
+        ::-webkit-scrollbar-thumb { background: var(--ocean-border); border-radius: 4px; }
+
+        /* Sparkline state shading */
+        #chart-svg .state-band-easy     { fill: rgba(232, 221, 200, 0.06); }
+        #chart-svg .state-band-normal   { fill: rgba(123, 163, 122, 0.05); }
+        #chart-svg .state-band-elevated { fill: rgba(212, 168,  90, 0.06); }
+        #chart-svg .state-band-stress   { fill: rgba(196, 107,  92, 0.10); }
+    </style>
+</head>
+<body>
+<div class="main-container">
+    <header class="border-b sticky top-0 z-50" style="background: rgba(10, 26, 47, 0.85); backdrop-filter: blur(12px); border-color: rgba(31, 58, 95, 0.5);">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+            <div class="flex items-center gap-10">
+                <div class="flex items-center gap-3">
+                    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                        <path d="M2 16 Q8 10 14 16 T26 16 L30 16" stroke="url(#logoGrad)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M2 22 Q8 16 14 22 T26 22 L30 22" stroke="url(#logoGrad)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                                <stop offset="0%" style="stop-color:#E8DDC8"/>
+                                <stop offset="100%" style="stop-color:#B8956A"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <h1 class="text-lg font-semibold tracking-tight">Tideline</h1>
+                </div>
+                <nav class="flex items-center gap-8">
+                    <a href="./index.html" class="nav-link">Dashboard</a>
+                    <a href="./history.html" class="nav-link active">History</a>
+                    <a href="./methodology.html" class="nav-link">About</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+        <div class="mb-8">
+            <h2 class="text-3xl font-semibold tracking-tight mb-2">Tide History</h2>
+            <p class="text-sm" style="color: var(--muted);">
+                Daily Tide Score, Faber trend, regime state, and forward returns —
+                so you can backtest what Tideline said vs what actually happened.
+                <span id="data-as-of" class="mono">…</span>
+            </p>
+        </div>
+
+        <!-- Period selector -->
+        <div class="flex items-center gap-2 mb-6 flex-wrap">
+            <span class="text-xs uppercase tracking-widest mr-3" style="color: var(--muted);">Period</span>
+            <button class="period-btn active" data-period="30">Last 30D</button>
+            <button class="period-btn" data-period="60">Last 60D</button>
+            <button class="period-btn" data-period="90">Last 90D</button>
+            <button class="period-btn" data-period="180">Last 180D</button>
+        </div>
+
+        <!-- Accuracy summary cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="card rounded-xl p-5">
+                <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">Faber calls 5D</div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold mono" id="acc-5d">—</span>
+                    <span class="text-sm" style="color: var(--muted);" id="acc-5d-n">— resolved</span>
+                </div>
+                <div class="text-xs mt-2" style="color: var(--muted);" id="acc-5d-detail">—</div>
+            </div>
+            <div class="card rounded-xl p-5">
+                <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">Faber calls 20D</div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold mono" id="acc-20d">—</span>
+                    <span class="text-sm" style="color: var(--muted);" id="acc-20d-n">— resolved</span>
+                </div>
+                <div class="text-xs mt-2" style="color: var(--muted);" id="acc-20d-detail">—</div>
+            </div>
+            <div class="card rounded-xl p-5">
+                <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">State transitions</div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold mono" id="num-transitions">—</span>
+                    <span class="text-sm" style="color: var(--muted);">in period</span>
+                </div>
+                <div class="text-xs mt-2" style="color: var(--muted);" id="transitions-detail">—</div>
+            </div>
+            <div class="card rounded-xl p-5">
+                <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">Tide Score range</div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold mono" id="score-range">—</span>
+                </div>
+                <div class="text-xs mt-2" style="color: var(--muted);" id="score-range-detail">—</div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="card rounded-xl p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-lg font-semibold">Tide Score over time</h3>
+                    <p class="text-xs mt-1" style="color: var(--muted);">0 = stress · 50 = neutral · 100 = calm risk-on</p>
+                </div>
+                <span class="text-xs mono" style="color: var(--muted);" id="chart-period">last 30 days</span>
+            </div>
+            <div style="height: 260px;">
+                <svg id="chart-svg" viewBox="0 0 1000 260" preserveAspectRatio="none" style="width: 100%; height: 100%; overflow: visible;">
+                    <!-- gridlines + axis labels go here, generated by JS -->
+                </svg>
+            </div>
+            <div class="flex items-center justify-between mt-3 text-[10px] mono" style="color: var(--muted);">
+                <span id="chart-x-start">—</span>
+                <span id="chart-x-mid">—</span>
+                <span id="chart-x-end">—</span>
+            </div>
+        </div>
+
+        <!-- Daily table -->
+        <div class="card rounded-xl p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Daily verdict log</h3>
+                <a href="./decision_log.csv" download class="text-xs underline hover:text-cyan-300" style="color: var(--muted);">download CSV</a>
+            </div>
+            <div class="text-[10px] uppercase tracking-widest mb-3 grid grid-cols-7 gap-3 px-3" style="color: var(--muted);">
+                <div>Date</div>
+                <div>Score</div>
+                <div>Faber</div>
+                <div class="hide-sm">Regime</div>
+                <div class="text-right">SPY 5D</div>
+                <div class="hide-sm">Verdict 5D</div>
+                <div class="hide-sm text-right">SPY 20D</div>
+            </div>
+            <div id="rows" style="max-height: 600px; overflow-y: auto;"></div>
+        </div>
+
+        <div class="text-center text-xs py-8" style="color: var(--muted);">
+            <div class="mb-2">Past performance does not predict future results. <a href="./methodology.html" class="underline">about</a></div>
+            <div>Built with <span style="color: var(--cyan-bright);">Tideline</span></div>
+        </div>
+    </main>
+</div>
+
+<script>
+const HISTORY_URL = window.TIDELINE_HISTORY_URL ||
+                    'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/tide_history.json';
+
+let HISTORY = [];
+
+function fmtPct(p) {
+    if (p === null || p === undefined) return '—';
+    const sign = p >= 0 ? '+' : '';
+    return `${sign}${p.toFixed(2)}%`;
+}
+
+function tally(slice) {
+    let h5 = 0, m5 = 0, n5 = 0;
+    let h20 = 0, m20 = 0, n20 = 0;
+    for (const r of slice) {
+        if (r.verdict_5d === 'hit')  { h5++; n5++; }
+        else if (r.verdict_5d === 'miss') { m5++; n5++; }
+        if (r.verdict_20d === 'hit')  { h20++; n20++; }
+        else if (r.verdict_20d === 'miss') { m20++; n20++; }
+    }
+    return { h5, m5, n5, h20, m20, n20 };
+}
+
+function renderSummary(slice) {
+    const t = tally(slice);
+    const acc5  = t.n5  ? (t.h5  / t.n5  * 100).toFixed(0) + '%' : '—';
+    const acc20 = t.n20 ? (t.h20 / t.n20 * 100).toFixed(0) + '%' : '—';
+    document.getElementById('acc-5d').textContent  = acc5;
+    document.getElementById('acc-20d').textContent = acc20;
+    document.getElementById('acc-5d-n').textContent  = t.n5  ? `n=${t.n5}`  : 'pending';
+    document.getElementById('acc-20d-n').textContent = t.n20 ? `n=${t.n20}` : 'pending';
+    document.getElementById('acc-5d-detail').textContent  = t.n5  ? `${t.h5} hit · ${t.m5} miss`   : 'awaiting resolution';
+    document.getElementById('acc-20d-detail').textContent = t.n20 ? `${t.h20} hit · ${t.m20} miss` : 'awaiting resolution';
+
+    // transitions
+    let tx = 0; let last = null;
+    for (const r of slice) {
+        const cur = r.faber + '|' + r.regime;
+        if (last && cur !== last) tx++;
+        last = cur;
+    }
+    document.getElementById('num-transitions').textContent = tx;
+    document.getElementById('transitions-detail').textContent = `state changes in window`;
+
+    // score range
+    const scores = slice.map(r => r.tide_score);
+    const lo = Math.min(...scores);
+    const hi = Math.max(...scores);
+    const cur = slice[slice.length - 1].tide_score;
+    document.getElementById('score-range').textContent = `${lo}–${hi}`;
+    document.getElementById('score-range-detail').textContent = `current: ${cur}`;
+}
+
+function renderChart(slice) {
+    const svg = document.getElementById('chart-svg');
+    const W = 1000, H = 260;
+    const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+    const w = W - margin.left - margin.right;
+    const h = H - margin.top - margin.bottom;
+
+    let html = '';
+
+    // gridlines y
+    for (const y of [0, 25, 50, 75, 100]) {
+        const yPx = margin.top + h - (y / 100) * h;
+        html += `<line x1="${margin.left}" y1="${yPx}" x2="${margin.left + w}" y2="${yPx}" stroke="rgba(232,221,200,0.08)" stroke-dasharray="${y === 50 ? '0' : '2 4'}"/>`;
+        html += `<text x="${margin.left - 8}" y="${yPx + 3}" fill="#A89B82" font-size="9" text-anchor="end" font-family="JetBrains Mono">${y}</text>`;
+    }
+
+    // state-band background segments (one rect per state-run)
+    let segStart = 0;
+    let segState = slice[0]?.regime;
+    const segRects = [];
+    for (let i = 1; i <= slice.length; i++) {
+        const cur = i < slice.length ? slice[i].regime : null;
+        if (cur !== segState) {
+            segRects.push({ start: segStart, end: i - 1, state: segState });
+            segStart = i;
+            segState = cur;
+        }
+    }
+    for (const seg of segRects) {
+        const x1 = margin.left + (seg.start / Math.max(slice.length - 1, 1)) * w;
+        const x2 = margin.left + (seg.end   / Math.max(slice.length - 1, 1)) * w;
+        const cls = `state-band-${(seg.state || 'normal').toLowerCase()}`;
+        html += `<rect x="${x1}" y="${margin.top}" width="${Math.max(x2 - x1, 1)}" height="${h}" class="${cls}"/>`;
+    }
+
+    // line + area for tide score
+    let pts = '';
+    for (let i = 0; i < slice.length; i++) {
+        const x = margin.left + (i / Math.max(slice.length - 1, 1)) * w;
+        const y = margin.top + h - (slice[i].tide_score / 100) * h;
+        pts += `${i === 0 ? 'M' : 'L'} ${x} ${y} `;
+    }
+    // area fill
+    const last = margin.left + w;
+    html += `<path d="${pts} L ${last} ${margin.top + h} L ${margin.left} ${margin.top + h} Z" fill="url(#scoreGrad)" opacity="0.4"/>`;
+    html += `<defs><linearGradient id="scoreGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#E8DDC8" stop-opacity="0.6"/><stop offset="100%" stop-color="#B8956A" stop-opacity="0.0"/></linearGradient></defs>`;
+    html += `<path d="${pts}" fill="none" stroke="#E8DDC8" stroke-width="2"/>`;
+
+    // last point
+    const lastIdx = slice.length - 1;
+    const lastX = margin.left + (lastIdx / Math.max(slice.length - 1, 1)) * w;
+    const lastY = margin.top + h - (slice[lastIdx].tide_score / 100) * h;
+    html += `<circle cx="${lastX}" cy="${lastY}" r="4" fill="#E8DDC8"/>`;
+    html += `<text x="${lastX - 8}" y="${lastY - 12}" fill="#F0E6D2" font-size="14" font-weight="700" text-anchor="end" font-family="JetBrains Mono">${slice[lastIdx].tide_score}</text>`;
+
+    svg.innerHTML = html;
+
+    // x labels
+    document.getElementById('chart-x-start').textContent = slice[0].date;
+    document.getElementById('chart-x-mid').textContent   = slice[Math.floor(slice.length / 2)].date;
+    document.getElementById('chart-x-end').textContent   = slice[slice.length - 1].date;
+    document.getElementById('chart-period').textContent  = `last ${slice.length} days`;
+}
+
+function renderRows(slice) {
+    const wrap = document.getElementById('rows');
+    wrap.innerHTML = '';
+    const reversed = [...slice].reverse();   // newest first
+    for (const r of reversed) {
+        const row = document.createElement('div');
+        row.className = 'grid grid-cols-7 gap-3 px-3 py-2 border-b mono text-sm';
+        row.style.borderColor = 'rgba(31, 58, 95, 0.4)';
+
+        const ret5  = r.spy_5d_fwd_return;
+        const ret20 = r.spy_20d_fwd_return;
+        const v5  = r.verdict_5d;
+        const v20 = r.verdict_20d;
+
+        const verdictHtml = (v) => {
+            if (v === 'hit')  return '<span class="v-hit">✓ hit</span>';
+            if (v === 'miss') return '<span class="v-miss">✗ miss</span>';
+            if (v === 'flat') return '<span class="v-flat">·  flat</span>';
+            return '<span class="v-none">—</span>';
+        };
+
+        row.innerHTML = `
+            <div style="color: var(--muted); font-size: 11px;">${r.date}</div>
+            <div style="font-weight: 600;">${r.tide_score}</div>
+            <div><span class="badge-state b-${r.faber}">${r.faber}</span></div>
+            <div class="hide-sm"><span class="badge-state b-${r.regime}">${r.regime}</span></div>
+            <div class="text-right">${ret5 === null ? '<span class="v-none">pending</span>' : `<span class="${ret5>=0?'v-hit':'v-miss'}">${fmtPct(ret5)}</span>`}</div>
+            <div class="hide-sm">${verdictHtml(v5)}</div>
+            <div class="hide-sm text-right">${ret20 === null ? '<span class="v-none">pending</span>' : `<span class="${ret20>=0?'v-hit':'v-miss'}">${fmtPct(ret20)}</span>`}</div>
+        `;
+        wrap.appendChild(row);
+    }
+}
+
+function renderPeriod(days) {
+    const slice = HISTORY.slice(-days);
+    if (slice.length === 0) return;
+    renderSummary(slice);
+    renderChart(slice);
+    renderRows(slice);
+}
+
+async function load() {
+    try {
+        const r = await fetch(HISTORY_URL, { cache: 'no-cache' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const data = await r.json();
+        HISTORY = data.history || [];
+        if (HISTORY.length === 0) {
+            document.getElementById('rows').innerHTML = '<div style="color: var(--coral); padding: 20px;">No history data yet.</div>';
+            return;
+        }
+        document.getElementById('data-as-of').textContent = `· data through ${HISTORY[HISTORY.length - 1].date}`;
+        renderPeriod(30);
+    } catch (e) {
+        console.error(e);
+        document.getElementById('rows').innerHTML = `<div style="color: var(--coral); padding: 20px;">Failed to load history: ${e.message}</div>`;
+    }
+}
+
+document.querySelectorAll('.period-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.period-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        const days = parseInt(btn.dataset.period, 10);
+        renderPeriod(days);
+    });
+});
+
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>

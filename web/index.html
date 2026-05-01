@@ -429,6 +429,24 @@
             </div>
         </section>
 
+        <!-- Smart Headline — auto-generated from full panel analogs -->
+        <section id="headline-section" class="mb-10" style="display: none;">
+            <div class="card rounded-xl p-6" style="border-left: 3px solid var(--cyan-bright);">
+                <div class="flex items-start gap-4">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--cyan-bright); flex-shrink: 0; margin-top: 2px;">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <div style="flex: 1;">
+                        <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">
+                            Historical analog · auto-generated from 1997–present
+                        </div>
+                        <p id="headline-text" class="text-base md:text-lg leading-relaxed" style="color: var(--foam);"></p>
+                        <div id="headline-alternates" class="mt-3 text-sm" style="color: var(--muted);"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Zone 0 + Zone 1 -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-10">
             <!-- Zone 0: Faber Trend Signal -->
@@ -1004,6 +1022,21 @@ async function load() {
         document.getElementById('z1-days').textContent = z1.days_in_state + ' trading days';
         document.getElementById('z1-last').textContent = z1.last_transition_date || '—';
         document.getElementById('z1-trigger').textContent = (z1.last_transition_trigger || '—').replace(/_/g, ' ');
+
+        // Smart headlines — surface lead + first alternate
+        const headlines = data.headlines || {};
+        const lead = headlines.lead;
+        if (lead && lead.lead) {
+            document.getElementById('headline-section').style.display = '';
+            document.getElementById('headline-text').textContent = lead.lead;
+            const alternates = headlines.alternates || [];
+            const altWrap = document.getElementById('headline-alternates');
+            if (alternates.length > 0) {
+                altWrap.innerHTML = '<span style="opacity:0.7;">Also: </span>' + alternates[0].lead;
+            } else {
+                altWrap.innerHTML = '';
+            }
+        }
 
         // Zone 2 — Components
         renderComponents(r.zones.components);

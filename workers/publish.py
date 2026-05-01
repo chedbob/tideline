@@ -136,6 +136,7 @@ def build_payload() -> dict:
         "regime": regime_payload.get("snapshot") if "error" not in regime_payload else {"error": regime_payload.get("error")},
         "decision_log": regime_payload.get("decision_log", []),
         "tide_history": regime_payload.get("tide_history", []),
+        "headlines": regime_payload.get("headlines", {"lead": None, "alternates": []}),
         "panel_meta": regime_payload.get("panel_meta", {}),
         "raw": {
             "yahoo": yh,

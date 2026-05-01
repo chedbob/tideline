@@ -312,6 +312,15 @@ def _tide_score(faber: str, regime: str) -> int:
     return max(0, min(100, s))
 
 
+def _add_tide_score_column(df_states: pd.DataFrame) -> pd.DataFrame:
+    """Compute the daily tide_score series across the entire panel for analog finding."""
+    df = df_states.copy()
+    fab = [faber_signal(s, m50, m200) for s, m50, m200 in zip(df["spy"], df["ma_50"], df["ma_200"])]
+    df["faber"] = fab
+    df["tide_score"] = [_tide_score(f, r) for f, r in zip(df["faber"], df["state"])]
+    return df
+
+
 def compute_tide_history(df_states: pd.DataFrame, days: int = 90) -> list[dict]:
     """Daily Tide Score + state + forward returns + verdict for the last N days.
 
@@ -409,10 +418,16 @@ def run(api_key: str) -> dict:
     decision_log = compute_decision_log(df_states)
     tide_history = compute_tide_history(df_states, days=180)  # ~6 months
 
+    # Smart headlines from full panel — finds historical analogs to today's reading
+    from compute.headlines import build_headlines
+    df_with_score = _add_tide_score_column(df_states)
+    headlines = build_headlines(df_with_score, score_col="tide_score", state_col="state")
+
     return {
         "snapshot": snapshot,
         "decision_log": decision_log,
         "tide_history": tide_history,
+        "headlines": headlines,
         "panel_meta": {
             "start": str(df_states.index.min().date()),
             "end": str(df_states.index.max().date()),

@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tideline — Methodology &amp; Audit</title>
-    <meta name="description" content="Full research log, integrity claims, and known limitations.">
+    <title>Tideline — About</title>
+    <meta name="description" content="Disclaimer and tracking notes.">
 
-    <!-- OpenGraph / Twitter card -->
     <meta property="og:type" content="article">
-    <meta property="og:title" content="Tideline — Methodology &amp; Audit">
-    <meta property="og:description" content="Full research log, integrity claims, and known limitations of the Tideline regime tracker.">
+    <meta property="og:title" content="Tideline — About">
+    <meta property="og:description" content="Macro regime tracker — disclaimer and tracking notes.">
     <meta property="og:url" content="https://tideline-b16.pages.dev/methodology.html">
     <meta property="og:image" content="https://tideline-b16.pages.dev/og.png">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Tideline — Methodology &amp; Audit">
-    <meta name="twitter:description" content="Full research log, integrity claims, and known limitations.">
+    <meta name="twitter:title" content="Tideline — About">
+    <meta name="twitter:description" content="Disclaimer and tracking notes.">
     <meta name="twitter:image" content="https://tideline-b16.pages.dev/og.png">
 
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%2322D3EE'/><stop offset='100%25' stop-color='%230891B2'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
@@ -38,27 +37,15 @@
         body::before { content: ''; position: fixed; inset: 0;
             background-image: radial-gradient(at 15% 25%, rgba(34, 211, 238, 0.08) 0%, transparent 40%), radial-gradient(at 85% 75%, rgba(8, 145, 178, 0.1) 0%, transparent 40%);
             pointer-events: none; z-index: 0; }
-        .card { background: var(--ocean-card); border: 1px solid var(--ocean-border); }
         .nav-link { position: relative; color: var(--muted); transition: color 0.2s ease; font-size: 13px; font-weight: 500; }
         .nav-link:hover { color: var(--foam); }
         .nav-link.active { color: var(--cyan-bright); }
         .nav-link.active::after { content: ''; position: absolute; bottom: -18px; left: 0; right: 0; height: 2px; background: var(--cyan-bright); border-radius: 2px; }
         .main-container { position: relative; z-index: 1; }
-        .depth-divider { height: 1px; background: linear-gradient(90deg, transparent 0%, var(--ocean-border) 50%, transparent 100%); margin: 32px 0; }
-        .prose h2 { font-size: 1.5rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; }
-        .prose h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--cyan-bright); }
         .prose p, .prose li { color: var(--foam); line-height: 1.7; }
-        .prose ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
-        .prose ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 1rem; }
-        .prose code { background: var(--ocean-deep); padding: 1px 6px; border-radius: 3px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
         .prose strong { color: var(--cyan-bright); font-weight: 600; }
         .prose a { color: var(--cyan-bright); text-decoration: underline; text-underline-offset: 2px; }
-        .prose a:hover { color: var(--foam); }
-        .callout-warn { background: rgba(245, 158, 11, 0.08); border-left: 3px solid var(--amber); padding: 12px 16px; margin: 16px 0; border-radius: 4px; }
-        .callout-info { background: rgba(34, 211, 238, 0.06); border-left: 3px solid var(--cyan-bright); padding: 12px 16px; margin: 16px 0; border-radius: 4px; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--ocean-deep); }
-        ::-webkit-scrollbar-thumb { background: var(--ocean-border); border-radius: 4px; }
+        .callout { background: rgba(245, 158, 11, 0.06); border-left: 3px solid var(--amber); padding: 16px 20px; border-radius: 4px; margin: 20px 0; }
     </style>
 </head>
 <body>
@@ -81,203 +68,36 @@
                 </div>
                 <nav class="flex items-center gap-8">
                     <a href="./index.html" class="nav-link">Dashboard</a>
-                    <a href="./methodology.html" class="nav-link active">Methodology</a>
+                    <a href="./methodology.html" class="nav-link active">About</a>
                 </nav>
             </div>
         </div>
     </header>
 
-    <main class="max-w-3xl mx-auto px-6 py-10 prose">
+    <main class="max-w-2xl mx-auto px-6 py-16 prose">
+        <h1 class="text-3xl font-semibold tracking-tight mb-6">About Tideline</h1>
 
-        <h1 class="text-3xl font-semibold tracking-tight mb-3">Methodology &amp; Audit</h1>
-        <p style="color: var(--muted);">
-            Tideline is a public macro regime tracker with one narrow predictive claim and one descriptive panel.
-            Every test, every iteration, every external review is documented here. The brand is honesty, not alpha.
+        <p>
+            Tideline is a descriptive macro regime tracker. It publishes a daily reading of cross-asset stress and trend conditions, computed from publicly available market data on a fixed schedule.
         </p>
 
-        <div class="depth-divider"></div>
+        <p>
+            Every state Tideline assigns is logged permanently. Track-record performance — how often the readings line up with subsequent market behavior — is recorded continuously and surfaced on the dashboard over time.
+        </p>
 
-        <h2>What Tideline claims</h2>
-        <p>Two outputs. They mean different things and should not be conflated:</p>
-
-        <h3>Zone 0 — Faber Trend Signal (predictive)</h3>
-        <ul>
-            <li><strong>Rule:</strong> <code>SPY &gt; 200DMA AND 50DMA &gt; 200DMA</code> → <code>GREEN</code>; both bearish → <code>CAUTION</code>; mixed → <code>NEUTRAL</code></li>
-            <li><strong>Sample:</strong> 1997-01-02 to 2026-04-22, 7,153 trading days, n=1,541 CAUTION days</li>
-            <li><strong>Claim:</strong> when CAUTION fires, SPY 20-day DOWN rate has been <strong>46.0%</strong> vs <strong>36.9%</strong> unconditional baseline (<strong>+9.1pp</strong> edge)</li>
-            <li><strong>Robustness:</strong> block bootstrap (L=60, 10,000 iterations) 95% CI <code>[37.7%, 55.8%]</code> — lower bound exceeds baseline</li>
-            <li><strong>Framing:</strong> risk-management signal, not return forecast. Faber (2007) <em>A Quantitative Approach to Tactical Asset Allocation</em>.</li>
-        </ul>
-        <div class="callout-info">
-            We do not claim Tideline predicts SPY direction. We claim that historically, SPY's down-rate in the next 20 trading days has been measurably higher when this rule fires <code>CAUTION</code>. The edge is small (≈9pp) and barely clears the bootstrap-corrected baseline. Nothing else is claimed.
+        <div class="callout">
+            <strong style="color: var(--amber);">Not investment advice.</strong>
+            Tideline is a research and observation tool. Nothing it shows constitutes a recommendation to buy, sell, or hold any security. Past readings do not predict future outcomes. You are responsible for your own positions.
         </div>
 
-        <h3>Zone 1 — 4-State Regime (descriptive only)</h3>
-        <ul>
-            <li><strong>States:</strong> <code>EASY</code> · <code>NORMAL</code> · <code>ELEVATED</code> · <code>STRESS</code></li>
-            <li><strong>Inputs:</strong> BAA10Y credit spread, VIX, 3m–10y curve, Chicago Fed NFCI</li>
-            <li><strong>Thresholds:</strong> rolling 5-year percentile (1,260 trading days), no point cutoffs</li>
-            <li><strong>Behavior:</strong> ~14.9 transitions/year; reacts to real stress events within 0–3 trading days</li>
-            <li><strong>Out-of-sample test:</strong> correctly flagged <code>STRESS</code> within 3 days on 5/5 events not used to design the rule (US downgrade 2011, China devaluation 2015, yen intervention 2022, UK gilt crisis 2022, SVB 2023)</li>
-        </ul>
-        <div class="callout-warn">
-            Zone 1 makes <strong>no directional claim</strong>. <code>STRESS</code> describes current macro conditions, not what SPY will do next. In our backtest, average forward returns in <code>STRESS</code> are slightly <em>positive</em> (mean reversion after stress) — same pattern observed across 5 separate tests of the underlying composite.
-        </div>
-
-        <h2>Architecture</h2>
-        <ol>
-            <li>Python workers fetch data on a 5-minute cron (GitHub Actions, public repo).</li>
-            <li>Rule <code>v1.py</code> evaluates state machine on the full 1997-present panel.</li>
-            <li>Output JSON + decision-log CSV uploaded to Cloudflare R2 (zero egress, viral-safe).</li>
-            <li>Static frontend (this page) fetches from R2 — no backend, no database.</li>
-            <li>Every payload includes <code>rule_sha256</code> — SHA256 of <code>rule/v1.py</code> at compute time.
-                If the rule is ever modified, the hash changes and any reader can detect it.</li>
-        </ol>
-
-        <h2>Data sources (all free)</h2>
-        <ul>
-            <li><strong>FRED:</strong> BAA10Y (credit spread), VIXCLS, T10Y3M (curve), NFCI (Chicago Fed)</li>
-            <li><strong>Yahoo Finance:</strong> SPY (close, 50/200-day MAs)</li>
-        </ul>
-
-        <h2>Important caveats (read these)</h2>
-        <h3>FRED data forward-fill</h3>
         <p>
-            FRED publishes most series at T+1 (next business day). When Tideline computes today's row,
-            yesterday's BAA10Y/VIX/curve values are forward-filled to today. This is the only honest
-            behavior given FRED's release schedule — there's no look-ahead, just lag.
+            <a href="./decision_log.csv" download>Download the full decision log (CSV)</a> — every state transition Tideline has ever assigned, machine-readable.
         </p>
 
-        <h3>NFCI release lag (T+5)</h3>
-        <p>
-            NFCI for the week ending Friday is released the <em>following Wednesday</em>. The state
-            machine enforces this 5-day lag explicitly in code. When you see <code>NFCI</code> in
-            the components panel, it's the value as of 5 trading days ago — what would have been
-            available at the time of our state computation.
-        </p>
-
-        <h3>Decision log drift on FRED revisions</h3>
-        <p>
-            Every state on the dashboard is recomputed from current FRED data each run. If FRED
-            retroactively revises a historical value (this happens occasionally, e.g., NFCI), past
-            decision-log entries can shift slightly. In our audit, a +50bp revision to a single
-            historical BAA10Y day caused <strong>1 state-day to flip</strong> over a 29-year panel.
-            Small but real. The log is "current vintage truth," not appended-immutable. We may
-            persist transitions append-only in a future version.
-        </p>
-
-        <h2>What we tested and rejected</h2>
-        <p>
-            Tideline went through 11 documented research entries. Several initial designs failed
-            and were killed honestly. The full chronological log lives in the project repository at
-            <code>workers/backtest/research_log.md</code>. Highlights:
-        </p>
-        <ul>
-            <li><strong>Failed:</strong> 4-factor stress composite as a directional predictor for SPY (5 separate null-tests; composite has zero incremental information after standard controls)</li>
-            <li><strong>Failed:</strong> 6-target tournament with 4-factor composite (only TLT-direction passed marginally; not the public claim)</li>
-            <li><strong>Surviving:</strong> Faber/Golden-cross binary signal — block-bootstrap CI clears baseline by ~0.8pp</li>
-            <li><strong>Iterated:</strong> 4-state regime went through v2 → v3 → v4. v2 had bugs (stuck in STRESS 49% of days), v3 partial, v4 passes all 9 historical stress events. Documented.</li>
-        </ul>
-
-        <h2>Integrity checks</h2>
-        <ul>
-            <li>Every payload carries <code>rule_sha256</code>. Compute SHA256 of <code>workers/rule/v1.py</code> in the repo and verify it matches.</li>
-            <li>Every percentile uses <code>shift(1).rolling(window).quantile()</code> — today is excluded from its own threshold by construction.</li>
-            <li>NFCI is shifted by 5 trading days before any rule evaluates it.</li>
-            <li>State machine bit-identical to the validated research artifact (7,376/7,376 days match).</li>
-            <li>Public Faber claim reproduces from live data to the basis point: 46.0% / +9.1pp / CI [37.7%, 55.8%].</li>
-        </ul>
-
-        <h2>Disclaimer</h2>
-        <p style="color: var(--muted); font-size: 0.9rem;">
-            Tideline is a descriptive macro regime tracker. It is not investment advice and does not
-            recommend any trade. Past performance does not predict future results. The historical
-            edge described above is small, statistically marginal, and based on a single 29-year
-            sample. Signal decay is plausible — the underlying rule has been public since the 1970s.
-        </p>
-
-        <div class="depth-divider" id="decision-log"></div>
-
-        <h2>Decision log</h2>
-        <p>
-            Every state transition Tideline has ever assigned, machine-readable.
-            <a href="./decision_log.csv" download>Download CSV</a>.
-        </p>
-
-        <div class="depth-divider" id="research-log"></div>
-
-        <h2>Full research log</h2>
-        <p style="color: var(--muted);">
-            Every test run, every external review, every iteration that got us here. Failures included.
-            Rendered verbatim from <code>workers/backtest/research_log.md</code>.
-        </p>
-
-        <div id="research-log-render" class="card rounded-xl p-6 mt-4" style="overflow-x: auto;">
-            <div style="color: var(--muted);">Loading research log…</div>
-        </div>
-
-        <div class="depth-divider"></div>
-
-        <div class="text-center text-xs py-8" style="color: var(--muted);">
-            <div>Built with <span style="color: var(--cyan-bright);">Tideline</span> · Open methodology</div>
+        <div class="text-center text-xs py-12 mt-12" style="color: var(--muted); border-top: 1px solid var(--ocean-border);">
+            Built with <span style="color: var(--cyan-bright);">Tideline</span>
         </div>
     </main>
 </div>
-
-<!-- Marked.js for research log markdown rendering -->
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script>
-(async function loadResearchLog() {
-    const target = document.getElementById('research-log-render');
-    try {
-        const r = await fetch('https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/research_log.md', { cache: 'no-cache' });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const md = await r.text();
-        // Configure marked: GFM, no auto-linkify (avoids linkifying date strings), trust source
-        marked.setOptions({ gfm: true, breaks: false, headerIds: true });
-        target.innerHTML = marked.parse(md);
-        // Add minimal styling to rendered children so they match the page
-        target.querySelectorAll('table').forEach(t => {
-            t.style.width = '100%';
-            t.style.fontSize = '0.85rem';
-            t.style.borderCollapse = 'collapse';
-            t.style.margin = '12px 0';
-        });
-        target.querySelectorAll('th, td').forEach(td => {
-            td.style.padding = '6px 10px';
-            td.style.borderBottom = '1px solid var(--ocean-border)';
-            td.style.textAlign = 'left';
-        });
-        target.querySelectorAll('th').forEach(th => {
-            th.style.color = 'var(--cyan-bright)';
-            th.style.fontWeight = '600';
-        });
-        target.querySelectorAll('h2').forEach(h => {
-            h.style.marginTop = '2rem';
-            h.style.fontSize = '1.25rem';
-            h.style.color = 'var(--foam)';
-            h.style.borderTop = '1px solid var(--ocean-border)';
-            h.style.paddingTop = '1.5rem';
-        });
-        target.querySelectorAll('h3').forEach(h => {
-            h.style.marginTop = '1.25rem';
-            h.style.fontSize = '1rem';
-            h.style.color = 'var(--cyan-bright)';
-        });
-        target.querySelectorAll('code').forEach(c => {
-            c.style.background = 'var(--ocean-deep)';
-            c.style.padding = '1px 6px';
-            c.style.borderRadius = '3px';
-            c.style.fontSize = '0.85em';
-            c.style.fontFamily = "'JetBrains Mono', monospace";
-        });
-        target.querySelectorAll('strong').forEach(s => {
-            s.style.color = 'var(--cyan-bright)';
-        });
-    } catch (err) {
-        target.innerHTML = '<div style="color: var(--coral);">Failed to load research log: ' + err.message + '</div>';
-    }
-})();
-</script>
 </body>
 </html>

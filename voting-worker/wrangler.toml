@@ -6,7 +6,7 @@ compatibility_date = "2024-11-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "tideline-voting"
-database_id = "REPLACE_WITH_D1_ID_AFTER_CREATE"
+database_id = "2a30ffe1-a244-4fbf-bf72-62c71278cea2"
 
 # Public R2 URL of latest.json (used to read Tideline state at poll creation)
 [vars]

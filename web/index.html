@@ -4,1242 +4,609 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tideline — Macro Regime Tracker</title>
-    <meta name="description" content="One simple trend signal, one descriptive macro regime panel, full audit trail.">
+    <meta name="description" content="One look. The tide is rising or it isn't.">
 
-    <!-- OpenGraph / Twitter card (X preview when pinned) -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Tideline — Macro Regime Tracker">
-    <meta property="og:description" content="One simple trend signal, one descriptive macro regime panel, full audit trail. Public methodology, every test documented.">
+    <meta property="og:description" content="Watch the tide. One simple read of the macro market.">
     <meta property="og:url" content="https://tideline-b16.pages.dev">
     <meta property="og:image" content="https://tideline-b16.pages.dev/og.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Tideline — Macro Regime Tracker">
-    <meta name="twitter:description" content="One simple trend signal, one descriptive macro regime panel, full audit trail.">
+    <meta name="twitter:description" content="Watch the tide. One simple read of the macro market.">
     <meta name="twitter:image" content="https://tideline-b16.pages.dev/og.png">
 
-    <!-- Inline SVG favicon (matches header logo) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%2322D3EE'/><stop offset='100%25' stop-color='%230891B2'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%2388C8D0'/><stop offset='100%25' stop-color='%234A8B96'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Ocean base — deep, calm, professional */
-            --ocean-deep: #0A1A2F;
-            --ocean-surface: #122438;
-            --ocean-card: #14283F;
-            --ocean-border: #2A4060;
-            /* Sandbox warmth — replaces neon cyan with refined cream/sand */
-            --foam: #F0E6D2;          /* warm cream — primary text + hero number */
-            --muted: #A89B82;         /* muted sand — secondary text/labels */
-            --teal: #B8956A;          /* wood — secondary accent (was teal) */
-            --cyan-bright: #E8DDC8;   /* light sand — primary accent / hero glow */
-            --sand: #D4B98C;          /* mid sand — buttons, highlights */
-            /* Semantic colors — warmer, less neon */
-            --reef: #7BA37A;          /* soft sage green — risk-on / good */
-            --coral: #C46B5C;         /* warm rust — risk-off / bad */
-            --amber: #D4A85A;         /* tan-amber — elevated / caution */
-            --deep-purple: #8E7AB0;   /* muted lavender — neutral */
+            --sky-1: #FAF3E0;
+            --sky-2: #F5DEB3;
+            --water-foam: #DCEEF0;
+            --water-shallow: #88C8D0;
+            --water-mid: #4A8B96;
+            --water-deep: #1F3F4F;
+            --water-ink: #0F2A38;
+            --sand-dry: #F0DEB0;
+            --sand-mid: #DCC089;
+            --sand-warm: #C9A674;
+            --sand-wet: #A88254;
+            --sand-shadow: #6B5634;
+            --wood: #8B6F47;
+            --wood-light: #B8956A;
+            --ink: #1A1410;
+            --ink-soft: #5C5040;
+            --ink-faint: #8C7E68;
+            --good: #2F8B59;
+            --good-soft: #7BA37A;
+            --warn: #D4A85A;
+            --bad: #C46B5C;
+            --line: rgba(26, 20, 16, 0.10);
+            --line-soft: rgba(26, 20, 16, 0.06);
         }
-        * { font-family: 'Inter', sans-serif; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        body {
-            background: linear-gradient(180deg, var(--ocean-deep) 0%, #06101F 100%);
-            color: var(--foam);
-            min-height: 100vh;
-            background-attachment: fixed;
-        }
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+        .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
+        html, body { background: var(--sky-1); color: var(--ink); min-height: 100vh; }
+
+        /* Soft grain texture across the whole page */
         body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image:
-                radial-gradient(at 15% 25%, rgba(232, 221, 200, 0.04) 0%, transparent 40%),
-                radial-gradient(at 85% 75%, rgba(184, 149, 106, 0.06) 0%, transparent 40%);
-            pointer-events: none;
-            z-index: 0;
+            content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 100;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+            opacity: 0.04; mix-blend-mode: multiply;
         }
-        .card {
-            background: var(--ocean-card);
-            border: 1px solid var(--ocean-border);
-            transition: all 0.3s ease;
-        }
-        .card:hover {
-            border-color: rgba(34, 211, 238, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        }
-        .wave-container {
-            position: relative;
-            height: 100px;
-            overflow: hidden;
-            border-radius: 8px;
-            background: linear-gradient(180deg, rgba(10, 26, 47, 0.2) 0%, rgba(8, 145, 178, 0.05) 100%);
-        }
-        @keyframes wave-drift { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-2%); } }
-        .wave-svg { animation: wave-drift 12s ease-in-out infinite; }
-        @keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.2); } }
-        .pulse-dot { animation: pulse-dot 2.5s ease-in-out infinite; }
-        .regime-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 12px;
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        .regime-easy     { background: rgba(232, 221, 200, 0.10); color: var(--cyan-bright); border: 1px solid rgba(232, 221, 200, 0.30); }
-        .regime-normal   { background: rgba(123, 163, 122, 0.10); color: var(--reef);        border: 1px solid rgba(123, 163, 122, 0.30); }
-        .regime-elevated { background: rgba(212, 168,  90, 0.10); color: var(--amber);       border: 1px solid rgba(212, 168,  90, 0.30); }
-        .regime-stress   { background: rgba(196, 107,  92, 0.12); color: var(--coral);       border: 1px solid rgba(196, 107,  92, 0.35); }
-        .regime-green    { background: rgba(123, 163, 122, 0.10); color: var(--reef);        border: 1px solid rgba(123, 163, 122, 0.30); }
-        .regime-caution  { background: rgba(196, 107,  92, 0.12); color: var(--coral);       border: 1px solid rgba(196, 107,  92, 0.35); }
-        .regime-neutral  { background: rgba(142, 122, 176, 0.10); color: var(--deep-purple); border: 1px solid rgba(142, 122, 176, 0.30); }
-        .pct-bar { height: 4px; background: var(--ocean-border); border-radius: 2px; overflow: hidden; }
-        .pct-fill { height: 100%; background: linear-gradient(90deg, var(--teal) 0%, var(--sand) 100%); transition: width 1s ease; }
-        .nav-link { position: relative; color: var(--muted); transition: color 0.2s ease; font-size: 13px; font-weight: 500; }
-        .nav-link:hover { color: var(--foam); }
-        .nav-link.active { color: var(--cyan-bright); }
-        .nav-link.active::after {
-            content: ''; position: absolute; bottom: -18px; left: 0; right: 0; height: 2px;
-            background: var(--cyan-bright); border-radius: 2px;
-        }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--ocean-deep); }
-        ::-webkit-scrollbar-thumb { background: var(--ocean-border); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--teal); }
-        .main-container { position: relative; z-index: 1; }
-        .trend-up { color: var(--reef); }
-        .trend-down { color: var(--coral); }
-        .trend-flat { color: var(--muted); }
-        .depth-divider { height: 1px; background: linear-gradient(90deg, transparent 0%, var(--ocean-border) 50%, transparent 100%); margin: 32px 0; }
-        .skeleton { background: linear-gradient(90deg, var(--ocean-card) 25%, var(--ocean-border) 50%, var(--ocean-card) 75%); background-size: 200% 100%; animation: skeleton-pulse 1.5s ease-in-out infinite; border-radius: 4px; }
-        @keyframes skeleton-pulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* TIDE SCORE — the hero number */
-        .tide-score-wrap {
+        /* Header */
+        .header {
+            max-width: 1100px; margin: 0 auto; padding: 24px 24px 12px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+        .brand-mark { width: 32px; height: 32px; }
+        nav.tabs { display: flex; gap: 24px; }
+        nav.tabs a {
+            color: var(--ink-soft); text-decoration: none; font-size: 14px; font-weight: 500;
+            position: relative; padding: 4px 0;
+        }
+        nav.tabs a:hover { color: var(--ink); }
+        nav.tabs a.active { color: var(--ink); }
+        nav.tabs a.active::after {
+            content: ''; position: absolute; bottom: -8px; left: 0; right: 0;
+            height: 2px; background: var(--water-mid); border-radius: 2px;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 16px 24px 64px; }
+
+        /* HERO — illustrated beach scene */
+        .scene {
             position: relative;
-            border-radius: 24px;
+            width: 100%;
+            aspect-ratio: 16/9;
+            min-height: 420px;
+            max-height: 560px;
+            border-radius: 32px;
             overflow: hidden;
-            background: linear-gradient(180deg, rgba(232, 221, 200, 0.03) 0%, rgba(184, 149, 106, 0.08) 100%);
-            border: 1px solid var(--ocean-border);
-            padding: 48px 32px 56px;
+            background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 60%, var(--water-shallow) 60%, var(--water-mid) 100%);
+            box-shadow: 0 20px 60px rgba(31, 63, 79, 0.12), inset 0 0 0 1px rgba(255,255,255,0.5);
+            margin-bottom: 24px;
         }
-        .tide-score-num {
-            font-size: clamp(120px, 22vw, 240px);
-            font-weight: 700;
-            letter-spacing: -0.05em;
-            line-height: 0.9;
-            text-align: center;
-            background: linear-gradient(180deg, #F5EDD8 0%, #D4B98C 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 0 80px rgba(232, 221, 200, 0.20);
-            transition: all 1s ease;
-        }
-        .tide-narrative {
-            font-size: clamp(18px, 2.5vw, 26px);
-            text-align: center;
-            font-weight: 500;
-            color: var(--foam);
-            margin-top: 8px;
-        }
-        .tide-bg-wave {
+
+        /* Sun — animated subtle glow */
+        .sun {
             position: absolute;
-            left: 0; right: 0; bottom: 0;
-            height: 100px;
-            opacity: 0.4;
+            top: 8%; left: 50%; transform: translateX(-50%);
+            width: 110px; height: 110px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #FFE9B3 0%, #FFD479 55%, transparent 70%);
+            box-shadow: 0 0 80px rgba(255, 200, 110, 0.4);
+            animation: sun-pulse 6s ease-in-out infinite;
+        }
+        @keyframes sun-pulse { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.04); } }
+        .sun.cloudy { background: radial-gradient(circle, #F5E6D2 0%, #D4C4A8 55%, transparent 70%); box-shadow: 0 0 60px rgba(212, 184, 138, 0.3); }
+        .sun.stormy { background: radial-gradient(circle, #B8A890 0%, #8B7E6B 55%, transparent 70%); box-shadow: 0 0 40px rgba(139, 126, 107, 0.25); }
+
+        /* Cloud (drifts across when ELEVATED) */
+        .cloud {
+            position: absolute;
+            top: 14%;
+            width: 140px; height: 50px;
+            opacity: 0;
+            transition: opacity 1s ease;
+            animation: cloud-drift 60s linear infinite;
+        }
+        .cloud.visible { opacity: 0.85; }
+        @keyframes cloud-drift {
+            from { left: -160px; }
+            to   { left: calc(100% + 160px); }
+        }
+
+        /* Water — fills bottom portion based on tide score */
+        .water {
+            position: absolute;
+            left: 0; right: 0;
+            bottom: 0;
+            height: 50%;  /* base — adjusted by JS */
+            background: linear-gradient(180deg, var(--water-shallow) 0%, var(--water-mid) 50%, var(--water-deep) 100%);
+            transition: height 1.4s cubic-bezier(.4,.0,.2,1);
+        }
+        /* Animated wave crest */
+        .wave-crest {
+            position: absolute;
+            left: 0; right: 0;
+            height: 28px;
+            transition: top 1.4s cubic-bezier(.4,.0,.2,1);
+            z-index: 2;
             pointer-events: none;
         }
-
-        /* CIRCULAR % RINGS */
-        .ring-wrap { position: relative; width: 168px; height: 168px; margin: 0 auto; }
-        .ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-        .ring-bg { fill: none; stroke: var(--ocean-border); stroke-width: 12; }
-        .ring-fg { fill: none; stroke-width: 12; stroke-linecap: round;
-                   transition: stroke-dasharray 1.2s ease; }
-        .ring-tideline { stroke: var(--cyan-bright); }
-        .ring-crowd    { stroke: var(--reef); }
-        .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .ring-pct { font-size: 36px; font-weight: 700; line-height: 1; font-family: 'JetBrains Mono', monospace; }
-        .ring-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
-        .ring-n { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
-
-        /* VOTE BUTTONS */
-        .vote-btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            padding: 14px 24px; border-radius: 12px; font-weight: 600; font-size: 15px;
-            border: 1px solid var(--ocean-border); background: var(--ocean-deep);
-            color: var(--foam); cursor: pointer; transition: all 0.2s ease;
-            min-width: 120px;
+        .wave-svg {
+            width: 200%;
+            height: 100%;
+            animation: wave-x 10s linear infinite;
         }
-        .vote-btn:hover:not(:disabled) { border-color: var(--cyan-bright); background: rgba(34, 211, 238, 0.08); transform: translateY(-1px); }
-        .vote-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .vote-btn.up    { border-color: rgba(16, 185, 129, 0.4); }
-        .vote-btn.up:hover:not(:disabled)    { background: rgba(16, 185, 129, 0.10); border-color: var(--reef); }
-        .vote-btn.down  { border-color: rgba(249, 115, 22, 0.4); }
-        .vote-btn.down:hover:not(:disabled)  { background: rgba(249, 115, 22, 0.10); border-color: var(--coral); }
-        .vote-btn.flat  { border-color: rgba(124, 58, 237, 0.4); }
-        .vote-btn.flat:hover:not(:disabled)  { background: rgba(124, 58, 237, 0.10); border-color: #A78BFA; }
-        .vote-btn.voted { background: rgba(34, 211, 238, 0.12); border-color: var(--cyan-bright); }
-        .vote-tally-bar { height: 6px; background: var(--ocean-border); border-radius: 3px; overflow: hidden; }
-        .vote-tally-fill { height: 100%; transition: width 1s ease; }
-        .tally-up    { background: var(--reef); }
-        .tally-down  { background: var(--coral); }
-        .tally-flat  { background: #A78BFA; }
+        @keyframes wave-x {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        /* Sand bottom — beach line under water */
+        .sand {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 18%;
+            background: linear-gradient(180deg, var(--sand-mid) 0%, var(--sand-wet) 70%, var(--sand-shadow) 100%);
+            z-index: 1;
+        }
+        .sand::after {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                radial-gradient(rgba(107, 86, 52, 0.18) 1px, transparent 1px),
+                radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+            background-size: 14px 14px, 9px 9px;
+            background-position: 0 0, 5px 5px;
+            opacity: 0.5;
+        }
+
+        /* Beach umbrella decorative element */
+        .umbrella { position: absolute; bottom: 12%; right: 8%; z-index: 3; }
+
+        /* Big tide score floating on water surface */
+        .score-readout {
+            position: absolute;
+            left: 50%; transform: translateX(-50%);
+            text-align: center;
+            z-index: 5;
+            transition: bottom 1.4s cubic-bezier(.4,.0,.2,1);
+        }
+        .score-eyebrow {
+            font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase;
+            color: var(--ink); opacity: 0.65;
+            font-weight: 600;
+        }
+        .score-num {
+            font-size: clamp(140px, 18vw, 220px);
+            font-weight: 800;
+            letter-spacing: -0.04em; line-height: 0.85;
+            color: var(--ink);
+            text-shadow: 0 4px 0 rgba(255, 255, 255, 0.5), 0 12px 30px rgba(31, 63, 79, 0.18);
+            margin-top: 4px;
+        }
+        .score-arrow {
+            display: inline-block; vertical-align: top; font-size: 32px; margin-top: 28px;
+            margin-left: 6px;
+            color: var(--good);
+        }
+        .score-arrow.down { color: var(--bad); }
+        .score-arrow.flat { color: var(--ink-soft); }
+
+        .narrative {
+            text-align: center;
+            font-size: clamp(16px, 2vw, 22px);
+            font-weight: 500;
+            color: var(--ink);
+            margin-top: -4px;
+            max-width: 720px;
+            margin-left: auto; margin-right: auto;
+            margin-bottom: 28px;
+        }
+
+        /* Last updated chip */
+        .live-chip {
+            position: absolute; top: 20px; right: 24px;
+            padding: 6px 14px; border-radius: 999px;
+            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);
+            font-size: 11px; color: var(--ink-soft);
+            display: inline-flex; align-items: center; gap: 7px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .live-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* QUICK READ STRIP — 4 cards */
+        .quick {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+            margin-bottom: 28px;
+        }
+        @media (max-width: 720px) { .quick { grid-template-columns: repeat(2, 1fr); } }
+        .qcard {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid var(--line);
+            display: flex; flex-direction: column; gap: 8px;
+            transition: transform 0.25s cubic-bezier(.2,.7,.2,1), box-shadow 0.25s;
+        }
+        .qcard:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(31, 63, 79, 0.10); }
+        .qcard-icon { font-size: 28px; line-height: 1; }
+        .qcard-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; }
+        .qcard-value { font-size: 22px; font-weight: 700; line-height: 1.1; color: var(--ink); }
+        .qcard-sub { font-size: 12px; color: var(--ink-soft); }
+
+        /* History strip */
+        .history-strip {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid var(--line);
+            margin-bottom: 24px;
+        }
+        .history-head {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .history-head h3 { font-size: 16px; font-weight: 700; }
+        .history-head a {
+            font-size: 12px; color: var(--water-mid);
+            text-decoration: none; font-weight: 600;
+        }
+        .history-head a:hover { text-decoration: underline; }
+        #history-svg {
+            width: 100%; height: 140px; display: block;
+        }
+        .history-foot {
+            display: flex; justify-content: space-between;
+            font-size: 11px; color: var(--ink-faint); margin-top: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Footer */
+        .foot {
+            text-align: center; font-size: 12px; color: var(--ink-faint);
+            padding: 32px 0 16px;
+        }
+        .foot a { color: var(--water-mid); text-decoration: none; }
+        .foot a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-<div class="main-container">
-    <header class="border-b sticky top-0 z-50" style="background: rgba(10, 26, 47, 0.85); backdrop-filter: blur(12px); border-color: rgba(31, 58, 95, 0.5);">
-        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-            <div class="flex items-center gap-10">
-                <div class="flex items-center gap-3">
-                    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                        <path d="M2 16 Q8 10 14 16 T26 16 L30 16" stroke="url(#logoGrad)" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path d="M2 22 Q8 16 14 22 T26 22 L30 22" stroke="url(#logoGrad)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
-                        <defs>
-                            <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
-                                <stop offset="0%" style="stop-color:#E8DDC8"/>
-                                <stop offset="100%" style="stop-color:#B8956A"/>
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                    <h1 class="text-lg font-semibold tracking-tight">Tideline</h1>
-                </div>
-                <nav class="flex items-center gap-8">
-                    <a href="./index.html" class="nav-link active">Dashboard</a>
-                    <a href="./history.html" class="nav-link">History</a>
-                    <a href="./methodology.html" class="nav-link">About</a>
-                </nav>
-            </div>
-            <div class="flex items-center gap-4">
-                <span id="last-updated" class="text-xs flex items-center gap-2" style="color: var(--muted);">
-                    <span class="w-2 h-2 rounded-full pulse-dot" style="background: var(--sand);"></span>
-                    Loading…
-                </span>
-            </div>
-        </div>
-    </header>
 
-    <main class="max-w-7xl mx-auto px-6 py-10">
-        <!-- TIDE SCORE — Hero -->
-        <div class="tide-score-wrap mb-12">
-            <div class="text-xs uppercase tracking-widest mb-2 text-center" style="color: var(--muted);">
-                Tide Score · 0–100 · higher = calmer
-            </div>
-            <div id="tide-score-num" class="tide-score-num">—</div>
-            <div id="tide-narrative" class="tide-narrative">Loading current conditions…</div>
-            <div class="flex items-center justify-center gap-3 mt-6 flex-wrap">
-                <span class="text-xs uppercase tracking-widest" style="color: var(--muted);">Trend</span>
-                <span id="hero-z0-badge" class="regime-badge regime-neutral">
-                    <span class="w-1.5 h-1.5 rounded-full pulse-dot"></span>
-                    <span id="hero-z0-state">—</span>
-                </span>
-                <span class="text-xs uppercase tracking-widest ml-3" style="color: var(--muted);">Regime</span>
-                <span id="hero-z1-badge" class="regime-badge regime-neutral">
-                    <span class="w-1.5 h-1.5 rounded-full pulse-dot"></span>
-                    <span id="hero-z1-state">—</span>
-                </span>
-                <span id="hero-date" class="text-xs ml-3" style="color: var(--muted);">…</span>
-            </div>
-            <svg class="tide-bg-wave" viewBox="0 0 800 100" preserveAspectRatio="none">
-                <path d="M0,60 Q100,30 200,45 T400,35 T600,40 T800,30 L800,100 L0,100 Z"
-                      fill="url(#tideHeroGrad)"/>
-                <path d="M0,60 Q100,30 200,45 T400,35 T600,40 T800,30"
-                      stroke="#D4B98C" stroke-width="2" fill="none" opacity="0.45"/>
-                <defs>
-                    <linearGradient id="tideHeroGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%"  stop-color="#E8DDC8" stop-opacity="0.06"/>
-                        <stop offset="100%" stop-color="#B8956A" stop-opacity="0.35"/>
-                    </linearGradient>
-                </defs>
+<div class="header">
+    <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" fill="none">
+            <path d="M2 16 Q8 10 14 16 T26 16 L30 16" stroke="url(#brandG)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M2 22 Q8 16 14 22 T26 22 L30 22" stroke="url(#brandG)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+            <defs>
+                <linearGradient id="brandG" x1="0" y1="0" x2="32" y2="32">
+                    <stop offset="0%" style="stop-color:#88C8D0"/>
+                    <stop offset="100%" style="stop-color:#4A8B96"/>
+                </linearGradient>
+            </defs>
+        </svg>
+        Tideline
+    </div>
+    <nav class="tabs">
+        <a href="./index.html" class="active">Now</a>
+        <a href="./history.html">History</a>
+        <a href="./methodology.html">About</a>
+    </nav>
+</div>
+
+<div class="container">
+
+    <!-- HERO BEACH SCENE -->
+    <div class="scene" id="scene">
+        <!-- Live chip -->
+        <span class="live-chip" id="live-chip"><span class="dot"></span><span id="live-text">Loading…</span></span>
+
+        <!-- Sun (color-shifts with mood) -->
+        <div class="sun" id="sun"></div>
+
+        <!-- Drifting cloud (only appears when ELEVATED/STRESS) -->
+        <div class="cloud" id="cloud">
+            <svg viewBox="0 0 140 50" fill="none">
+                <ellipse cx="40"  cy="32" rx="32" ry="18" fill="#FFFFFF" opacity="0.85"/>
+                <ellipse cx="80"  cy="28" rx="28" ry="20" fill="#FFFFFF" opacity="0.85"/>
+                <ellipse cx="105" cy="34" rx="22" ry="14" fill="#FFFFFF" opacity="0.85"/>
             </svg>
         </div>
 
-        <!-- THIS WEEK'S POLL -->
-        <section class="card rounded-xl p-6 mb-6" id="poll-section">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <div class="text-xs uppercase tracking-widest mb-1" style="color: var(--muted);">This Week's Poll</div>
-                    <h3 id="poll-question" class="text-xl font-semibold">Loading…</h3>
-                </div>
-                <span id="poll-status" class="text-xs" style="color: var(--muted);">—</span>
-            </div>
+        <!-- Sand at the bottom of the beach -->
+        <div class="sand"></div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                <!-- House Prior (mechanical, posted odds) -->
-                <div class="rounded-xl p-4" style="background: rgba(34, 211, 238, 0.04); border: 1px solid rgba(34, 211, 238, 0.25);">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="text-xs uppercase tracking-widest" style="color: var(--cyan-bright);">House Prior</div>
-                        <span id="prior-faber-state" class="text-[10px] mono uppercase" style="color: var(--muted);">—</span>
-                    </div>
-                    <!-- 3-bar prior visualization -->
-                    <div class="vote-tally-bar mb-2" style="height: 18px;">
-                        <div id="prior-bar-up"   class="vote-tally-fill tally-up"   style="height:100%; width:0%; float:left;"></div>
-                        <div id="prior-bar-flat" class="vote-tally-fill tally-flat" style="height:100%; width:0%; float:left;"></div>
-                        <div id="prior-bar-down" class="vote-tally-fill tally-down" style="height:100%; width:0%; float:left;"></div>
-                    </div>
-                    <div class="grid grid-cols-3 text-xs mono mb-3" style="color: var(--foam);">
-                        <div>UP <span id="prior-pct-up" class="trend-up">—</span></div>
-                        <div class="text-center">FLAT <span id="prior-pct-flat">—</span></div>
-                        <div class="text-right">DOWN <span id="prior-pct-down" class="trend-down">—</span></div>
-                    </div>
-                    <p id="poll-tideline-basis" class="text-[11px] leading-relaxed" style="color: var(--muted);">Loading…</p>
-                </div>
-                <!-- Vote buttons -->
-                <div>
-                    <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">Your call</div>
-                    <div class="flex flex-wrap gap-2 mb-3">
-                        <button class="vote-btn up"   data-vote="UP">▲ UP</button>
-                        <button class="vote-btn flat" data-vote="NEUTRAL">→ FLAT</button>
-                        <button class="vote-btn down" data-vote="DOWN">▼ DOWN</button>
-                    </div>
-                    <div id="poll-vote-msg" class="text-xs" style="color: var(--muted);">Voting closes Wed end of day</div>
-                </div>
-            </div>
+        <!-- Water layer (height = tide score) -->
+        <div class="water" id="water"></div>
 
-            <!-- Live tally -->
+        <!-- Wave crest at water surface -->
+        <div class="wave-crest" id="wave-crest">
+            <svg class="wave-svg" viewBox="0 0 800 28" preserveAspectRatio="none">
+                <path d="M0,14 Q100,4 200,14 T400,14 T600,14 T800,14 L800,28 L0,28 Z" fill="#88C8D0"/>
+                <path d="M0,18 Q100,8 200,18 T400,18 T600,18 T800,18" stroke="#DCEEF0" stroke-width="2" fill="none"/>
+            </svg>
+        </div>
+
+        <!-- Beach umbrella (decorative) -->
+        <svg class="umbrella" width="50" height="80" viewBox="0 0 50 80">
+            <path d="M25 20 L25 78" stroke="#5C5040" stroke-width="2" stroke-linecap="round"/>
+            <path d="M5 22 Q25 -4, 45 22 Z" fill="#C46B5C"/>
+            <path d="M5 22 Q25 8, 45 22 Z" fill="#E8856A" opacity="0.7"/>
+            <path d="M25 22 L25 12" stroke="#1A1410" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+
+        <!-- Score floating on water -->
+        <div class="score-readout" id="score-readout">
+            <div class="score-eyebrow">Today's Tide</div>
             <div>
-                <div class="flex items-center justify-between text-xs mb-2" style="color: var(--muted);">
-                    <span>Crowd so far</span>
-                    <span id="poll-vote-total">0 votes</span>
-                </div>
-                <div class="vote-tally-bar relative" style="height: 12px;">
-                    <div id="tally-up"   class="vote-tally-fill tally-up    inline-block"   style="height:100%; width:0%; float:left;"></div>
-                    <div id="tally-flat" class="vote-tally-fill tally-flat  inline-block"   style="height:100%; width:0%; float:left;"></div>
-                    <div id="tally-down" class="vote-tally-fill tally-down  inline-block"   style="height:100%; width:0%; float:left;"></div>
-                </div>
-                <div class="grid grid-cols-3 text-xs mt-2 mono" style="color: var(--muted);">
-                    <div>UP <span id="pct-up" class="trend-up">—</span></div>
-                    <div class="text-center">FLAT <span id="pct-flat">—</span></div>
-                    <div class="text-right">DOWN <span id="pct-down" class="trend-down">—</span></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SCOREBOARD -->
-        <section class="card rounded-xl p-6 mb-12" id="scoreboard-section">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <div class="text-xs uppercase tracking-widest mb-1" style="color: var(--muted);">Scoreboard</div>
-                    <h3 class="text-xl font-semibold">House Prior vs Crowd · Calibration</h3>
-                    <p class="text-xs mt-1" style="color: var(--muted);">House posts mechanical odds from history. Crowd posts a vote. Brier scored each Friday — lower is better calibrated.</p>
-                </div>
-                <span id="scoreboard-n" class="text-xs mono" style="color: var(--muted);">— polls resolved</span>
-            </div>
-            <div class="grid grid-cols-2 gap-6">
-                <div class="text-center">
-                    <div class="ring-wrap">
-                        <svg class="ring-svg" viewBox="0 0 100 100">
-                            <circle class="ring-bg"           cx="50" cy="50" r="42"></circle>
-                            <circle class="ring-fg ring-tideline" id="ring-tideline" cx="50" cy="50" r="42"
-                                    stroke-dasharray="0 264"></circle>
-                        </svg>
-                        <div class="ring-center">
-                            <div id="tideline-pct" class="ring-pct" style="color: var(--cyan-bright);">—</div>
-                            <div class="ring-label">House Prior</div>
-                            <div id="tideline-n" class="ring-n">n=—</div>
-                        </div>
-                    </div>
-                    <div class="text-xs mt-3" style="color: var(--muted);">
-                        Brier: <span id="tideline-brier" class="mono" style="color: var(--foam);">—</span>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <div class="ring-wrap">
-                        <svg class="ring-svg" viewBox="0 0 100 100">
-                            <circle class="ring-bg"        cx="50" cy="50" r="42"></circle>
-                            <circle class="ring-fg ring-crowd" id="ring-crowd" cx="50" cy="50" r="42"
-                                    stroke-dasharray="0 264"></circle>
-                        </svg>
-                        <div class="ring-center">
-                            <div id="crowd-pct" class="ring-pct" style="color: var(--reef);">—</div>
-                            <div class="ring-label">Crowd</div>
-                            <div id="crowd-n" class="ring-n">n=—</div>
-                        </div>
-                    </div>
-                    <div class="text-xs mt-3" style="color: var(--muted);">
-                        Brier: <span id="crowd-brier" class="mono" style="color: var(--foam);">—</span>
-                    </div>
-                </div>
-            </div>
-            <!-- YOUR TRACK RECORD — personal voting tracker -->
-            <div class="mt-8 pt-6 border-t" id="me-section" style="border-color: var(--ocean-border); display: none;">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <div class="text-xs uppercase tracking-widest mb-1" style="color: var(--muted);">Your Track Record</div>
-                        <h4 class="text-base font-semibold">How you've called it</h4>
-                    </div>
-                    <span id="me-id" class="text-[10px] mono" style="color: var(--muted);">—</span>
-                </div>
-                <div class="grid grid-cols-3 gap-4 text-center mb-4">
-                    <div>
-                        <div id="me-pct" class="text-2xl font-bold mono" style="color: var(--cyan-bright);">—</div>
-                        <div class="text-[10px] uppercase tracking-wider" style="color: var(--muted);">your accuracy</div>
-                        <div id="me-n" class="text-[10px] mono mt-1" style="color: var(--muted);">n=—</div>
-                    </div>
-                    <div>
-                        <div id="me-brier" class="text-2xl font-bold mono">—</div>
-                        <div class="text-[10px] uppercase tracking-wider" style="color: var(--muted);">your Brier</div>
-                        <div class="text-[10px] mt-1" style="color: var(--muted);">lower = better</div>
-                    </div>
-                    <div>
-                        <div id="me-vs-house" class="text-2xl font-bold mono" style="color: var(--reef);">—</div>
-                        <div class="text-[10px] uppercase tracking-wider" style="color: var(--muted);">vs house when you disagreed</div>
-                        <div id="me-disagree-n" class="text-[10px] mono mt-1" style="color: var(--muted);">—</div>
-                    </div>
-                </div>
-                <div id="me-history" class="space-y-1 mt-4"></div>
-            </div>
-
-            <!-- Disagreement panel — where the narrative lives once both rings cluster -->
-            <div class="mt-6 pt-6 border-t" style="border-color: var(--ocean-border);">
-                <div class="text-xs uppercase tracking-widest mb-3 text-center" style="color: var(--muted);">
-                    When the crowd disagrees with the house
-                </div>
-                <div class="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                        <div id="disagree-n" class="text-2xl font-bold mono">—</div>
-                        <div class="text-[10px] uppercase tracking-wider" style="color: var(--muted);">disagreed weeks</div>
-                    </div>
-                    <div>
-                        <div id="disagree-house-acc" class="text-2xl font-bold mono" style="color: var(--cyan-bright);">—</div>
-                        <div class="text-[10px] uppercase tracking-wider" style="color: var(--muted);">house was right</div>
-                    </div>
-                    <div>
-                        <div id="disagree-crowd-acc" class="text-2xl font-bold mono" style="color: var(--reef);">—</div>
-                        <div class="text-[10px] uppercase tracking-wider" style="color: var(--muted);">crowd was right</div>
-                    </div>
-                </div>
-                <div class="mt-3 text-xs text-center" style="color: var(--muted);">
-                    Disagreement = crowd's modal vote ≠ house prior's modal call. Most weeks they'll agree (both pick UP);
-                    the disagreement bucket is where we learn who actually reads the market better.
-                </div>
-            </div>
-
-            <div class="mt-6 text-xs text-center" style="color: var(--muted);">
-                Lower Brier = better calibration. 0.0 = perfect, 0.667 = random three-way guess.
-            </div>
-        </section>
-
-        <!-- Dip-Buy Watch — bootstrap-validated bottom signals -->
-        <section id="dip-section" class="mb-6" style="display: none;">
-            <div class="card rounded-xl p-5">
-                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-                    <div>
-                        <div class="text-xs uppercase tracking-widest mb-1" style="color: var(--muted);">Dip-buy watch · backtested</div>
-                        <h3 class="text-base font-semibold" style="color: var(--foam);">Bottom signals firing right now</h3>
-                    </div>
-                    <span class="text-xs mono" id="dip-panel-meta" style="color: var(--muted);">—</span>
-                </div>
-
-                <!-- Primary signal — CREDIT_PEAK survived bootstrap -->
-                <div class="rounded-lg p-4 mb-3" id="dip-primary"
-                     style="background: rgba(232, 221, 200, 0.04); border: 1px solid rgba(232, 221, 200, 0.20);">
-                    <div class="flex items-start justify-between mb-2 flex-wrap gap-2">
-                        <div>
-                            <div class="text-[10px] uppercase tracking-widest mb-1" style="color: var(--cyan-bright);">Primary · bootstrap-validated</div>
-                            <div class="text-base font-semibold" style="color: var(--foam);" id="dip-primary-name">Credit Spread Peak</div>
-                        </div>
-                        <span id="dip-primary-status" class="text-xs mono" style="color: var(--muted);">—</span>
-                    </div>
-                    <p class="text-xs leading-relaxed mb-3" style="color: var(--muted);">
-                        BAA10Y credit spread in top quartile of 5y range AND declining for 5+ consecutive days.
-                        Per Gilchrist-Zakrajšek (2012), credit markets lead equity bottoms.
-                    </p>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                        <div>
-                            <div class="text-[10px] uppercase tracking-widest" style="color: var(--muted);">Historical hit rate</div>
-                            <div class="text-lg font-semibold mono" id="dip-primary-hit">—</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] uppercase tracking-widest" style="color: var(--muted);">Edge vs drawdown baseline</div>
-                            <div class="text-lg font-semibold mono" id="dip-primary-edge">—</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] uppercase tracking-widest" style="color: var(--muted);">Bootstrap CI</div>
-                            <div class="text-sm mono" id="dip-primary-ci">—</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] uppercase tracking-widest" style="color: var(--muted);">Sample size</div>
-                            <div class="text-lg font-semibold mono" id="dip-primary-n">—</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tracked but not signal-grade -->
-                <details class="text-sm">
-                    <summary class="cursor-pointer text-xs uppercase tracking-widest pb-2" style="color: var(--muted);">
-                        4 other signals tracked (did not survive bootstrap)
-                    </summary>
-                    <div id="dip-others" class="space-y-1 mt-2 pl-3"></div>
-                </details>
-            </div>
-        </section>
-
-        <!-- Lag Tracker — honest "where Tideline is fast vs slow" -->
-        <section id="lag-section" class="mb-6" style="display: none;">
-            <div class="card rounded-xl p-5">
-                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-                    <div>
-                        <div class="text-xs uppercase tracking-widest mb-1" style="color: var(--muted);">Lag tracker · backtested</div>
-                        <h3 class="text-base font-semibold" style="color: var(--foam);">How fast Tideline reacts to real moves</h3>
-                    </div>
-                    <span class="text-xs mono" style="color: var(--muted);" id="lag-panel-meta">—</span>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                        <div class="text-[10px] uppercase tracking-widest mb-1" style="color: var(--muted);">Catching drawdowns</div>
-                        <div class="text-2xl font-semibold mono" id="lag-warn-median">—</div>
-                        <div class="text-xs mt-1" style="color: var(--muted);" id="lag-warn-detail">—</div>
-                    </div>
-                    <div>
-                        <div class="text-[10px] uppercase tracking-widest mb-1" style="color: var(--muted);">All-clear after trough</div>
-                        <div class="text-2xl font-semibold mono" id="lag-clear-median">—</div>
-                        <div class="text-xs mt-1" style="color: var(--muted);" id="lag-clear-detail">—</div>
-                    </div>
-                    <div>
-                        <div class="text-[10px] uppercase tracking-widest mb-1" style="color: var(--muted);">% drawdown when warned</div>
-                        <div class="text-2xl font-semibold mono" id="lag-pct">—</div>
-                        <div class="text-xs mt-1" style="color: var(--muted);">median; 0 % = warns at peak</div>
-                    </div>
-                    <div>
-                        <div class="text-[10px] uppercase tracking-widest mb-1" style="color: var(--muted);">Drawdowns analyzed</div>
-                        <div class="text-2xl font-semibold mono" id="lag-n">—</div>
-                        <div class="text-xs mt-1" style="color: var(--muted);" id="lag-n-detail">SPY ≥ 3 % since 1997</div>
-                    </div>
-                </div>
-                <div class="text-xs mt-4 pt-4 border-t" style="color: var(--muted); border-color: var(--ocean-border);">
-                    <span id="lag-takeaway"></span>
-                    <a href="./history.html" class="underline hover:text-cyan-300">see every episode →</a>
-                </div>
-            </div>
-        </section>
-
-        <!-- Smart Headline — auto-generated from full panel analogs -->
-        <section id="headline-section" class="mb-10" style="display: none;">
-            <div class="card rounded-xl p-6" style="border-left: 3px solid var(--cyan-bright);">
-                <div class="flex items-start gap-4">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--cyan-bright); flex-shrink: 0; margin-top: 2px;">
-                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                    <div style="flex: 1;">
-                        <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">
-                            Historical analog · auto-generated from 1997–present
-                        </div>
-                        <p id="headline-text" class="text-base md:text-lg leading-relaxed" style="color: var(--foam);"></p>
-                        <div id="headline-alternates" class="mt-3 text-sm" style="color: var(--muted);"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Zone 0 + Zone 1 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-10">
-            <!-- Zone 0: Faber Trend Signal -->
-            <div class="card rounded-xl p-6">
-                <div class="flex items-start justify-between mb-5">
-                    <div>
-                        <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">Trend Signal · Zone 0</div>
-                        <div id="z0-state" class="text-2xl font-semibold mb-1">…</div>
-                        <div id="z0-evidence" class="text-xs" style="color: var(--muted);">SPY vs 200/50-day moving averages</div>
-                    </div>
-                    <span id="z0-badge" class="regime-badge regime-neutral">
-                        <span class="w-1.5 h-1.5 rounded-full"></span>
-                        <span id="z0-badge-text">…</span>
-                    </span>
-                </div>
-                <div class="wave-container mb-5">
-                    <svg viewBox="0 0 800 100" preserveAspectRatio="none" class="absolute inset-0 w-full h-full wave-svg">
-                        <defs>
-                            <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" style="stop-color:#22D3EE;stop-opacity:0.05"/>
-                                <stop offset="100%" style="stop-color:#0891B2;stop-opacity:0.35"/>
-                            </linearGradient>
-                        </defs>
-                        <path d="M0,60 Q100,30 200,45 T400,35 T600,40 T800,30 L800,100 L0,100 Z" fill="url(#waveGrad1)"/>
-                        <path d="M0,60 Q100,30 200,45 T400,35 T600,40 T800,30" stroke="#22D3EE" stroke-width="1.5" fill="none" opacity="0.7"/>
-                    </svg>
-                </div>
-                <div class="text-xs space-y-1.5" style="color: var(--muted);">
-                    <div class="flex justify-between"><span>SPY</span><span class="mono" id="z0-spy">—</span></div>
-                    <div class="flex justify-between"><span>50DMA</span><span class="mono" id="z0-ma50">—</span></div>
-                    <div class="flex justify-between"><span>200DMA</span><span class="mono" id="z0-ma200">—</span></div>
-                </div>
-                <div class="mt-5 pt-4 border-t" style="border-color: rgba(31, 58, 95, 0.5);">
-                    <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--muted);">Historical Claim (1997–2026)</div>
-                    <div class="text-xs" id="z0-claim" style="color: var(--foam);">…</div>
-                    <div class="text-xs mt-1.5" style="color: var(--muted);" id="z0-baseline">…</div>
-                </div>
-            </div>
-
-            <!-- Zone 1: Regime State -->
-            <div class="card rounded-xl p-6">
-                <div class="flex items-start justify-between mb-5">
-                    <div>
-                        <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">Regime State · Zone 1</div>
-                        <div id="z1-state" class="text-2xl font-semibold mb-1">…</div>
-                        <div class="text-xs" style="color: var(--muted);">
-                            Descriptive only — no forward-direction claim
-                        </div>
-                    </div>
-                    <span id="z1-badge" class="regime-badge regime-neutral">
-                        <span class="w-1.5 h-1.5 rounded-full"></span>
-                        <span id="z1-badge-text">…</span>
-                    </span>
-                </div>
-                <div class="wave-container mb-5">
-                    <svg viewBox="0 0 800 100" preserveAspectRatio="none" class="absolute inset-0 w-full h-full wave-svg" style="animation-delay: -4s;">
-                        <defs>
-                            <linearGradient id="waveGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" style="stop-color:#7C3AED;stop-opacity:0.05"/>
-                                <stop offset="100%" style="stop-color:#0891B2;stop-opacity:0.3"/>
-                            </linearGradient>
-                        </defs>
-                        <path d="M0,55 Q100,65 200,55 T400,50 T600,60 T800,55 L800,100 L0,100 Z" fill="url(#waveGrad2)"/>
-                        <path d="M0,55 Q100,65 200,55 T400,50 T600,60 T800,55" stroke="#A78BFA" stroke-width="1.5" fill="none" opacity="0.65"/>
-                    </svg>
-                </div>
-                <p id="z1-description" class="text-sm mb-4" style="color: var(--foam);">…</p>
-                <div class="text-xs space-y-1.5" style="color: var(--muted);">
-                    <div class="flex justify-between"><span>Days in state</span><span class="mono" id="z1-days">—</span></div>
-                    <div class="flex justify-between"><span>Last transition</span><span class="mono" id="z1-last">—</span></div>
-                    <div class="flex justify-between"><span>Last trigger</span><span class="mono" id="z1-trigger">—</span></div>
-                </div>
+                <span class="score-num" id="score-num">—</span>
+                <span class="score-arrow" id="score-arrow">▲</span>
             </div>
         </div>
+    </div>
 
-        <!-- Zone 2: Component Panel -->
-        <div class="mb-10">
-            <div class="flex items-center justify-between mb-5">
-                <h3 class="text-xs uppercase tracking-widest" style="color: var(--muted);">Macro Components · Zone 2</h3>
-                <span class="text-xs" style="color: var(--muted);">Describes the environment — does not generate the call</span>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="components-grid">
-                <!-- 4 component cards rendered by JS -->
-            </div>
+    <p class="narrative" id="narrative">Loading the tide…</p>
+
+    <!-- QUICK READ -->
+    <div class="quick">
+        <div class="qcard">
+            <div class="qcard-icon" id="q-trend-icon">🌤️</div>
+            <div class="qcard-label">Trend</div>
+            <div class="qcard-value" id="q-trend-value">—</div>
+            <div class="qcard-sub" id="q-trend-sub">SPY vs averages</div>
         </div>
-
-        <!-- Recent transitions -->
-        <div class="card rounded-xl p-6 mb-10">
-            <div class="flex items-center justify-between mb-5">
-                <div>
-                    <h3 class="text-lg font-semibold">Recent Transitions</h3>
-                    <p class="text-xs mt-1" style="color: var(--muted);">Last 10 state changes · <a href="./decision_log.csv" download class="underline hover:text-cyan-300">download full log</a></p>
-                </div>
-                <span class="text-xs mono" style="color: var(--muted);" id="log-count">— total</span>
-            </div>
-            <div id="transitions-list" class="space-y-1"></div>
+        <div class="qcard">
+            <div class="qcard-icon" id="q-regime-icon">⚓</div>
+            <div class="qcard-label">Macro Mood</div>
+            <div class="qcard-value" id="q-regime-value">—</div>
+            <div class="qcard-sub" id="q-regime-sub">conditions read</div>
         </div>
-
-        <div class="depth-divider"></div>
-
-        <!-- Footer with integrity info -->
-        <div class="text-center text-xs py-8 space-y-2" style="color: var(--muted);">
-            <div>
-                Rule version <span class="mono" id="rule-version">…</span> ·
-                <span class="mono text-[10px]" id="rule-sha" style="color: var(--cyan-bright);">…</span>
-            </div>
-            <div id="disclaimer">…</div>
-            <div>
-                Built with <span style="color: var(--cyan-bright);">Tideline</span> ·
-                <a href="./methodology.html" class="underline hover:text-cyan-300">About</a>
-            </div>
+        <div class="qcard">
+            <div class="qcard-icon">📅</div>
+            <div class="qcard-label">In State</div>
+            <div class="qcard-value" id="q-days-value">—</div>
+            <div class="qcard-sub" id="q-days-sub">trading days</div>
         </div>
-    </main>
+        <div class="qcard">
+            <div class="qcard-icon" id="q-dip-icon">🔍</div>
+            <div class="qcard-label">Dip-buy</div>
+            <div class="qcard-value" id="q-dip-value">—</div>
+            <div class="qcard-sub" id="q-dip-sub">credit-peak signal</div>
+        </div>
+    </div>
+
+    <!-- HISTORY MINI -->
+    <div class="history-strip">
+        <div class="history-head">
+            <h3>Tide · last 90 days</h3>
+            <a href="./history.html">see full history →</a>
+        </div>
+        <svg id="history-svg" viewBox="0 0 800 140" preserveAspectRatio="none"></svg>
+        <div class="history-foot">
+            <span id="hist-start">—</span>
+            <span id="hist-end">—</span>
+        </div>
+    </div>
+
+    <div class="foot">
+        <p>Built with <span style="color: var(--water-mid); font-weight: 600;">Tideline</span> · <a href="./methodology.html">how it works</a> · <a href="./history.html">backtest</a> · <a href="./decision_log.csv" download>raw data</a></p>
+        <p style="margin-top: 8px; opacity: 0.7;">Not investment advice.</p>
+    </div>
 </div>
 
 <script>
-// ======================================================================
-// CONFIG: change DATA_URL to your Cloudflare R2 public URL at deploy time.
-// For local dev, place latest.json next to this file (or symlink to workers/out/).
-// ======================================================================
 const DATA_URL = 'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/latest.json';
-const LOG_URL  = 'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/decision_log.csv';
-// Voting Worker base URL — DISABLED for v1 launch.
-// Worker + D1 still running silently in case we resurrect this layer based on
-// real engagement signal. To re-enable: set this to the worker URL.
-const VOTE_API = window.TIDELINE_VOTE_API || '';
+const HISTORY_URL = 'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/tide_history.json';
 
-// Anonymous opaque user identity for personal tracking. Generated on first vote
-// (or first page load), stored in localStorage. No signup, no PII.
-function getOrCreateUserId() {
-    let uid = localStorage.getItem('tideline_user_id');
-    if (!uid || !/^[a-f0-9]{16,64}$/.test(uid)) {
-        const bytes = new Uint8Array(16);
-        crypto.getRandomValues(bytes);
-        uid = [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
-        localStorage.setItem('tideline_user_id', uid);
-    }
-    return uid;
+function tideScore(z0, z1) {
+    let s = 50;
+    if (z0 === 'GREEN') s += 22;
+    else if (z0 === 'CAUTION') s -= 22;
+    s += { EASY: 14, NORMAL: 0, ELEVATED: -8, STRESS: -22 }[z1] || 0;
+    return Math.max(0, Math.min(100, s));
 }
 
-// State -> badge class
-const STATE_BADGE = {
-    EASY: 'regime-easy', NORMAL: 'regime-normal', ELEVATED: 'regime-elevated', STRESS: 'regime-stress',
-    GREEN: 'regime-green', CAUTION: 'regime-caution', NEUTRAL: 'regime-neutral'
-};
-const STATE_DOT = {
-    EASY: 'var(--cyan-bright)', NORMAL: 'var(--reef)', ELEVATED: 'var(--amber)', STRESS: 'var(--coral)',
-    GREEN: 'var(--reef)', CAUTION: 'var(--coral)', NEUTRAL: '#A78BFA'
-};
+function narrative(score, z0, z1) {
+    if (score >= 80) return 'The tide is calm. Risk-on conditions across the board.';
+    if (score >= 60) return 'The tide is rising. Risk appetite is favorable, no major stress.';
+    if (score >= 40) return 'The tide is mixed. Watch for shifts.';
+    if (score >= 20) return 'The tide is falling. Defensive posture warranted.';
+    return 'The tide is low. Multiple stress signals firing.';
+}
 
-function fmtPct(v) {
-    if (v === null || v === undefined) return '—';
-    return (v * 100).toFixed(1) + '%';
-}
-function fmtNum(v, dp=2) {
-    if (v === null || v === undefined) return '—';
-    return Number(v).toFixed(dp);
-}
-function relativeTime(dateStr) {
-    const d = new Date(dateStr);
-    const diffMs = Date.now() - d.getTime();
-    const m = Math.floor(diffMs / 60000);
+function relTime(iso) {
+    const d = new Date(iso);
+    const m = Math.floor((Date.now() - d.getTime()) / 60000);
     if (m < 1) return 'just now';
     if (m < 60) return m + 'm ago';
     const h = Math.floor(m / 60);
     if (h < 24) return h + 'h ago';
-    const days = Math.floor(h / 24);
-    return days + 'd ago';
-}
-function applyBadge(el, dot, state, classMap=STATE_BADGE) {
-    el.className = 'regime-badge ' + (classMap[state] || 'regime-neutral');
-    if (dot) dot.style.background = STATE_DOT[state] || '#A78BFA';
+    return Math.floor(h / 24) + 'd ago';
 }
 
-function renderError(msg) {
-    document.getElementById('hero-z0-state').textContent = '—';
-    document.getElementById('hero-z1-state').textContent = '—';
-    document.getElementById('hero-date').textContent = 'Data unavailable: ' + msg;
-    const lu = document.getElementById('last-updated');
-    lu.textContent = ''; lu.style.color = 'var(--coral)'; lu.textContent = 'offline';
-    document.getElementById('z0-state').textContent = '—';
-    document.getElementById('z1-state').textContent = '—';
-    document.getElementById('z1-description').textContent = msg;
-    document.getElementById('disclaimer').textContent = '';
+function applyMood(score) {
+    const sun = document.getElementById('sun');
+    const cloud = document.getElementById('cloud');
+    sun.classList.remove('cloudy', 'stormy');
+    cloud.classList.remove('visible');
+    if (score < 40) { sun.classList.add('stormy'); cloud.classList.add('visible'); }
+    else if (score < 60) { sun.classList.add('cloudy'); cloud.classList.add('visible'); }
 }
 
-function renderComponents(components) {
-    const grid = document.getElementById('components-grid');
-    grid.innerHTML = '';
-    const order = [
-        ['hy_oas',     'Credit Spread (BAA10Y)',     'Moody\'s Baa minus 10Y Treasury'],
-        ['vix',        'Equity Vol (VIX)',           'Front-month implied volatility'],
-        ['curve_3m10y','Yield Curve (3m–10y)',       'Slope; positive = healthy expansion'],
-        ['nfci_lagged','Financial Conditions (NFCI)','Chicago Fed; T+5 release lag'],
-    ];
-    for (const [key, title, sub] of order) {
-        const c = components[key];
-        if (!c) continue;
-        const pct = c.percentile_5y;
-        const value = c.value;
-        const unit = c.unit || '';
-        const stateLabel = (c.state || '').replace(/_/g, ' ');
-        const card = document.createElement('div');
-        card.className = 'card rounded-xl p-5';
-        card.innerHTML = `
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-xs uppercase tracking-wider" style="color: var(--muted);">${title}</span>
-                <span class="text-xs" style="color: var(--muted);">${stateLabel}</span>
-            </div>
-            <div class="flex items-baseline gap-2 mb-3">
-                <span class="text-2xl font-semibold mono">${fmtNum(value)}${unit}</span>
-            </div>
-            ${pct !== null && pct !== undefined ? `
-              <div class="text-[10px] uppercase tracking-wider mb-1.5" style="color: var(--muted);">5y percentile · ${(pct*100).toFixed(0)}%</div>
-              <div class="pct-bar"><div class="pct-fill" style="width: ${(pct*100).toFixed(1)}%"></div></div>
-            ` : ''}
-            <div class="text-[11px] mt-3" style="color: var(--muted);">${sub}</div>
-        `;
-        grid.appendChild(card);
-    }
+function setWater(score) {
+    // Water height: 25% min, 75% max (so even at score=0, beach is visible)
+    const pct = 25 + (score / 100) * 50;
+    const water = document.getElementById('water');
+    water.style.height = pct + '%';
+
+    const crest = document.getElementById('wave-crest');
+    // Position crest at the top of the water layer
+    crest.style.bottom = `calc(${pct}% - 14px)`;
+
+    // Position score readout above the water surface
+    const readout = document.getElementById('score-readout');
+    readout.style.bottom = `calc(${pct}% + 24px)`;
 }
 
-// ----------------------------------------------------------------------
-// Tide Score — compose Faber + regime into a 0-100 narrative number
-// ----------------------------------------------------------------------
-function computeTideScore(z0State, z1State) {
-    let score = 50;
-    if (z0State === 'GREEN')   score += 22;
-    if (z0State === 'CAUTION') score -= 22;
-    // Regime contribution
-    const regimeAdj = { EASY: +14, NORMAL: 0, ELEVATED: -8, STRESS: -22 };
-    score += (regimeAdj[z1State] ?? 0);
-    return Math.max(0, Math.min(100, Math.round(score)));
+function arrowFor(prev, curr) {
+    if (prev == null) return { html: '▲', dir: 'flat' };
+    if (curr > prev) return { html: '▲', dir: 'up' };
+    if (curr < prev) return { html: '▼', dir: 'down' };
+    return { html: '→', dir: 'flat' };
 }
 
-function tideNarrative(score, z0, z1) {
-    if (score >= 80) return 'The tide is calm — risk-on conditions across the board.';
-    if (score >= 60) return 'Tide rising — risk appetite favorable, no major stress signals.';
-    if (score >= 40) return `Tide neutral — ${z1?.toLowerCase() || 'mixed'} conditions, watch carefully.`;
-    if (score >= 20) return 'Tide falling — elevated stress, defensive posture warranted.';
-    return 'Tide low — multiple stress signals firing.';
+function trendIcon(state) {
+    if (state === 'GREEN') return '☀️';
+    if (state === 'CAUTION') return '⛈️';
+    return '⛅';
 }
 
-function tideScoreColor(score) {
-    if (score >= 70) return 'var(--reef)';
-    if (score >= 50) return 'var(--cyan-bright)';
-    if (score >= 30) return 'var(--amber)';
-    return 'var(--coral)';
+function regimeIcon(state) {
+    return { EASY: '🏖️', NORMAL: '⚓', ELEVATED: '⚠️', STRESS: '🌊' }[state] || '⚓';
 }
 
-// ----------------------------------------------------------------------
-// Poll + scoreboard
-// ----------------------------------------------------------------------
-async function loadPoll() {
-    const sec = document.getElementById('poll-section');
-    if (!VOTE_API) {
-        sec.style.display = 'none';
-        return;
-    }
-    try {
-        const r = await fetch(`${VOTE_API}/poll/current`, { cache: 'no-cache' });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const p = await r.json();
-        if (p.error) {
-            sec.querySelector('#poll-question').textContent = 'No poll active yet.';
-            return;
-        }
-        document.getElementById('poll-question').textContent = p.question;
-        // House prior = probability vector (UP/FLAT/DOWN), NOT a confidence claim
-        const pri = p.prior || { UP: 0.5, FLAT: 0.1, DOWN: 0.4 };
-        document.getElementById('prior-faber-state').textContent = `Trend filter: ${p.faber_state || '—'}`;
-        document.getElementById('prior-bar-up').style.width   = (pri.UP   * 100).toFixed(1) + '%';
-        document.getElementById('prior-bar-flat').style.width = (pri.FLAT * 100).toFixed(1) + '%';
-        document.getElementById('prior-bar-down').style.width = (pri.DOWN * 100).toFixed(1) + '%';
-        document.getElementById('prior-pct-up').textContent   = (pri.UP   * 100).toFixed(0) + '%';
-        document.getElementById('prior-pct-flat').textContent = (pri.FLAT * 100).toFixed(0) + '%';
-        document.getElementById('prior-pct-down').textContent = (pri.DOWN * 100).toFixed(0) + '%';
-        document.getElementById('poll-tideline-basis').textContent = p.basis || '';
-
-        const total = p.votes.total || 0;
-        const up = p.votes.UP, dn = p.votes.DOWN, fl = p.votes.NEUTRAL;
-        document.getElementById('poll-vote-total').textContent = `${total} vote${total === 1 ? '' : 's'}`;
-        const pctUp = total ? (up / total * 100) : 0;
-        const pctDn = total ? (dn / total * 100) : 0;
-        const pctFl = total ? (fl / total * 100) : 0;
-        document.getElementById('tally-up').style.width = pctUp + '%';
-        document.getElementById('tally-flat').style.width = pctFl + '%';
-        document.getElementById('tally-down').style.width = pctDn + '%';
-        document.getElementById('pct-up').textContent = total ? pctUp.toFixed(0) + '%' : '—';
-        document.getElementById('pct-flat').textContent = total ? pctFl.toFixed(0) + '%' : '—';
-        document.getElementById('pct-down').textContent = total ? pctDn.toFixed(0) + '%' : '—';
-
-        const status = document.getElementById('poll-status');
-        if (p.voting_open) {
-            const close = new Date(p.voting_closes_at);
-            status.textContent = `OPEN · closes ${close.toLocaleDateString(undefined, { weekday: 'short' })} ${close.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
-            status.style.color = 'var(--reef)';
-        } else {
-            status.textContent = 'CLOSED · resolution Friday';
-            status.style.color = 'var(--muted)';
-        }
-
-        // Wire vote buttons
-        const voted = localStorage.getItem('tideline_vote_' + p.poll_id);
-        document.querySelectorAll('.vote-btn').forEach((btn) => {
-            btn.disabled = !p.voting_open || !!voted;
-            if (btn.dataset.vote === voted) btn.classList.add('voted');
-            btn.onclick = () => castVote(btn.dataset.vote, p.poll_id);
-        });
-        if (voted) {
-            document.getElementById('poll-vote-msg').textContent = `You voted ${voted}. Thanks — check back Friday for the result.`;
-        } else if (!p.voting_open) {
-            document.getElementById('poll-vote-msg').textContent = 'Voting closed for this week.';
-        }
-    } catch (e) {
-        document.getElementById('poll-question').textContent = 'Poll unavailable';
-        console.error(e);
-    }
+function dipIcon(fired) {
+    return fired ? '🔥' : '🔍';
 }
 
-async function castVote(choice, pollId) {
-    document.querySelectorAll('.vote-btn').forEach((b) => (b.disabled = true));
-    const uid = getOrCreateUserId();
-    try {
-        const r = await fetch(`${VOTE_API}/vote`, {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ vote: choice, user_id: uid }),
-        });
-        const data = await r.json();
-        if (data.ok) {
-            // Worker may have generated a new uid (if our localStorage was stale); persist whatever it returns
-            if (data.user_id) localStorage.setItem('tideline_user_id', data.user_id);
-            localStorage.setItem('tideline_vote_' + pollId, choice);
-            document.getElementById('poll-vote-msg').textContent = `You voted ${choice}. Thanks — check back Friday.`;
-            await loadPoll();
-            await loadMe();
-        } else {
-            document.getElementById('poll-vote-msg').textContent = `Vote failed: ${data.error || 'unknown'}`;
-            document.querySelectorAll('.vote-btn').forEach((b) => (b.disabled = false));
-        }
-    } catch (e) {
-        document.getElementById('poll-vote-msg').textContent = 'Vote failed: network error';
-        document.querySelectorAll('.vote-btn').forEach((b) => (b.disabled = false));
-    }
-}
-
-async function loadMe() {
-    const sec = document.getElementById('me-section');
-    if (!VOTE_API) { sec.style.display = 'none'; return; }
-    const uid = localStorage.getItem('tideline_user_id');
-    if (!uid) { sec.style.display = 'none'; return; }
-    try {
-        const r = await fetch(`${VOTE_API}/me/${uid}`, { cache: 'no-cache' });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const me = await r.json();
-        if (me.error) { sec.style.display = 'none'; return; }
-        if (me.n_total_votes === 0) { sec.style.display = 'none'; return; }
-
-        sec.style.display = '';
-        document.getElementById('me-id').textContent = `id ${uid.slice(0, 8)}…`;
-        document.getElementById('me-pct').textContent =
-            me.accuracy != null ? (me.accuracy * 100).toFixed(0) + '%' : '—';
-        document.getElementById('me-n').textContent =
-            `n=${me.n_resolved} resolved · ${me.n_total_votes - me.n_resolved} pending`;
-        document.getElementById('me-brier').textContent =
-            me.avg_brier != null ? me.avg_brier.toFixed(3) : '—';
-        const vh = me.vs_house || {};
-        document.getElementById('me-vs-house').textContent =
-            vh.user_acc_on_disagree != null ? (vh.user_acc_on_disagree * 100).toFixed(0) + '%' : '—';
-        document.getElementById('me-disagree-n').textContent =
-            vh.disagreements != null ? `${vh.user_right_when_disagreed}/${vh.disagreements} disagreements` : '—';
-
-        // Recent history list
-        const list = document.getElementById('me-history');
-        list.innerHTML = '';
-        for (const v of me.history.slice(0, 8)) {
-            const div = document.createElement('div');
-            div.className = 'flex items-center justify-between py-2 border-b text-sm';
-            div.style.borderColor = 'rgba(31, 58, 95, 0.3)';
-            const status = v.outcome
-                ? (v.your_vote === v.outcome
-                    ? `<span class="trend-up">✓ correct</span>`
-                    : `<span class="trend-down">✗ ${v.your_vote} → was ${v.outcome}</span>`)
-                : `<span style="color:var(--muted);">pending</span>`;
-            const houseMatch = v.your_vote === v.house_call ? '·' : '⚔ disagreed with house';
-            div.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <span class="mono text-xs" style="color: var(--muted);">${v.week_start}</span>
-                    <span class="regime-badge ${STATE_BADGE[v.your_vote === 'NEUTRAL' ? 'NEUTRAL' : v.your_vote] || 'regime-neutral'}">
-                        you · ${v.your_vote}
-                    </span>
-                    <span class="text-[10px]" style="color: var(--muted);">${houseMatch}</span>
-                </div>
-                <div class="text-xs">${status}</div>
-            `;
-            list.appendChild(div);
-        }
-    } catch (e) {
-        console.error('loadMe error', e);
-        sec.style.display = 'none';
-    }
-}
-
-function setRing(elId, pct) {
-    // Circle r=42 → circumference = 2πr ≈ 263.89
-    const C = 263.89;
-    const dash = (pct / 100) * C;
-    document.getElementById(elId).setAttribute('stroke-dasharray', `${dash} ${C}`);
-}
-
-async function loadScoreboard() {
-    const sec = document.getElementById('scoreboard-section');
-    if (!VOTE_API) {
-        sec.style.display = 'none';
-        return;
-    }
-    try {
-        const r = await fetch(`${VOTE_API}/scoreboard`, { cache: 'no-cache' });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const s = await r.json();
-        document.getElementById('scoreboard-n').textContent = `${s.total_resolved} polls resolved`;
-
-        const tAcc = s.tideline.accuracy;
-        const cAcc = s.crowd.accuracy;
-        if (tAcc !== null) {
-            document.getElementById('tideline-pct').textContent = (tAcc * 100).toFixed(0) + '%';
-            document.getElementById('tideline-n').textContent = `n=${s.tideline.n}`;
-            setRing('ring-tideline', tAcc * 100);
-        } else {
-            document.getElementById('tideline-pct').textContent = '—';
-            document.getElementById('tideline-n').textContent = 'n=0 (awaiting first resolution)';
-        }
-        if (cAcc !== null) {
-            document.getElementById('crowd-pct').textContent = (cAcc * 100).toFixed(0) + '%';
-            document.getElementById('crowd-n').textContent = `n=${s.crowd.n}`;
-            setRing('ring-crowd', cAcc * 100);
-        } else {
-            document.getElementById('crowd-pct').textContent = '—';
-            document.getElementById('crowd-n').textContent = 'n=0 (awaiting votes)';
-        }
-        document.getElementById('tideline-brier').textContent =
-            s.tideline.avg_brier != null ? s.tideline.avg_brier.toFixed(3) : '—';
-        document.getElementById('crowd-brier').textContent =
-            s.crowd.avg_brier != null ? s.crowd.avg_brier.toFixed(3) : '—';
-
-        // Disagreement panel
-        const d = s.disagreement || {};
-        document.getElementById('disagree-n').textContent = d.n != null ? d.n : '—';
-        document.getElementById('disagree-house-acc').textContent =
-            d.house_acc != null ? (d.house_acc * 100).toFixed(0) + '%' : '—';
-        document.getElementById('disagree-crowd-acc').textContent =
-            d.crowd_acc != null ? (d.crowd_acc * 100).toFixed(0) + '%' : '—';
-    } catch (e) {
-        console.error(e);
-    }
-}
-
-function renderTransitions(log) {
-    const list = document.getElementById('transitions-list');
-    list.innerHTML = '';
-    const recent = log.slice(0, 10);
-    for (const row of recent) {
-        const div = document.createElement('div');
-        div.className = 'flex items-center justify-between py-3 border-b';
-        div.style.borderColor = 'rgba(31, 58, 95, 0.4)';
-        const stateClass = STATE_BADGE[row.new_state] || 'regime-neutral';
-        div.innerHTML = `
-            <div class="flex items-center gap-3">
-                <span class="regime-badge ${stateClass}">
-                    <span class="w-1.5 h-1.5 rounded-full" style="background: ${STATE_DOT[row.new_state] || '#A78BFA'};"></span>
-                    ${row.new_state}
-                </span>
-                <span class="text-xs" style="color: var(--muted);">via ${(row.trigger||'').replace(/_/g,' ')}</span>
-            </div>
-            <div class="text-right">
-                <div class="text-sm mono">${row.date}</div>
-                <div class="text-xs" style="color: var(--muted);">SPY ${fmtNum(row.spy)} · VIX ${fmtNum(row.vix)} · HY ${fmtNum(row.hy_oas)}%</div>
-            </div>
-        `;
-        list.appendChild(div);
-    }
-    document.getElementById('log-count').textContent = log.length + ' total since ' + (log[log.length-1]?.date || '—');
-}
+let prevScore = null;
 
 async function load() {
     try {
         const resp = await fetch(DATA_URL, { cache: 'no-cache' });
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
-
-        // Header — DOM construction (avoid innerHTML for hardening)
-        const lu = document.getElementById('last-updated');
-        lu.textContent = '';
-        lu.style.color = 'var(--muted)';
-        const dot = document.createElement('span');
-        dot.className = 'w-2 h-2 rounded-full pulse-dot';
-        dot.style.background = 'var(--cyan-bright)';
-        lu.appendChild(dot);
-        lu.appendChild(document.createTextNode(' Live · updated ' + relativeTime(data.generated_at)));
-
-        // Error case
-        if (data.regime && data.regime.error) {
-            renderError(data.regime.error);
-            return;
-        }
-
         const r = data.regime || {};
-        if (!r.zones) { renderError('regime payload missing zones'); return; }
-        const z0 = r.zones.trend_signal || {};
-        const z1 = r.zones.regime_state || {};
-        z0.evidence = z0.evidence || {};
-        z0.historical_claim = z0.historical_claim || {};
+        if (r.error || !r.zones) throw new Error('regime data unavailable');
 
-        // Hero — TIDE SCORE + two badges
-        const tide = computeTideScore(z0.state, z1.state);
-        const numEl = document.getElementById('tide-score-num');
-        numEl.textContent = tide;
-        numEl.style.color = tideScoreColor(tide);
-        // Override gradient if extreme so the color stands out
-        if (tide >= 70 || tide < 30) {
-            numEl.style.background = 'none';
-            numEl.style.webkitBackgroundClip = 'unset';
-            numEl.style.backgroundClip = 'unset';
-        }
-        document.getElementById('tide-narrative').textContent = tideNarrative(tide, z0.state, z1.state);
+        const z0 = r.zones.trend_signal?.state || 'NEUTRAL';
+        const z1 = r.zones.regime_state?.state || 'NORMAL';
+        const score = tideScore(z0, z1);
 
-        document.getElementById('hero-z0-state').textContent = z0.state;
-        document.getElementById('hero-z1-state').textContent = z1.state;
-        applyBadge(document.getElementById('hero-z0-badge'),
-                   document.getElementById('hero-z0-badge').querySelector('.pulse-dot'),
-                   z0.state);
-        applyBadge(document.getElementById('hero-z1-badge'),
-                   document.getElementById('hero-z1-badge').querySelector('.pulse-dot'),
-                   z1.state);
-        document.getElementById('hero-date').textContent = '· Data as of ' + r.data_as_of;
+        document.getElementById('live-text').textContent = 'Live · ' + relTime(data.generated_at);
 
-        // Zone 0 — Faber
-        document.getElementById('z0-state').textContent = z0.state;
-        const z0Sub = z0.state === 'GREEN' ? 'Both 50DMA and 200DMA bullish — risk-on posture' :
-                      z0.state === 'CAUTION' ? 'Both 50DMA and 200DMA bearish — risk-off posture' :
-                      'Indicators disagree — neutral posture';
-        document.getElementById('z0-evidence').textContent = z0Sub;
-        applyBadge(document.getElementById('z0-badge'),
-                   document.getElementById('z0-badge').querySelector('.w-1\\.5'),
-                   z0.state);
-        document.getElementById('z0-badge-text').textContent = z0.state;
-        document.getElementById('z0-spy').textContent = fmtNum(z0.evidence.spy_close);
-        document.getElementById('z0-ma50').textContent = fmtNum(z0.evidence.ma_50);
-        document.getElementById('z0-ma200').textContent = fmtNum(z0.evidence.ma_200);
+        document.getElementById('score-num').textContent = score;
+        const arr = arrowFor(prevScore, score);
+        const arrEl = document.getElementById('score-arrow');
+        arrEl.textContent = arr.html;
+        arrEl.className = 'score-arrow ' + arr.dir;
+        prevScore = score;
 
-        const claim = z0.historical_claim;
-        if (claim && claim.caution_down_rate_20d != null) {
-            document.getElementById('z0-claim').innerHTML =
-                `When CAUTION fires, SPY 20-day DOWN rate has been <strong>${(claim.caution_down_rate_20d*100).toFixed(1)}%</strong> ` +
-                `vs <strong>${(claim.baseline_down_rate_20d*100).toFixed(1)}%</strong> baseline ` +
-                `(<span class="mono">+${claim.edge_pp.toFixed(1)}pp</span>, n=${(claim.n_caution_days || 0).toLocaleString()}).`;
-            const ci = claim.block_bootstrap_ci_95 || ['—','—'];
-            document.getElementById('z0-baseline').innerHTML =
-                `Block-bootstrap 95% CI: <span class="mono">[${ci[0]}%, ${ci[1]}%]</span> · ${claim.framing || ''}.`;
-        } else {
-            document.getElementById('z0-claim').textContent = 'Historical claim unavailable.';
-            document.getElementById('z0-baseline').textContent = '';
-        }
+        document.getElementById('narrative').textContent = narrative(score, z0, z1);
 
-        // Zone 1 — Regime
-        document.getElementById('z1-state').textContent = z1.state;
-        applyBadge(document.getElementById('z1-badge'),
-                   document.getElementById('z1-badge').querySelector('.w-1\\.5'),
-                   z1.state);
-        document.getElementById('z1-badge-text').textContent = z1.state;
-        document.getElementById('z1-description').textContent = z1.description;
-        document.getElementById('z1-days').textContent = z1.days_in_state + ' trading days';
-        document.getElementById('z1-last').textContent = z1.last_transition_date || '—';
-        document.getElementById('z1-trigger').textContent = (z1.last_transition_trigger || '—').replace(/_/g, ' ');
+        applyMood(score);
+        setWater(score);
 
-        // Dip-buy watch
+        // Quick cards
+        document.getElementById('q-trend-icon').textContent = trendIcon(z0);
+        document.getElementById('q-trend-value').textContent = z0;
+        const ev = r.zones.trend_signal?.evidence || {};
+        document.getElementById('q-trend-sub').textContent = ev.spy_vs_200 != null
+            ? `SPY ${(ev.spy_vs_200 * 100).toFixed(1)}% above 200d`
+            : 'SPY vs averages';
+
+        document.getElementById('q-regime-icon').textContent = regimeIcon(z1);
+        document.getElementById('q-regime-value').textContent = z1.charAt(0) + z1.slice(1).toLowerCase();
+        document.getElementById('q-regime-sub').textContent = (r.zones.regime_state?.description || 'conditions read').toLowerCase();
+
+        const days = r.zones.regime_state?.days_in_state || '—';
+        document.getElementById('q-days-value').textContent = days;
+        document.getElementById('q-days-sub').textContent = `since ${r.zones.regime_state?.last_transition_date || '—'}`;
+
+        // Dip-buy quick card
         const dip = data.dip_signals;
-        if (dip && dip.backtest && dip.live) {
-            document.getElementById('dip-section').style.display = '';
-            document.getElementById('dip-panel-meta').textContent = `${dip.panel_range[0]} → ${dip.panel_range[1]}`;
-
-            // Primary = CREDIT_PEAK
-            const cp = dip.backtest.CREDIT_PEAK;
-            const cpLive = dip.live.CREDIT_PEAK;
-            if (cp && cp.horizons && cp.horizons.H5) {
-                const h5 = cp.horizons.H5;
-                document.getElementById('dip-primary-hit').textContent = (h5.hit_rate * 100).toFixed(0) + '% at H5';
-                document.getElementById('dip-primary-edge').textContent =
-                    (h5.conditional_drawdown.edge_pp >= 0 ? '+' : '') +
-                    h5.conditional_drawdown.edge_pp.toFixed(1) + 'pp';
-                document.getElementById('dip-primary-ci').textContent =
-                    `[${(h5.bootstrap_ci_95[0]*100).toFixed(0)}%, ${(h5.bootstrap_ci_95[1]*100).toFixed(0)}%]`;
-                document.getElementById('dip-primary-n').textContent = h5.n;
-                if (cpLive.fired_today) {
-                    document.getElementById('dip-primary-status').innerHTML =
-                        '<span style="color: var(--reef); font-weight: 600;">● FIRED TODAY</span>';
-                } else {
-                    document.getElementById('dip-primary-status').textContent =
-                        cpLive.days_since_last_fire ? `dormant · last fire ${cpLive.days_since_last_fire}d ago` : 'dormant';
-                }
-            }
-
-            // Other signals
-            const otherWrap = document.getElementById('dip-others');
-            otherWrap.innerHTML = '';
-            const others = ['TERM_REVERSAL', 'CAPIT_FOLLOWTHRU', 'VIX_PANIC_RELEASE', 'DRAWDOWN_VOL_EASE'];
-            const labels = {
-                TERM_REVERSAL:    'VIX Term Reversal',
-                CAPIT_FOLLOWTHRU: 'Capitulation Follow-Through',
-                VIX_PANIC_RELEASE: 'VIX Panic Release',
-                DRAWDOWN_VOL_EASE: 'Drawdown + Vol Ease',
-            };
-            for (const k of others) {
-                const r = dip.backtest[k];
-                const live = dip.live[k];
-                if (!r || !r.horizons || !r.horizons.H5) continue;
-                const h5 = r.horizons.H5;
-                const cond = h5.conditional_drawdown;
-                const div = document.createElement('div');
-                div.className = 'flex items-center justify-between py-2 border-t text-xs mono';
-                div.style.borderColor = 'rgba(31, 58, 95, 0.4)';
-                const status = live.fired_today
-                    ? '<span style="color: var(--amber);">● firing</span>'
-                    : `<span style="color: var(--muted);">last ${live.days_since_last_fire || '—'}d ago</span>`;
-                div.innerHTML = `
-                    <div style="color: var(--foam);">${labels[k] || k}</div>
-                    <div style="color: var(--muted);">
-                        n=${h5.n} · hit ${(h5.hit_rate*100).toFixed(0)}% · edge ${cond.edge_pp >= 0 ? '+' : ''}${cond.edge_pp.toFixed(1)}pp · ${status}
-                    </div>
-                `;
-                otherWrap.appendChild(div);
-            }
+        if (dip && dip.live && dip.live.CREDIT_PEAK) {
+            const fired = dip.live.CREDIT_PEAK.fired_today;
+            document.getElementById('q-dip-icon').textContent = dipIcon(fired);
+            document.getElementById('q-dip-value').textContent = fired ? 'FIRED' : 'DORMANT';
+            document.getElementById('q-dip-sub').textContent = fired
+                ? 'credit-peak signal active today'
+                : `last ${dip.live.CREDIT_PEAK.days_since_last_fire || '—'}d ago`;
         }
-
-        // Lag tracker
-        const lag = data.lag;
-        if (lag && lag.warn_lag_all && lag.clear_lag_all) {
-            document.getElementById('lag-section').style.display = '';
-            const w = lag.warn_lag_all;
-            const c = lag.clear_lag_all;
-            const dd = lag.drawdown_done_at_warn_all;
-            document.getElementById('lag-panel-meta').textContent = `${lag.panel_range[0]} → ${lag.panel_range[1]}`;
-            document.getElementById('lag-warn-median').textContent = `${w.median.toFixed(0)} d`;
-            document.getElementById('lag-warn-detail').textContent = `median lag · n=${w.n} drawdowns · p75=${w.p75.toFixed(0)}d`;
-            document.getElementById('lag-clear-median').textContent = `${c.median.toFixed(0)} d`;
-            document.getElementById('lag-clear-detail').textContent = `median lag · n=${c.n} recoveries · p75=${c.p75.toFixed(0)}d`;
-            document.getElementById('lag-pct').textContent = dd ? `${dd.median.toFixed(1)}%` : '—';
-            document.getElementById('lag-n').textContent = lag.n_drawdowns;
-            const fastSide = w.median <= c.median ? 'catching drawdowns' : 'clearing back to NORMAL';
-            const slowSide = w.median <= c.median ? 'clearing back to NORMAL' : 'catching drawdowns';
-            const slowDays = w.median <= c.median ? c.median.toFixed(0) : w.median.toFixed(0);
-            document.getElementById('lag-takeaway').innerHTML =
-                `Tideline is fast at <strong style="color: var(--foam);">${fastSide}</strong> ` +
-                `(median ${Math.min(w.median, c.median).toFixed(0)}d) and slower at ` +
-                `<strong style="color: var(--foam);">${slowSide}</strong> ` +
-                `(median ${slowDays}d). `;
-        }
-
-        // Smart headlines — surface lead + first alternate
-        const headlines = data.headlines || {};
-        const lead = headlines.lead;
-        if (lead && lead.lead) {
-            document.getElementById('headline-section').style.display = '';
-            document.getElementById('headline-text').textContent = lead.lead;
-            const alternates = headlines.alternates || [];
-            const altWrap = document.getElementById('headline-alternates');
-            if (alternates.length > 0) {
-                altWrap.innerHTML = '<span style="opacity:0.7;">Also: </span>' + alternates[0].lead;
-            } else {
-                altWrap.innerHTML = '';
-            }
-        }
-
-        // Zone 2 — Components
-        renderComponents(r.zones.components);
-
-        // Recent transitions
-        renderTransitions(data.decision_log || []);
-
-        // Footer integrity
-        document.getElementById('rule-version').textContent = r.rule_version;
-        document.getElementById('rule-sha').textContent = (r.rule_sha256 || '').slice(0, 16) + '…';
-        document.getElementById('disclaimer').textContent = r.disclaimer || '';
-    } catch (err) {
-        console.error(err);
-        renderError('fetch failed: ' + err.message);
+    } catch (e) {
+        console.error(e);
+        document.getElementById('live-text').textContent = 'Offline';
+        document.getElementById('narrative').textContent = 'Data temporarily unavailable.';
     }
 }
 
-async function loadAll() {
-    await load();
-    // Voting endpoints fire in parallel — failures don't block the dashboard
-    loadPoll().catch((e) => console.error('poll error', e));
-    loadScoreboard().catch((e) => console.error('scoreboard error', e));
-    loadMe().catch((e) => console.error('me error', e));
+async function loadHistory() {
+    try {
+        const r = await fetch(HISTORY_URL, { cache: 'no-cache' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        const h = (d.history || []).slice(-90);
+        if (h.length < 5) return;
+
+        const W = 800, H = 140, M = { top: 8, right: 8, bottom: 8, left: 8 };
+        const w = W - M.left - M.right, ht = H - M.top - M.bottom;
+
+        // points
+        let pts = '';
+        for (let i = 0; i < h.length; i++) {
+            const x = M.left + (i / (h.length - 1)) * w;
+            const y = M.top + ht - (h[i].tide_score / 100) * ht;
+            pts += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)} `;
+        }
+        const last = M.left + w;
+
+        // state shading bands behind line
+        let bands = '';
+        let segStart = 0;
+        let segState = h[0].regime;
+        for (let i = 1; i <= h.length; i++) {
+            const cur = i < h.length ? h[i].regime : null;
+            if (cur !== segState) {
+                const x1 = M.left + (segStart / (h.length - 1)) * w;
+                const x2 = M.left + ((i - 1) / (h.length - 1)) * w;
+                const colors = {
+                    EASY:     'rgba(136, 200, 208, 0.20)',
+                    NORMAL:   'rgba(123, 163, 122, 0.18)',
+                    ELEVATED: 'rgba(212, 168,  90, 0.22)',
+                    STRESS:   'rgba(196, 107,  92, 0.30)',
+                };
+                bands += `<rect x="${x1}" y="${M.top}" width="${Math.max(x2 - x1, 1)}" height="${ht}" fill="${colors[segState] || 'transparent'}"/>`;
+                segStart = i; segState = cur;
+            }
+        }
+
+        const lastIdx = h.length - 1;
+        const lastX = M.left + w;
+        const lastY = M.top + ht - (h[lastIdx].tide_score / 100) * ht;
+
+        const html = `
+            ${bands}
+            <line x1="${M.left}" y1="${M.top + ht/2}" x2="${last}" y2="${M.top + ht/2}"
+                  stroke="rgba(26,20,16,0.10)" stroke-dasharray="2 4"/>
+            <path d="${pts} L ${last} ${M.top + ht} L ${M.left} ${M.top + ht} Z"
+                  fill="url(#histGrad)" opacity="0.65"/>
+            <path d="${pts}" fill="none" stroke="#1F3F4F" stroke-width="2"/>
+            <circle cx="${lastX}" cy="${lastY}" r="5" fill="#1F3F4F" stroke="white" stroke-width="2"/>
+            <defs>
+                <linearGradient id="histGrad" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#88C8D0" stop-opacity="0.8"/>
+                    <stop offset="100%" stop-color="#88C8D0" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+        `;
+        document.getElementById('history-svg').innerHTML = html;
+        document.getElementById('hist-start').textContent = h[0].date;
+        document.getElementById('hist-end').textContent = h[h.length - 1].date;
+    } catch (e) {
+        console.error(e);
+    }
 }
-loadAll();
-setInterval(loadAll, 5 * 60 * 1000);
+
+load(); loadHistory();
+setInterval(() => { load(); loadHistory(); }, 5 * 60 * 1000);
 </script>
 </body>
 </html>

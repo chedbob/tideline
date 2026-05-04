@@ -431,8 +431,10 @@ function renderHeadline(headlines) {
         if (s.median_days != null) chips += `<span class="stat-chip">median streak ${s.median_days}d</span>`;
         if (s.longest_run_days != null) chips += `<span class="stat-chip">longest ${s.longest_run_days}d</span>`;
         if (s.longest_days != null) chips += `<span class="stat-chip">longest ${s.longest_days}d</span>`;
-        if (s.still_running_after_n != null) chips += `<span class="stat-chip">${s.still_running_after_n} still running after ${s.current_run_days || s.current_streak_days}d</span>`;
-        if (s.longer_than_current != null) chips += `<span class="stat-chip">${s.longer_than_current} ran longer</span>`;
+        if (s.still_running_after_pct != null) chips += `<span class="stat-chip">${s.still_running_after_pct}% still running after ${s.current_run_days || s.current_streak_days}d</span>`;
+        else if (s.still_running_after_n != null && s.n_historical) chips += `<span class="stat-chip">${Math.round(s.still_running_after_n / s.n_historical * 100)}% still running after ${s.current_run_days || s.current_streak_days}d</span>`;
+        if (s.longer_than_current_pct != null) chips += `<span class="stat-chip">${s.longer_than_current_pct}% ran longer</span>`;
+        else if (s.longer_than_current != null && s.n_historical) chips += `<span class="stat-chip">${Math.round(s.longer_than_current / s.n_historical * 100)}% ran longer</span>`;
     }
     let html = `<div class="headline-lead">${lead.lead}</div>`;
     if (chips) html += `<div class="headline-stats">${chips}</div>`;

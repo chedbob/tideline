@@ -145,6 +145,7 @@ def _streak_headline(df: pd.DataFrame, score_col: str, state_col: str) -> dict |
     durations = sorted([r["duration_days"] for r in completed])
     median = durations[len(durations) // 2]
     longer = sum(1 for d in durations if d > streak_len)
+    longer_pct = round(longer / len(completed) * 100)
 
     # Skip if current streak is below typical noise threshold (≤2 days)
     if streak_len < 3:
@@ -156,7 +157,7 @@ def _streak_headline(df: pd.DataFrame, score_col: str, state_col: str) -> dict |
             f"Currently {streak_len} days into a {current_state} run. "
             f"Of {len(completed)} previous {current_state} runs since "
             f"{completed[0]['start'].year}, the median lasted {_format_weeks(median)} — "
-            f"{longer} ran longer than today's count."
+            f"{longer_pct}% ran longer than today's count."
         ),
         "stats": {
             "current_streak_days": streak_len,
@@ -165,6 +166,7 @@ def _streak_headline(df: pd.DataFrame, score_col: str, state_col: str) -> dict |
             "median_days": median,
             "longest_days": durations[-1],
             "longer_than_current": longer,
+            "longer_than_current_pct": longer_pct,
             "earliest_year": int(completed[0]["start"].year),
         },
         "score": _streak_score(streak_len, median, len(completed)),
@@ -193,6 +195,7 @@ def _crossing_headline(df: pd.DataFrame, score_col: str) -> dict | None:
             durations = sorted([c["duration_days"] for c in historical])
             median = durations[len(durations) // 2]
             stayed_longer = sum(1 for d in durations if d >= days_since)
+            stayed_pct = round(stayed_longer / len(historical) * 100)
             cand = {
                 "type": "crossing_up",
                 "threshold": thr,
@@ -202,7 +205,7 @@ def _crossing_headline(df: pd.DataFrame, score_col: str) -> dict | None:
                     f"({days_since} days ago). The previous {len(historical)} times this "
                     f"happened (since {historical[0]['date'].year}), the score stayed at or above {thr} "
                     f"for a median of {_format_weeks(median)} — "
-                    f"{stayed_longer} of those runs were still above after {days_since} days."
+                    f"{stayed_pct}% of those runs were still above after {days_since} days."
                 ),
                 "stats": {
                     "threshold": thr,
@@ -211,6 +214,7 @@ def _crossing_headline(df: pd.DataFrame, score_col: str) -> dict | None:
                     "median_run_days": median,
                     "longest_run_days": durations[-1],
                     "still_running_after_n": stayed_longer,
+                    "still_running_after_pct": stayed_pct,
                     "crossing_date": crossing["date"].strftime("%Y-%m-%d"),
                     "previous_years": sorted(set(c["date"].year for c in historical))[-5:],
                 },

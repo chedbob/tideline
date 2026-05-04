@@ -429,6 +429,45 @@
             </div>
         </section>
 
+        <!-- Lag Tracker — honest "where Tideline is fast vs slow" -->
+        <section id="lag-section" class="mb-6" style="display: none;">
+            <div class="card rounded-xl p-5">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                    <div>
+                        <div class="text-xs uppercase tracking-widest mb-1" style="color: var(--muted);">Lag tracker · backtested</div>
+                        <h3 class="text-base font-semibold" style="color: var(--foam);">How fast Tideline reacts to real moves</h3>
+                    </div>
+                    <span class="text-xs mono" style="color: var(--muted);" id="lag-panel-meta">—</span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <div class="text-[10px] uppercase tracking-widest mb-1" style="color: var(--muted);">Catching drawdowns</div>
+                        <div class="text-2xl font-semibold mono" id="lag-warn-median">—</div>
+                        <div class="text-xs mt-1" style="color: var(--muted);" id="lag-warn-detail">—</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-widest mb-1" style="color: var(--muted);">All-clear after trough</div>
+                        <div class="text-2xl font-semibold mono" id="lag-clear-median">—</div>
+                        <div class="text-xs mt-1" style="color: var(--muted);" id="lag-clear-detail">—</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-widest mb-1" style="color: var(--muted);">% drawdown when warned</div>
+                        <div class="text-2xl font-semibold mono" id="lag-pct">—</div>
+                        <div class="text-xs mt-1" style="color: var(--muted);">median; 0 % = warns at peak</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-widest mb-1" style="color: var(--muted);">Drawdowns analyzed</div>
+                        <div class="text-2xl font-semibold mono" id="lag-n">—</div>
+                        <div class="text-xs mt-1" style="color: var(--muted);" id="lag-n-detail">SPY ≥ 3 % since 1997</div>
+                    </div>
+                </div>
+                <div class="text-xs mt-4 pt-4 border-t" style="color: var(--muted); border-color: var(--ocean-border);">
+                    <span id="lag-takeaway"></span>
+                    <a href="./history.html" class="underline hover:text-cyan-300">see every episode →</a>
+                </div>
+            </div>
+        </section>
+
         <!-- Smart Headline — auto-generated from full panel analogs -->
         <section id="headline-section" class="mb-10" style="display: none;">
             <div class="card rounded-xl p-6" style="border-left: 3px solid var(--cyan-bright);">
@@ -1022,6 +1061,30 @@ async function load() {
         document.getElementById('z1-days').textContent = z1.days_in_state + ' trading days';
         document.getElementById('z1-last').textContent = z1.last_transition_date || '—';
         document.getElementById('z1-trigger').textContent = (z1.last_transition_trigger || '—').replace(/_/g, ' ');
+
+        // Lag tracker
+        const lag = data.lag;
+        if (lag && lag.warn_lag_all && lag.clear_lag_all) {
+            document.getElementById('lag-section').style.display = '';
+            const w = lag.warn_lag_all;
+            const c = lag.clear_lag_all;
+            const dd = lag.drawdown_done_at_warn_all;
+            document.getElementById('lag-panel-meta').textContent = `${lag.panel_range[0]} → ${lag.panel_range[1]}`;
+            document.getElementById('lag-warn-median').textContent = `${w.median.toFixed(0)} d`;
+            document.getElementById('lag-warn-detail').textContent = `median lag · n=${w.n} drawdowns · p75=${w.p75.toFixed(0)}d`;
+            document.getElementById('lag-clear-median').textContent = `${c.median.toFixed(0)} d`;
+            document.getElementById('lag-clear-detail').textContent = `median lag · n=${c.n} recoveries · p75=${c.p75.toFixed(0)}d`;
+            document.getElementById('lag-pct').textContent = dd ? `${dd.median.toFixed(1)}%` : '—';
+            document.getElementById('lag-n').textContent = lag.n_drawdowns;
+            const fastSide = w.median <= c.median ? 'catching drawdowns' : 'clearing back to NORMAL';
+            const slowSide = w.median <= c.median ? 'clearing back to NORMAL' : 'catching drawdowns';
+            const slowDays = w.median <= c.median ? c.median.toFixed(0) : w.median.toFixed(0);
+            document.getElementById('lag-takeaway').innerHTML =
+                `Tideline is fast at <strong style="color: var(--foam);">${fastSide}</strong> ` +
+                `(median ${Math.min(w.median, c.median).toFixed(0)}d) and slower at ` +
+                `<strong style="color: var(--foam);">${slowSide}</strong> ` +
+                `(median ${slowDays}d). `;
+        }
 
         // Smart headlines — surface lead + first alternate
         const headlines = data.headlines || {};

@@ -423,11 +423,16 @@ def run(api_key: str) -> dict:
     df_with_score = _add_tide_score_column(df_states)
     headlines = build_headlines(df_with_score, score_col="tide_score", state_col="state")
 
+    # Lag analysis — how late does Tideline catch real drawdowns?
+    from compute.lag import build_lag_report
+    lag_report = build_lag_report(df_states)
+
     return {
         "snapshot": snapshot,
         "decision_log": decision_log,
         "tide_history": tide_history,
         "headlines": headlines,
+        "lag": lag_report,
         "panel_meta": {
             "start": str(df_states.index.min().date()),
             "end": str(df_states.index.max().date()),

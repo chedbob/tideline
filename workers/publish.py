@@ -137,6 +137,7 @@ def build_payload() -> dict:
         "decision_log": regime_payload.get("decision_log", []),
         "tide_history": regime_payload.get("tide_history", []),
         "headlines": regime_payload.get("headlines", {"lead": None, "alternates": []}),
+        "lag": regime_payload.get("lag", {}),
         "panel_meta": regime_payload.get("panel_meta", {}),
         "raw": {
             "yahoo": yh,

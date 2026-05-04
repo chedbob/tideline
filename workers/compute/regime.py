@@ -427,12 +427,17 @@ def run(api_key: str) -> dict:
     from compute.lag import build_lag_report
     lag_report = build_lag_report(df_states)
 
+    # Dip-buy / bottom signals — backtest + live status
+    from compute.dip_signals import build_dip_signals_payload
+    dip_signals = build_dip_signals_payload(df_states)
+
     return {
         "snapshot": snapshot,
         "decision_log": decision_log,
         "tide_history": tide_history,
         "headlines": headlines,
         "lag": lag_report,
+        "dip_signals": dip_signals,
         "panel_meta": {
             "start": str(df_states.index.min().date()),
             "end": str(df_states.index.max().date()),

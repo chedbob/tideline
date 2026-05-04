@@ -429,6 +429,61 @@
             </div>
         </section>
 
+        <!-- Dip-Buy Watch — bootstrap-validated bottom signals -->
+        <section id="dip-section" class="mb-6" style="display: none;">
+            <div class="card rounded-xl p-5">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                    <div>
+                        <div class="text-xs uppercase tracking-widest mb-1" style="color: var(--muted);">Dip-buy watch · backtested</div>
+                        <h3 class="text-base font-semibold" style="color: var(--foam);">Bottom signals firing right now</h3>
+                    </div>
+                    <span class="text-xs mono" id="dip-panel-meta" style="color: var(--muted);">—</span>
+                </div>
+
+                <!-- Primary signal — CREDIT_PEAK survived bootstrap -->
+                <div class="rounded-lg p-4 mb-3" id="dip-primary"
+                     style="background: rgba(232, 221, 200, 0.04); border: 1px solid rgba(232, 221, 200, 0.20);">
+                    <div class="flex items-start justify-between mb-2 flex-wrap gap-2">
+                        <div>
+                            <div class="text-[10px] uppercase tracking-widest mb-1" style="color: var(--cyan-bright);">Primary · bootstrap-validated</div>
+                            <div class="text-base font-semibold" style="color: var(--foam);" id="dip-primary-name">Credit Spread Peak</div>
+                        </div>
+                        <span id="dip-primary-status" class="text-xs mono" style="color: var(--muted);">—</span>
+                    </div>
+                    <p class="text-xs leading-relaxed mb-3" style="color: var(--muted);">
+                        BAA10Y credit spread in top quartile of 5y range AND declining for 5+ consecutive days.
+                        Per Gilchrist-Zakrajšek (2012), credit markets lead equity bottoms.
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                        <div>
+                            <div class="text-[10px] uppercase tracking-widest" style="color: var(--muted);">Historical hit rate</div>
+                            <div class="text-lg font-semibold mono" id="dip-primary-hit">—</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-widest" style="color: var(--muted);">Edge vs drawdown baseline</div>
+                            <div class="text-lg font-semibold mono" id="dip-primary-edge">—</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-widest" style="color: var(--muted);">Bootstrap CI</div>
+                            <div class="text-sm mono" id="dip-primary-ci">—</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-widest" style="color: var(--muted);">Sample size</div>
+                            <div class="text-lg font-semibold mono" id="dip-primary-n">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tracked but not signal-grade -->
+                <details class="text-sm">
+                    <summary class="cursor-pointer text-xs uppercase tracking-widest pb-2" style="color: var(--muted);">
+                        4 other signals tracked (did not survive bootstrap)
+                    </summary>
+                    <div id="dip-others" class="space-y-1 mt-2 pl-3"></div>
+                </details>
+            </div>
+        </section>
+
         <!-- Lag Tracker — honest "where Tideline is fast vs slow" -->
         <section id="lag-section" class="mb-6" style="display: none;">
             <div class="card rounded-xl p-5">
@@ -1061,6 +1116,65 @@ async function load() {
         document.getElementById('z1-days').textContent = z1.days_in_state + ' trading days';
         document.getElementById('z1-last').textContent = z1.last_transition_date || '—';
         document.getElementById('z1-trigger').textContent = (z1.last_transition_trigger || '—').replace(/_/g, ' ');
+
+        // Dip-buy watch
+        const dip = data.dip_signals;
+        if (dip && dip.backtest && dip.live) {
+            document.getElementById('dip-section').style.display = '';
+            document.getElementById('dip-panel-meta').textContent = `${dip.panel_range[0]} → ${dip.panel_range[1]}`;
+
+            // Primary = CREDIT_PEAK
+            const cp = dip.backtest.CREDIT_PEAK;
+            const cpLive = dip.live.CREDIT_PEAK;
+            if (cp && cp.horizons && cp.horizons.H5) {
+                const h5 = cp.horizons.H5;
+                document.getElementById('dip-primary-hit').textContent = (h5.hit_rate * 100).toFixed(0) + '% at H5';
+                document.getElementById('dip-primary-edge').textContent =
+                    (h5.conditional_drawdown.edge_pp >= 0 ? '+' : '') +
+                    h5.conditional_drawdown.edge_pp.toFixed(1) + 'pp';
+                document.getElementById('dip-primary-ci').textContent =
+                    `[${(h5.bootstrap_ci_95[0]*100).toFixed(0)}%, ${(h5.bootstrap_ci_95[1]*100).toFixed(0)}%]`;
+                document.getElementById('dip-primary-n').textContent = h5.n;
+                if (cpLive.fired_today) {
+                    document.getElementById('dip-primary-status').innerHTML =
+                        '<span style="color: var(--reef); font-weight: 600;">● FIRED TODAY</span>';
+                } else {
+                    document.getElementById('dip-primary-status').textContent =
+                        cpLive.days_since_last_fire ? `dormant · last fire ${cpLive.days_since_last_fire}d ago` : 'dormant';
+                }
+            }
+
+            // Other signals
+            const otherWrap = document.getElementById('dip-others');
+            otherWrap.innerHTML = '';
+            const others = ['TERM_REVERSAL', 'CAPIT_FOLLOWTHRU', 'VIX_PANIC_RELEASE', 'DRAWDOWN_VOL_EASE'];
+            const labels = {
+                TERM_REVERSAL:    'VIX Term Reversal',
+                CAPIT_FOLLOWTHRU: 'Capitulation Follow-Through',
+                VIX_PANIC_RELEASE: 'VIX Panic Release',
+                DRAWDOWN_VOL_EASE: 'Drawdown + Vol Ease',
+            };
+            for (const k of others) {
+                const r = dip.backtest[k];
+                const live = dip.live[k];
+                if (!r || !r.horizons || !r.horizons.H5) continue;
+                const h5 = r.horizons.H5;
+                const cond = h5.conditional_drawdown;
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between py-2 border-t text-xs mono';
+                div.style.borderColor = 'rgba(31, 58, 95, 0.4)';
+                const status = live.fired_today
+                    ? '<span style="color: var(--amber);">● firing</span>'
+                    : `<span style="color: var(--muted);">last ${live.days_since_last_fire || '—'}d ago</span>`;
+                div.innerHTML = `
+                    <div style="color: var(--foam);">${labels[k] || k}</div>
+                    <div style="color: var(--muted);">
+                        n=${h5.n} · hit ${(h5.hit_rate*100).toFixed(0)}% · edge ${cond.edge_pp >= 0 ? '+' : ''}${cond.edge_pp.toFixed(1)}pp · ${status}
+                    </div>
+                `;
+                otherWrap.appendChild(div);
+            }
+        }
 
         // Lag tracker
         const lag = data.lag;

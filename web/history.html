@@ -16,244 +16,357 @@
     <meta name="twitter:description" content="Last 180 days with verdict day by day.">
     <meta name="twitter:image" content="https://tideline-b16.pages.dev/og.png">
 
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%23E8DDC8'/><stop offset='100%25' stop-color='%23B8956A'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%2388C8D0'/><stop offset='100%25' stop-color='%234A8B96'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --ocean-deep: #0A1A2F;
-            --ocean-surface: #122438;
-            --ocean-card: #14283F;
-            --ocean-border: #2A4060;
-            --foam: #F0E6D2;
-            --muted: #A89B82;
-            --teal: #B8956A;
-            --cyan-bright: #E8DDC8;
-            --sand: #D4B98C;
-            --reef: #7BA37A;
-            --coral: #C46B5C;
-            --amber: #D4A85A;
+            --sky-1: #FAF3E0;
+            --sky-2: #F5DEB3;
+            --water-foam: #DCEEF0;
+            --water-shallow: #88C8D0;
+            --water-mid: #4A8B96;
+            --water-deep: #1F3F4F;
+            --sand-dry: #F0DEB0;
+            --sand-mid: #DCC089;
+            --sand-warm: #C9A674;
+            --ink: #1A1410;
+            --ink-soft: #5C5040;
+            --ink-faint: #8C7E68;
+            --good: #2F8B59;
+            --good-soft: #7BA37A;
+            --warn: #D4A85A;
+            --bad: #C46B5C;
+            --line: rgba(26, 20, 16, 0.10);
+            --line-soft: rgba(26, 20, 16, 0.06);
         }
-        * { font-family: 'Inter', sans-serif; }
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
         .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
-        body {
-            background: linear-gradient(180deg, var(--ocean-deep) 0%, #06101F 100%);
-            color: var(--foam);
-            min-height: 100vh;
-            background-attachment: fixed;
-        }
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image:
-                radial-gradient(at 15% 25%, rgba(232, 221, 200, 0.04) 0%, transparent 40%),
-                radial-gradient(at 85% 75%, rgba(184, 149, 106, 0.06) 0%, transparent 40%);
-            pointer-events: none;
-            z-index: 0;
-        }
-        .card {
-            background: var(--ocean-card);
-            border: 1px solid var(--ocean-border);
-        }
-        .nav-link { position: relative; color: var(--muted); transition: color 0.2s ease; font-size: 13px; font-weight: 500; }
-        .nav-link:hover { color: var(--foam); }
-        .nav-link.active { color: var(--cyan-bright); }
-        .nav-link.active::after {
-            content: ''; position: absolute; bottom: -18px; left: 0; right: 0; height: 2px;
-            background: var(--cyan-bright); border-radius: 2px;
-        }
-        .main-container { position: relative; z-index: 1; }
+        html, body { background: var(--sky-1); color: var(--ink); min-height: 100vh; }
 
-        /* Verdict badges */
-        .v-hit  { color: var(--reef); }
-        .v-miss { color: var(--coral); }
-        .v-flat { color: var(--muted); }
-        .v-none { color: var(--muted); opacity: 0.5; }
+        body::before {
+            content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 100;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+            opacity: 0.04; mix-blend-mode: multiply;
+        }
+
+        .header {
+            max-width: 1100px; margin: 0 auto; padding: 24px 24px 12px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+        .brand-mark { width: 32px; height: 32px; }
+        nav.tabs { display: flex; gap: 24px; }
+        nav.tabs a {
+            color: var(--ink-soft); text-decoration: none; font-size: 14px; font-weight: 500;
+            position: relative; padding: 4px 0;
+        }
+        nav.tabs a:hover { color: var(--ink); }
+        nav.tabs a.active { color: var(--ink); }
+        nav.tabs a.active::after {
+            content: ''; position: absolute; bottom: -8px; left: 0; right: 0;
+            height: 2px; background: var(--water-mid); border-radius: 2px;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 16px 24px 64px; }
+
+        .page-head { margin-bottom: 24px; }
+        .page-head h1 {
+            font-size: clamp(28px, 4vw, 36px); font-weight: 800;
+            letter-spacing: -0.02em; color: var(--ink); margin-bottom: 6px;
+        }
+        .page-head .sub {
+            font-size: 14px; color: var(--ink-soft); line-height: 1.5;
+        }
+        .page-head .sub .as-of { color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; }
+
+        /* Period selector */
+        .period-row {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .period-row .label {
+            font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+            color: var(--ink-faint); font-weight: 600; margin-right: 6px;
+        }
+        .period-btn {
+            padding: 7px 16px; font-size: 12px; font-weight: 600;
+            background: white; color: var(--ink-soft);
+            border: 1px solid var(--line); border-radius: 999px;
+            cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .period-btn:hover { color: var(--ink); border-color: var(--water-mid); }
+        .period-btn.active {
+            background: var(--water-mid); color: white; border-color: var(--water-mid);
+        }
+
+        /* Card primitive */
+        .card {
+            background: white; border-radius: 20px; padding: 24px;
+            border: 1px solid var(--line);
+        }
+
+        /* Summary cards grid */
+        .summary-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 720px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .summary-card {
+            background: white; border-radius: 16px; padding: 18px;
+            border: 1px solid var(--line);
+        }
+        .summary-label {
+            font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+            color: var(--ink-faint); font-weight: 600; margin-bottom: 10px;
+        }
+        .summary-value {
+            display: flex; align-items: baseline; gap: 8px;
+        }
+        .summary-num {
+            font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700;
+            color: var(--ink); letter-spacing: -0.01em;
+        }
+        .summary-aux { font-size: 12px; color: var(--ink-faint); }
+        .summary-detail {
+            font-size: 11px; color: var(--ink-soft); margin-top: 6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Chart card */
+        .chart-card { padding: 24px; margin-bottom: 24px; }
+        .chart-head {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+        }
+        .chart-head h3 { font-size: 16px; font-weight: 700; color: var(--ink); }
+        .chart-head .tagline { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+        .chart-period {
+            font-size: 11px; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace;
+        }
+        .chart-wrap { height: 280px; }
+        #chart-svg { width: 100%; height: 100%; overflow: visible; display: block; }
+        .chart-foot {
+            display: flex; justify-content: space-between;
+            font-size: 10px; color: var(--ink-faint); margin-top: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* SVG state band fills */
+        #chart-svg .state-band-easy     { fill: rgba(136, 200, 208, 0.18); }
+        #chart-svg .state-band-normal   { fill: rgba(123, 163, 122, 0.14); }
+        #chart-svg .state-band-elevated { fill: rgba(212, 168,  90, 0.20); }
+        #chart-svg .state-band-stress   { fill: rgba(196, 107,  92, 0.26); }
 
         /* State badge */
         .badge-state {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 3px 8px; border-radius: 4px;
-            font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+            display: inline-flex; align-items: center;
+            padding: 3px 9px; border-radius: 999px;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+            font-family: 'JetBrains Mono', monospace;
         }
-        .b-EASY     { background: rgba(232, 221, 200, 0.10); color: var(--cyan-bright); }
-        .b-NORMAL   { background: rgba(123, 163, 122, 0.10); color: var(--reef); }
-        .b-ELEVATED { background: rgba(212, 168,  90, 0.10); color: var(--amber); }
-        .b-STRESS   { background: rgba(196, 107,  92, 0.12); color: var(--coral); }
-        .b-GREEN    { background: rgba(123, 163, 122, 0.10); color: var(--reef); }
-        .b-CAUTION  { background: rgba(196, 107,  92, 0.12); color: var(--coral); }
-        .b-NEUTRAL  { background: rgba(168, 155, 130, 0.10); color: var(--muted); }
+        .b-EASY     { background: rgba(136, 200, 208, 0.20); color: var(--water-deep); }
+        .b-NORMAL   { background: rgba(123, 163, 122, 0.18); color: var(--good); }
+        .b-ELEVATED { background: rgba(212, 168,  90, 0.22); color: #886518; }
+        .b-STRESS   { background: rgba(196, 107,  92, 0.20); color: var(--bad); }
+        .b-GREEN    { background: rgba(123, 163, 122, 0.18); color: var(--good); }
+        .b-CAUTION  { background: rgba(196, 107,  92, 0.20); color: var(--bad); }
+        .b-NEUTRAL  { background: rgba(140, 126, 104, 0.15); color: var(--ink-soft); }
 
-        /* Score chart bar */
-        .score-row {
-            display: grid; grid-template-columns: 90px 80px 70px 70px 70px 70px 70px;
-            gap: 12px; align-items: center;
-            padding: 8px 12px;
-            border-bottom: 1px solid rgba(31, 58, 95, 0.4);
-            font-size: 13px;
+        /* Verdict tokens */
+        .v-hit  { color: var(--good); font-weight: 600; }
+        .v-miss { color: var(--bad); font-weight: 600; }
+        .v-flat { color: var(--ink-faint); }
+        .v-none { color: var(--ink-faint); opacity: 0.6; }
+
+        /* Daily table */
+        .table-card { padding: 24px; margin-bottom: 24px; }
+        .table-head {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: 16px;
         }
-        .score-row:hover { background: rgba(232, 221, 200, 0.03); }
-        .score-row .date { color: var(--muted); font-size: 12px; }
-        .score-row .score-cell { font-weight: 600; }
-        .score-row .ret { font-weight: 500; }
-        .score-row .ret.up { color: var(--reef); }
-        .score-row .ret.down { color: var(--coral); }
+        .table-head h3 { font-size: 16px; font-weight: 700; color: var(--ink); }
+        .table-head a {
+            font-size: 12px; color: var(--water-mid); text-decoration: none; font-weight: 600;
+        }
+        .table-head a:hover { text-decoration: underline; }
+
+        .row-grid {
+            display: grid;
+            grid-template-columns: 100px 80px 90px 100px 1fr 80px 1fr;
+            gap: 12px; align-items: center;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .row-head {
+            font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+            color: var(--ink-faint); font-weight: 600;
+            background: var(--sky-2); border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            padding: 10px 14px;
+        }
+        .rows-wrap {
+            max-height: 600px; overflow-y: auto; border-radius: 12px;
+            border: 1px solid var(--line-soft); background: white;
+            margin-top: 8px;
+        }
+        .rows-wrap .row-grid { border-bottom: 1px solid var(--line-soft); }
+        .rows-wrap .row-grid:last-child { border-bottom: none; }
+        .rows-wrap .row-grid:hover { background: rgba(220, 192, 137, 0.10); }
+        .row-grid .date { color: var(--ink-soft); font-size: 11px; }
+        .row-grid .score-cell { font-weight: 700; color: var(--ink); }
+        .row-grid .ret { font-weight: 600; }
+        .row-grid .ret.up { color: var(--good); }
+        .row-grid .ret.down { color: var(--bad); }
+        .row-grid .ret-right { text-align: right; }
+
         @media (max-width: 768px) {
-            .score-row { grid-template-columns: 80px 60px 70px 60px; gap: 8px; font-size: 11px; }
+            .row-grid {
+                grid-template-columns: 80px 60px 70px 60px;
+                gap: 8px; font-size: 11px;
+            }
+            .row-head {
+                grid-template-columns: 80px 60px 70px 60px;
+            }
             .hide-sm { display: none; }
         }
 
-        /* Period selector */
-        .period-btn {
-            padding: 6px 14px; font-size: 12px; font-weight: 500;
-            background: transparent; color: var(--muted);
-            border: 1px solid var(--ocean-border); border-radius: 6px;
-            cursor: pointer; transition: all 0.2s;
-        }
-        .period-btn:hover { color: var(--foam); border-color: var(--sand); }
-        .period-btn.active { background: rgba(212, 185, 140, 0.15); color: var(--sand); border-color: var(--sand); }
+        /* Scrollbar */
+        .rows-wrap::-webkit-scrollbar { width: 8px; }
+        .rows-wrap::-webkit-scrollbar-track { background: var(--sky-1); border-radius: 4px; }
+        .rows-wrap::-webkit-scrollbar-thumb { background: var(--sand-warm); border-radius: 4px; }
+        .rows-wrap::-webkit-scrollbar-thumb:hover { background: var(--sand-mid); }
 
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--ocean-deep); }
-        ::-webkit-scrollbar-thumb { background: var(--ocean-border); border-radius: 4px; }
-
-        /* Sparkline state shading */
-        #chart-svg .state-band-easy     { fill: rgba(232, 221, 200, 0.06); }
-        #chart-svg .state-band-normal   { fill: rgba(123, 163, 122, 0.05); }
-        #chart-svg .state-band-elevated { fill: rgba(212, 168,  90, 0.06); }
-        #chart-svg .state-band-stress   { fill: rgba(196, 107,  92, 0.10); }
+        /* Footer */
+        .foot { text-align: center; font-size: 12px; color: var(--ink-faint); padding: 32px 0 16px; }
+        .foot a { color: var(--water-mid); text-decoration: none; }
+        .foot a:hover { text-decoration: underline; }
+        .foot .past { font-size: 11px; opacity: 0.85; margin-bottom: 6px; }
     </style>
 </head>
 <body>
-<div class="main-container">
-    <header class="border-b sticky top-0 z-50" style="background: rgba(10, 26, 47, 0.85); backdrop-filter: blur(12px); border-color: rgba(31, 58, 95, 0.5);">
-        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-            <div class="flex items-center gap-10">
-                <div class="flex items-center gap-3">
-                    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                        <path d="M2 16 Q8 10 14 16 T26 16 L30 16" stroke="url(#logoGrad)" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path d="M2 22 Q8 16 14 22 T26 22 L30 22" stroke="url(#logoGrad)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
-                        <defs>
-                            <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
-                                <stop offset="0%" style="stop-color:#E8DDC8"/>
-                                <stop offset="100%" style="stop-color:#B8956A"/>
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                    <h1 class="text-lg font-semibold tracking-tight">Tideline</h1>
-                </div>
-                <nav class="flex items-center gap-8">
-                    <a href="./index.html" class="nav-link">Dashboard</a>
-                    <a href="./history.html" class="nav-link active">History</a>
-                    <a href="./details.html" class="nav-link">Details</a>
-                    <a href="./methodology.html" class="nav-link">About</a>
-                </nav>
-            </div>
-        </div>
-    </header>
 
-    <main class="max-w-7xl mx-auto px-6 py-10">
-        <div class="mb-8">
-            <h2 class="text-3xl font-semibold tracking-tight mb-2">Tide History</h2>
-            <p class="text-sm" style="color: var(--muted);">
-                Daily Tide Score, Faber trend, regime state, and forward returns —
-                so you can backtest what Tideline said vs what actually happened.
-                <span id="data-as-of" class="mono">…</span>
-            </p>
-        </div>
+<div class="header">
+    <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" fill="none">
+            <path d="M2 16 Q8 10 14 16 T26 16 L30 16" stroke="url(#brandG)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M2 22 Q8 16 14 22 T26 22 L30 22" stroke="url(#brandG)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+            <defs>
+                <linearGradient id="brandG" x1="0" y1="0" x2="32" y2="32">
+                    <stop offset="0%" style="stop-color:#88C8D0"/>
+                    <stop offset="100%" style="stop-color:#4A8B96"/>
+                </linearGradient>
+            </defs>
+        </svg>
+        Tideline
+    </div>
+    <nav class="tabs">
+        <a href="./index.html">Now</a>
+        <a href="./history.html" class="active">History</a>
+        <a href="./details.html">Details</a>
+        <a href="./methodology.html">About</a>
+    </nav>
+</div>
 
-        <!-- Period selector -->
-        <div class="flex items-center gap-2 mb-6 flex-wrap">
-            <span class="text-xs uppercase tracking-widest mr-3" style="color: var(--muted);">Period</span>
-            <button class="period-btn active" data-period="30">Last 30D</button>
-            <button class="period-btn" data-period="60">Last 60D</button>
-            <button class="period-btn" data-period="90">Last 90D</button>
-            <button class="period-btn" data-period="180">Last 180D</button>
-        </div>
+<div class="container">
 
-        <!-- Accuracy summary cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="card rounded-xl p-5">
-                <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">Faber calls 5D</div>
-                <div class="flex items-baseline gap-2">
-                    <span class="text-3xl font-bold mono" id="acc-5d">—</span>
-                    <span class="text-sm" style="color: var(--muted);" id="acc-5d-n">— resolved</span>
-                </div>
-                <div class="text-xs mt-2" style="color: var(--muted);" id="acc-5d-detail">—</div>
-            </div>
-            <div class="card rounded-xl p-5">
-                <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">Faber calls 20D</div>
-                <div class="flex items-baseline gap-2">
-                    <span class="text-3xl font-bold mono" id="acc-20d">—</span>
-                    <span class="text-sm" style="color: var(--muted);" id="acc-20d-n">— resolved</span>
-                </div>
-                <div class="text-xs mt-2" style="color: var(--muted);" id="acc-20d-detail">—</div>
-            </div>
-            <div class="card rounded-xl p-5">
-                <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">State transitions</div>
-                <div class="flex items-baseline gap-2">
-                    <span class="text-3xl font-bold mono" id="num-transitions">—</span>
-                    <span class="text-sm" style="color: var(--muted);">in period</span>
-                </div>
-                <div class="text-xs mt-2" style="color: var(--muted);" id="transitions-detail">—</div>
-            </div>
-            <div class="card rounded-xl p-5">
-                <div class="text-xs uppercase tracking-widest mb-2" style="color: var(--muted);">Tide Score range</div>
-                <div class="flex items-baseline gap-2">
-                    <span class="text-3xl font-bold mono" id="score-range">—</span>
-                </div>
-                <div class="text-xs mt-2" style="color: var(--muted);" id="score-range-detail">—</div>
-            </div>
-        </div>
+    <div class="page-head">
+        <h1>Tide History</h1>
+        <p class="sub">
+            Daily Tide Score, Faber trend, regime state, and forward returns —
+            so you can backtest what Tideline said vs what actually happened.
+            <span id="data-as-of" class="as-of">…</span>
+        </p>
+    </div>
 
-        <!-- Chart -->
-        <div class="card rounded-xl p-6 mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h3 class="text-lg font-semibold">Tide Score over time</h3>
-                    <p class="text-xs mt-1" style="color: var(--muted);">0 = stress · 50 = neutral · 100 = calm risk-on</p>
-                </div>
-                <span class="text-xs mono" style="color: var(--muted);" id="chart-period">last 30 days</span>
-            </div>
-            <div style="height: 260px;">
-                <svg id="chart-svg" viewBox="0 0 1000 260" preserveAspectRatio="none" style="width: 100%; height: 100%; overflow: visible;">
-                    <!-- gridlines + axis labels go here, generated by JS -->
-                </svg>
-            </div>
-            <div class="flex items-center justify-between mt-3 text-[10px] mono" style="color: var(--muted);">
-                <span id="chart-x-start">—</span>
-                <span id="chart-x-mid">—</span>
-                <span id="chart-x-end">—</span>
-            </div>
-        </div>
+    <!-- Period selector -->
+    <div class="period-row">
+        <span class="label">Period</span>
+        <button class="period-btn active" data-period="30">Last 30D</button>
+        <button class="period-btn" data-period="60">Last 60D</button>
+        <button class="period-btn" data-period="90">Last 90D</button>
+        <button class="period-btn" data-period="180">Last 180D</button>
+    </div>
 
-        <!-- Daily table -->
-        <div class="card rounded-xl p-6 mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold">Daily verdict log</h3>
-                <a href="./decision_log.csv" download class="text-xs underline hover:text-cyan-300" style="color: var(--muted);">download CSV</a>
+    <!-- Summary cards -->
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-label">Faber calls 5D</div>
+            <div class="summary-value">
+                <span class="summary-num" id="acc-5d">—</span>
+                <span class="summary-aux" id="acc-5d-n">— resolved</span>
             </div>
-            <div class="text-[10px] uppercase tracking-widest mb-3 grid grid-cols-7 gap-3 px-3" style="color: var(--muted);">
-                <div>Date</div>
-                <div>Score</div>
-                <div>Faber</div>
-                <div class="hide-sm">Regime</div>
-                <div class="text-right">SPY 5D</div>
-                <div class="hide-sm">Verdict 5D</div>
-                <div class="hide-sm text-right">SPY 20D</div>
-            </div>
-            <div id="rows" style="max-height: 600px; overflow-y: auto;"></div>
+            <div class="summary-detail" id="acc-5d-detail">—</div>
         </div>
+        <div class="summary-card">
+            <div class="summary-label">Faber calls 20D</div>
+            <div class="summary-value">
+                <span class="summary-num" id="acc-20d">—</span>
+                <span class="summary-aux" id="acc-20d-n">— resolved</span>
+            </div>
+            <div class="summary-detail" id="acc-20d-detail">—</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">State transitions</div>
+            <div class="summary-value">
+                <span class="summary-num" id="num-transitions">—</span>
+                <span class="summary-aux">in period</span>
+            </div>
+            <div class="summary-detail" id="transitions-detail">—</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Tide Score range</div>
+            <div class="summary-value">
+                <span class="summary-num" id="score-range">—</span>
+            </div>
+            <div class="summary-detail" id="score-range-detail">—</div>
+        </div>
+    </div>
 
-        <div class="text-center text-xs py-8" style="color: var(--muted);">
-            <div class="mb-2">Past performance does not predict future results. <a href="./methodology.html" class="underline">about</a></div>
-            <div>Built with <span style="color: var(--cyan-bright);">Tideline</span></div>
+    <!-- Chart -->
+    <div class="card chart-card">
+        <div class="chart-head">
+            <div>
+                <h3>Tide Score over time</h3>
+                <p class="tagline">0 = stress · 50 = neutral · 100 = calm risk-on</p>
+            </div>
+            <span class="chart-period" id="chart-period">last 30 days</span>
         </div>
-    </main>
+        <div class="chart-wrap">
+            <svg id="chart-svg" viewBox="0 0 1000 280" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="chart-foot">
+            <span id="chart-x-start">—</span>
+            <span id="chart-x-mid">—</span>
+            <span id="chart-x-end">—</span>
+        </div>
+    </div>
+
+    <!-- Daily table -->
+    <div class="card table-card">
+        <div class="table-head">
+            <h3>Daily verdict log</h3>
+            <a href="./decision_log.csv" download>download CSV</a>
+        </div>
+        <div class="row-grid row-head">
+            <div>Date</div>
+            <div>Score</div>
+            <div>Faber</div>
+            <div class="hide-sm">Regime</div>
+            <div class="ret-right">SPY 5D</div>
+            <div class="hide-sm">Verdict 5D</div>
+            <div class="hide-sm ret-right">SPY 20D</div>
+        </div>
+        <div class="rows-wrap" id="rows"></div>
+    </div>
+
+    <div class="foot">
+        <p class="past">Past performance does not predict future results. <a href="./methodology.html">about</a></p>
+        <p>Built with <span style="color: var(--water-mid); font-weight: 600;">Tideline</span> · <a href="./index.html">main view</a> · <a href="./details.html">stats for nerds</a></p>
+    </div>
 </div>
 
 <script>
@@ -291,7 +404,6 @@ function renderSummary(slice) {
     document.getElementById('acc-5d-detail').textContent  = t.n5  ? `${t.h5} hit · ${t.m5} miss`   : 'awaiting resolution';
     document.getElementById('acc-20d-detail').textContent = t.n20 ? `${t.h20} hit · ${t.m20} miss` : 'awaiting resolution';
 
-    // transitions
     let tx = 0; let last = null;
     for (const r of slice) {
         const cur = r.faber + '|' + r.regime;
@@ -301,7 +413,6 @@ function renderSummary(slice) {
     document.getElementById('num-transitions').textContent = tx;
     document.getElementById('transitions-detail').textContent = `state changes in window`;
 
-    // score range
     const scores = slice.map(r => r.tide_score);
     const lo = Math.min(...scores);
     const hi = Math.max(...scores);
@@ -312,8 +423,8 @@ function renderSummary(slice) {
 
 function renderChart(slice) {
     const svg = document.getElementById('chart-svg');
-    const W = 1000, H = 260;
-    const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+    const W = 1000, H = 280;
+    const margin = { top: 24, right: 32, bottom: 24, left: 40 };
     const w = W - margin.left - margin.right;
     const h = H - margin.top - margin.bottom;
 
@@ -322,11 +433,11 @@ function renderChart(slice) {
     // gridlines y
     for (const y of [0, 25, 50, 75, 100]) {
         const yPx = margin.top + h - (y / 100) * h;
-        html += `<line x1="${margin.left}" y1="${yPx}" x2="${margin.left + w}" y2="${yPx}" stroke="rgba(232,221,200,0.08)" stroke-dasharray="${y === 50 ? '0' : '2 4'}"/>`;
-        html += `<text x="${margin.left - 8}" y="${yPx + 3}" fill="#A89B82" font-size="9" text-anchor="end" font-family="JetBrains Mono">${y}</text>`;
+        html += `<line x1="${margin.left}" y1="${yPx}" x2="${margin.left + w}" y2="${yPx}" stroke="rgba(26,20,16,0.10)" stroke-dasharray="${y === 50 ? '0' : '2 4'}"/>`;
+        html += `<text x="${margin.left - 8}" y="${yPx + 3}" fill="#8C7E68" font-size="10" text-anchor="end" font-family="JetBrains Mono">${y}</text>`;
     }
 
-    // state-band background segments (one rect per state-run)
+    // state-band background segments
     let segStart = 0;
     let segState = slice[0]?.regime;
     const segRects = [];
@@ -345,29 +456,30 @@ function renderChart(slice) {
         html += `<rect x="${x1}" y="${margin.top}" width="${Math.max(x2 - x1, 1)}" height="${h}" class="${cls}"/>`;
     }
 
-    // line + area for tide score
+    // line + area
     let pts = '';
     for (let i = 0; i < slice.length; i++) {
         const x = margin.left + (i / Math.max(slice.length - 1, 1)) * w;
         const y = margin.top + h - (slice[i].tide_score / 100) * h;
         pts += `${i === 0 ? 'M' : 'L'} ${x} ${y} `;
     }
-    // area fill
     const last = margin.left + w;
-    html += `<path d="${pts} L ${last} ${margin.top + h} L ${margin.left} ${margin.top + h} Z" fill="url(#scoreGrad)" opacity="0.4"/>`;
-    html += `<defs><linearGradient id="scoreGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#E8DDC8" stop-opacity="0.6"/><stop offset="100%" stop-color="#B8956A" stop-opacity="0.0"/></linearGradient></defs>`;
-    html += `<path d="${pts}" fill="none" stroke="#E8DDC8" stroke-width="2"/>`;
+    html += `<defs><linearGradient id="scoreGrad" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#88C8D0" stop-opacity="0.6"/>
+        <stop offset="100%" stop-color="#88C8D0" stop-opacity="0"/>
+    </linearGradient></defs>`;
+    html += `<path d="${pts} L ${last} ${margin.top + h} L ${margin.left} ${margin.top + h} Z" fill="url(#scoreGrad)"/>`;
+    html += `<path d="${pts}" fill="none" stroke="#1F3F4F" stroke-width="2" stroke-linejoin="round"/>`;
 
     // last point
     const lastIdx = slice.length - 1;
     const lastX = margin.left + (lastIdx / Math.max(slice.length - 1, 1)) * w;
     const lastY = margin.top + h - (slice[lastIdx].tide_score / 100) * h;
-    html += `<circle cx="${lastX}" cy="${lastY}" r="4" fill="#E8DDC8"/>`;
-    html += `<text x="${lastX - 8}" y="${lastY - 12}" fill="#F0E6D2" font-size="14" font-weight="700" text-anchor="end" font-family="JetBrains Mono">${slice[lastIdx].tide_score}</text>`;
+    html += `<circle cx="${lastX}" cy="${lastY}" r="5" fill="#1F3F4F" stroke="white" stroke-width="2"/>`;
+    html += `<text x="${lastX - 8}" y="${lastY - 12}" fill="#1A1410" font-size="14" font-weight="700" text-anchor="end" font-family="JetBrains Mono">${slice[lastIdx].tide_score}</text>`;
 
     svg.innerHTML = html;
 
-    // x labels
     document.getElementById('chart-x-start').textContent = slice[0].date;
     document.getElementById('chart-x-mid').textContent   = slice[Math.floor(slice.length / 2)].date;
     document.getElementById('chart-x-end').textContent   = slice[slice.length - 1].date;
@@ -377,11 +489,10 @@ function renderChart(slice) {
 function renderRows(slice) {
     const wrap = document.getElementById('rows');
     wrap.innerHTML = '';
-    const reversed = [...slice].reverse();   // newest first
+    const reversed = [...slice].reverse();
     for (const r of reversed) {
         const row = document.createElement('div');
-        row.className = 'grid grid-cols-7 gap-3 px-3 py-2 border-b mono text-sm';
-        row.style.borderColor = 'rgba(31, 58, 95, 0.4)';
+        row.className = 'row-grid';
 
         const ret5  = r.spy_5d_fwd_return;
         const ret20 = r.spy_20d_fwd_return;
@@ -396,13 +507,13 @@ function renderRows(slice) {
         };
 
         row.innerHTML = `
-            <div style="color: var(--muted); font-size: 11px;">${r.date}</div>
-            <div style="font-weight: 600;">${r.tide_score}</div>
+            <div class="date">${r.date}</div>
+            <div class="score-cell">${r.tide_score}</div>
             <div><span class="badge-state b-${r.faber}">${r.faber}</span></div>
             <div class="hide-sm"><span class="badge-state b-${r.regime}">${r.regime}</span></div>
-            <div class="text-right">${ret5 === null ? '<span class="v-none">pending</span>' : `<span class="${ret5>=0?'v-hit':'v-miss'}">${fmtPct(ret5)}</span>`}</div>
+            <div class="ret-right">${ret5 === null ? '<span class="v-none">pending</span>' : `<span class="ret ${ret5>=0?'up':'down'}">${fmtPct(ret5)}</span>`}</div>
             <div class="hide-sm">${verdictHtml(v5)}</div>
-            <div class="hide-sm text-right">${ret20 === null ? '<span class="v-none">pending</span>' : `<span class="${ret20>=0?'v-hit':'v-miss'}">${fmtPct(ret20)}</span>`}</div>
+            <div class="hide-sm ret-right">${ret20 === null ? '<span class="v-none">pending</span>' : `<span class="ret ${ret20>=0?'up':'down'}">${fmtPct(ret20)}</span>`}</div>
         `;
         wrap.appendChild(row);
     }
@@ -423,14 +534,14 @@ async function load() {
         const data = await r.json();
         HISTORY = data.history || [];
         if (HISTORY.length === 0) {
-            document.getElementById('rows').innerHTML = '<div style="color: var(--coral); padding: 20px;">No history data yet.</div>';
+            document.getElementById('rows').innerHTML = '<div style="color: var(--bad); padding: 20px;">No history data yet.</div>';
             return;
         }
         document.getElementById('data-as-of').textContent = `· data through ${HISTORY[HISTORY.length - 1].date}`;
         renderPeriod(30);
     } catch (e) {
         console.error(e);
-        document.getElementById('rows').innerHTML = `<div style="color: var(--coral); padding: 20px;">Failed to load history: ${e.message}</div>`;
+        document.getElementById('rows').innerHTML = `<div style="color: var(--bad); padding: 20px;">Failed to load history: ${e.message}</div>`;
     }
 }
 

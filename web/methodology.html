@@ -16,69 +16,118 @@
     <meta name="twitter:description" content="Disclaimer and tracking notes.">
     <meta name="twitter:image" content="https://tideline-b16.pages.dev/og.png">
 
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%2322D3EE'/><stop offset='100%25' stop-color='%230891B2'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%2388C8D0'/><stop offset='100%25' stop-color='%234A8B96'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --ocean-deep: #0A1A2F; --ocean-card: #14283F; --ocean-border: #2A4060;
-            --foam: #F0E6D2; --muted: #A89B82; --teal: #B8956A; --cyan-bright: #E8DDC8;
-            --sand: #D4B98C;
-            --reef: #7BA37A; --coral: #C46B5C; --amber: #D4A85A;
+            --sky-1: #FAF3E0;
+            --sky-2: #F5DEB3;
+            --water-foam: #DCEEF0;
+            --water-shallow: #88C8D0;
+            --water-mid: #4A8B96;
+            --water-deep: #1F3F4F;
+            --sand-dry: #F0DEB0;
+            --sand-mid: #DCC089;
+            --sand-warm: #C9A674;
+            --ink: #1A1410;
+            --ink-soft: #5C5040;
+            --ink-faint: #8C7E68;
+            --good: #2F8B59;
+            --warn: #D4A85A;
+            --bad: #C46B5C;
+            --line: rgba(26, 20, 16, 0.10);
+            --line-soft: rgba(26, 20, 16, 0.06);
         }
-        * { font-family: 'Inter', sans-serif; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        body {
-            background: linear-gradient(180deg, var(--ocean-deep) 0%, #06101F 100%);
-            color: var(--foam); min-height: 100vh; background-attachment: fixed;
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+        .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
+        html, body { background: var(--sky-1); color: var(--ink); min-height: 100vh; }
+
+        body::before {
+            content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 100;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+            opacity: 0.04; mix-blend-mode: multiply;
         }
-        body::before { content: ''; position: fixed; inset: 0;
-            background-image: radial-gradient(at 15% 25%, rgba(232, 221, 200, 0.04) 0%, transparent 40%), radial-gradient(at 85% 75%, rgba(184, 149, 106, 0.06) 0%, transparent 40%);
-            pointer-events: none; z-index: 0; }
-        .nav-link { position: relative; color: var(--muted); transition: color 0.2s ease; font-size: 13px; font-weight: 500; }
-        .nav-link:hover { color: var(--foam); }
-        .nav-link.active { color: var(--cyan-bright); }
-        .nav-link.active::after { content: ''; position: absolute; bottom: -18px; left: 0; right: 0; height: 2px; background: var(--cyan-bright); border-radius: 2px; }
-        .main-container { position: relative; z-index: 1; }
-        .prose p, .prose li { color: var(--foam); line-height: 1.7; }
-        .prose strong { color: var(--cyan-bright); font-weight: 600; }
-        .prose a { color: var(--cyan-bright); text-decoration: underline; text-underline-offset: 2px; }
-        .callout { background: rgba(245, 158, 11, 0.06); border-left: 3px solid var(--amber); padding: 16px 20px; border-radius: 4px; margin: 20px 0; }
+
+        .header {
+            max-width: 1100px; margin: 0 auto; padding: 24px 24px 12px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+        .brand-mark { width: 32px; height: 32px; }
+        nav.tabs { display: flex; gap: 24px; }
+        nav.tabs a {
+            color: var(--ink-soft); text-decoration: none; font-size: 14px; font-weight: 500;
+            position: relative; padding: 4px 0;
+        }
+        nav.tabs a:hover { color: var(--ink); }
+        nav.tabs a.active { color: var(--ink); }
+        nav.tabs a.active::after {
+            content: ''; position: absolute; bottom: -8px; left: 0; right: 0;
+            height: 2px; background: var(--water-mid); border-radius: 2px;
+        }
+
+        .container { max-width: 720px; margin: 0 auto; padding: 32px 24px 64px; }
+
+        h1 {
+            font-size: clamp(28px, 4vw, 36px); font-weight: 800;
+            letter-spacing: -0.02em; margin-bottom: 20px; color: var(--ink);
+        }
+
+        .prose p {
+            color: var(--ink); line-height: 1.7; font-size: 16px;
+            margin-bottom: 18px;
+        }
+        .prose strong { color: var(--ink); font-weight: 700; }
+        .prose a {
+            color: var(--water-mid); text-decoration: underline;
+            text-underline-offset: 2px; font-weight: 500;
+        }
+        .prose a:hover { color: var(--water-deep); }
+
+        .callout {
+            background: rgba(212, 168, 90, 0.10);
+            border-left: 4px solid var(--warn);
+            padding: 20px 22px; border-radius: 12px;
+            margin: 24px 0;
+        }
+        .callout strong { color: #886518; font-weight: 700; }
+
+        .foot {
+            text-align: center; font-size: 12px; color: var(--ink-faint);
+            padding: 32px 0 16px;
+        }
+        .foot a { color: var(--water-mid); text-decoration: none; }
+        .foot a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-<div class="main-container">
-    <header class="border-b sticky top-0 z-50" style="background: rgba(10, 26, 47, 0.85); backdrop-filter: blur(12px); border-color: rgba(31, 58, 95, 0.5);">
-        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-            <div class="flex items-center gap-10">
-                <div class="flex items-center gap-3">
-                    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                        <path d="M2 16 Q8 10 14 16 T26 16 L30 16" stroke="url(#logoGrad)" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path d="M2 22 Q8 16 14 22 T26 22 L30 22" stroke="url(#logoGrad)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
-                        <defs>
-                            <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
-                                <stop offset="0%" style="stop-color:#E8DDC8"/>
-                                <stop offset="100%" style="stop-color:#B8956A"/>
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                    <h1 class="text-lg font-semibold tracking-tight">Tideline</h1>
-                </div>
-                <nav class="flex items-center gap-8">
-                    <a href="./index.html" class="nav-link">Dashboard</a>
-                    <a href="./history.html" class="nav-link">History</a>
-                    <a href="./details.html" class="nav-link">Details</a>
-                    <a href="./methodology.html" class="nav-link active">About</a>
-                </nav>
-            </div>
-        </div>
-    </header>
 
-    <main class="max-w-2xl mx-auto px-6 py-16 prose">
-        <h1 class="text-3xl font-semibold tracking-tight mb-6">About Tideline</h1>
+<div class="header">
+    <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" fill="none">
+            <path d="M2 16 Q8 10 14 16 T26 16 L30 16" stroke="url(#brandG)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M2 22 Q8 16 14 22 T26 22 L30 22" stroke="url(#brandG)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+            <defs>
+                <linearGradient id="brandG" x1="0" y1="0" x2="32" y2="32">
+                    <stop offset="0%" style="stop-color:#88C8D0"/>
+                    <stop offset="100%" style="stop-color:#4A8B96"/>
+                </linearGradient>
+            </defs>
+        </svg>
+        Tideline
+    </div>
+    <nav class="tabs">
+        <a href="./index.html">Now</a>
+        <a href="./history.html">History</a>
+        <a href="./details.html">Details</a>
+        <a href="./methodology.html" class="active">About</a>
+    </nav>
+</div>
+
+<div class="container">
+    <main class="prose">
+        <h1>About Tideline</h1>
 
         <p>
             Tideline is a descriptive macro regime tracker. It publishes a daily reading of cross-asset stress and trend conditions, computed from publicly available market data on a fixed schedule.
@@ -89,18 +138,18 @@
         </p>
 
         <div class="callout">
-            <strong style="color: var(--amber);">Not investment advice.</strong>
+            <strong>Not investment advice.</strong>
             Tideline is a research and observation tool. Nothing it shows constitutes a recommendation to buy, sell, or hold any security. Past readings do not predict future outcomes. You are responsible for your own positions.
         </div>
 
         <p>
             <a href="./decision_log.csv" download>Download the full decision log (CSV)</a> — every state transition Tideline has ever assigned, machine-readable.
         </p>
-
-        <div class="text-center text-xs py-12 mt-12" style="color: var(--muted); border-top: 1px solid var(--ocean-border);">
-            Built with <span style="color: var(--cyan-bright);">Tideline</span>
-        </div>
     </main>
+
+    <div class="foot">
+        <p>Built with <span style="color: var(--water-mid); font-weight: 600;">Tideline</span> · <a href="./index.html">main view</a> · <a href="./history.html">history</a> · <a href="./details.html">stats for nerds</a></p>
+    </div>
 </div>
 </body>
 </html>

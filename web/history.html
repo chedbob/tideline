@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tideline — Tide History</title>
-    <meta name="description" content="Historical tide score with backtest verdict day by day.">
+    <meta name="description" content="Drag the tide back in time. See what the regime looked like on any past day.">
 
     <meta property="og:type" content="article">
     <meta property="og:title" content="Tideline — Tide History">
-    <meta property="og:description" content="Last 180 days of Tide Score with daily verdicts.">
+    <meta property="og:description" content="Drag the tide back in time. Interactive history of the macro regime.">
     <meta property="og:url" content="https://tideline-b16.pages.dev/history.html">
     <meta property="og:image" content="https://tideline-b16.pages.dev/og.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Tideline — Tide History">
-    <meta name="twitter:description" content="Last 180 days with verdict day by day.">
+    <meta name="twitter:description" content="Drag the tide back in time.">
     <meta name="twitter:image" content="https://tideline-b16.pages.dev/og.png">
 
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%2388C8D0'/><stop offset='100%25' stop-color='%234A8B96'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
@@ -27,9 +27,13 @@
             --water-shallow: #88C8D0;
             --water-mid: #4A8B96;
             --water-deep: #1F3F4F;
+            --water-ink: #0F2A38;
             --sand-dry: #F0DEB0;
             --sand-mid: #DCC089;
             --sand-warm: #C9A674;
+            --sand-wet: #A88254;
+            --sand-shadow: #6B5634;
+            --wood: #8B6F47;
             --ink: #1A1410;
             --ink-soft: #5C5040;
             --ink-faint: #8C7E68;
@@ -43,6 +47,7 @@
         * { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
         .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
         html, body { background: var(--sky-1); color: var(--ink); min-height: 100vh; }
+        html, body { -webkit-tap-highlight-color: transparent; }
 
         body::before {
             content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 100;
@@ -50,6 +55,7 @@
             opacity: 0.04; mix-blend-mode: multiply;
         }
 
+        /* Header */
         .header {
             max-width: 1100px; margin: 0 auto; padding: 24px 24px 12px;
             display: flex; align-items: center; justify-content: space-between;
@@ -70,95 +76,320 @@
 
         .container { max-width: 1100px; margin: 0 auto; padding: 16px 24px 64px; }
 
-        .page-head { margin-bottom: 24px; }
+        .page-head { margin-bottom: 16px; text-align: center; }
         .page-head h1 {
             font-size: clamp(28px, 4vw, 36px); font-weight: 800;
             letter-spacing: -0.02em; color: var(--ink); margin-bottom: 6px;
         }
-        .page-head .sub {
-            font-size: 14px; color: var(--ink-soft); line-height: 1.5;
-        }
+        .page-head .sub { font-size: 14px; color: var(--ink-soft); line-height: 1.5; }
         .page-head .sub .as-of { color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; }
 
-        /* Period selector */
-        .period-row {
-            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-            margin-bottom: 24px;
+        /* HERO BEACH SCENE — interactive */
+        .scene {
+            position: relative; width: 100%; aspect-ratio: 16/9;
+            min-height: 380px; max-height: 540px;
+            border-radius: 32px; overflow: hidden;
+            background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 60%, var(--water-shallow) 60%, var(--water-mid) 100%);
+            box-shadow: 0 20px 60px rgba(31, 63, 79, 0.12), inset 0 0 0 1px rgba(255,255,255,0.5);
+            margin-bottom: 14px;
+            user-select: none;
         }
-        .period-row .label {
+
+        .sun {
+            position: absolute;
+            top: 8%; left: 50%; transform: translateX(-50%);
+            width: 110px; height: 110px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #FFE9B3 0%, #FFD479 55%, transparent 70%);
+            box-shadow: 0 0 80px rgba(255, 200, 110, 0.4);
+            animation: sun-pulse 6s ease-in-out infinite;
+            transition: background 0.4s ease, box-shadow 0.4s ease;
+        }
+        @keyframes sun-pulse { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.04); } }
+        .sun.cloudy { background: radial-gradient(circle, #F5E6D2 0%, #D4C4A8 55%, transparent 70%); box-shadow: 0 0 60px rgba(212, 184, 138, 0.3); }
+        .sun.stormy { background: radial-gradient(circle, #B8A890 0%, #8B7E6B 55%, transparent 70%); box-shadow: 0 0 40px rgba(139, 126, 107, 0.25); }
+
+        .cloud {
+            position: absolute; top: 14%;
+            width: 140px; height: 50px;
+            opacity: 0; transition: opacity 0.6s ease;
+            animation: cloud-drift 60s linear infinite;
+        }
+        .cloud.visible { opacity: 0.85; }
+        @keyframes cloud-drift {
+            from { left: -160px; }
+            to   { left: calc(100% + 160px); }
+        }
+
+        .water {
+            position: absolute; left: 0; right: 0; bottom: 0;
+            height: 50%;
+            background: linear-gradient(180deg, var(--water-shallow) 0%, var(--water-mid) 50%, var(--water-deep) 100%);
+            transition: height 0.35s cubic-bezier(.4,.0,.2,1);
+        }
+        .scene.dragging .water,
+        .scene.dragging .wave-crest,
+        .scene.dragging .score-readout { transition: none !important; }
+
+        .wave-crest {
+            position: absolute; left: 0; right: 0;
+            height: 28px; z-index: 2; pointer-events: none;
+            transition: bottom 0.35s cubic-bezier(.4,.0,.2,1);
+        }
+        .wave-svg {
+            width: 200%; height: 100%;
+            animation: wave-x 10s linear infinite;
+        }
+        @keyframes wave-x {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        .sand {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 18%;
+            background: linear-gradient(180deg, var(--sand-mid) 0%, var(--sand-wet) 70%, var(--sand-shadow) 100%);
+            z-index: 1;
+        }
+        .sand::after {
+            content: ''; position: absolute; inset: 0;
+            background-image:
+                radial-gradient(rgba(107, 86, 52, 0.18) 1px, transparent 1px),
+                radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+            background-size: 14px 14px, 9px 9px;
+            background-position: 0 0, 5px 5px;
+            opacity: 0.5;
+        }
+
+        .umbrella { position: absolute; bottom: 12%; right: 8%; z-index: 3; pointer-events: none; }
+
+        /* Floating chips on the scene */
+        .chip-row-tl {
+            position: absolute; top: 16px; left: 18px; z-index: 6;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .chip-row-tr {
+            position: absolute; top: 16px; right: 18px; z-index: 6;
+            display: flex; gap: 6px;
+        }
+        .chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px; border-radius: 999px;
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(10px);
+            font-size: 11px; color: var(--ink-soft);
+            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        .chip.regime-EASY     { background: rgba(220, 238, 240, 0.92); color: var(--water-deep); }
+        .chip.regime-NORMAL   { background: rgba(220, 238, 220, 0.92); color: var(--good); }
+        .chip.regime-ELEVATED { background: rgba(248, 232, 200, 0.92); color: #886518; }
+        .chip.regime-STRESS   { background: rgba(245, 220, 215, 0.92); color: var(--bad); }
+        .chip.faber-GREEN     { background: rgba(220, 238, 220, 0.92); color: var(--good); }
+        .chip.faber-CAUTION   { background: rgba(245, 220, 215, 0.92); color: var(--bad); }
+
+        /* Big score floating on water surface */
+        .score-readout {
+            position: absolute; left: 50%;
+            transform: translateX(-50%); text-align: center; z-index: 5;
+            transition: bottom 0.35s cubic-bezier(.4,.0,.2,1);
+        }
+        .score-eyebrow {
+            font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase;
+            color: var(--ink); opacity: 0.7; font-weight: 600;
+        }
+        .score-num {
+            font-size: clamp(110px, 14vw, 180px);
+            font-weight: 800;
+            letter-spacing: -0.04em; line-height: 0.85;
+            color: var(--ink);
+            text-shadow: 0 4px 0 rgba(255, 255, 255, 0.5), 0 12px 30px rgba(31, 63, 79, 0.18);
+            margin-top: 4px;
+        }
+        .score-date {
+            margin-top: 6px;
+            font-size: 13px; font-family: 'JetBrains Mono', monospace;
+            color: var(--ink); opacity: 0.7; font-weight: 600;
+        }
+
+        /* Reveal row — what happened next */
+        .reveal-row {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+            margin-bottom: 22px;
+        }
+        @media (max-width: 720px) { .reveal-row { grid-template-columns: 1fr; } }
+        .reveal-card {
+            background: white; border-radius: 16px; padding: 16px;
+            border: 1px solid var(--line);
+        }
+        .reveal-label {
             font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-            color: var(--ink-faint); font-weight: 600; margin-right: 6px;
+            color: var(--ink-faint); font-weight: 600; margin-bottom: 8px;
         }
-        .period-btn {
-            padding: 7px 16px; font-size: 12px; font-weight: 600;
+        .reveal-value {
+            display: flex; align-items: baseline; gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .reveal-num {
+            font-size: 22px; font-weight: 700; color: var(--ink);
+        }
+        .reveal-num.up { color: var(--good); }
+        .reveal-num.down { color: var(--bad); }
+        .reveal-num.pending { color: var(--ink-faint); font-size: 16px; font-weight: 500; }
+        .reveal-tag {
+            font-size: 11px; padding: 2px 8px; border-radius: 999px;
+            font-weight: 600; font-family: 'JetBrains Mono', monospace;
+        }
+        .tag-hit  { background: rgba(123, 163, 122, 0.18); color: var(--good); }
+        .tag-miss { background: rgba(196, 107,  92, 0.18); color: var(--bad); }
+        .tag-flat { background: rgba(140, 126, 104, 0.15); color: var(--ink-soft); }
+        .tag-none { background: var(--line-soft); color: var(--ink-faint); }
+        .reveal-sub {
+            font-size: 11px; color: var(--ink-soft); margin-top: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Scrubber card */
+        .scrubber-card {
+            background: white; border-radius: 20px; padding: 20px 22px 24px;
+            border: 1px solid var(--line); margin-bottom: 24px;
+        }
+        .scrubber-head {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+        }
+        .scrubber-title { font-size: 14px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+        .scrubber-hint { font-size: 11px; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; }
+        .scrubber-actions { display: flex; gap: 8px; }
+        .play-btn, .today-btn {
+            padding: 6px 14px; font-size: 12px; font-weight: 600;
             background: white; color: var(--ink-soft);
             border: 1px solid var(--line); border-radius: 999px;
             cursor: pointer; transition: all 0.2s;
             font-family: 'Inter', sans-serif;
+            display: inline-flex; align-items: center; gap: 6px;
         }
-        .period-btn:hover { color: var(--ink); border-color: var(--water-mid); }
-        .period-btn.active {
-            background: var(--water-mid); color: white; border-color: var(--water-mid);
+        .play-btn:hover, .today-btn:hover { color: var(--ink); border-color: var(--water-mid); }
+        .play-btn.playing { background: var(--water-mid); color: white; border-color: var(--water-mid); }
+
+        .scrubber-stage {
+            position: relative;
+            height: 96px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, var(--sky-1) 0%, var(--water-foam) 100%);
+            overflow: hidden;
+            cursor: ew-resize;
+            border: 1px solid var(--line-soft);
+        }
+
+        .scrubber-svg {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            display: block; pointer-events: none;
+        }
+
+        /* Position indicator */
+        .scrubber-cursor {
+            position: absolute; top: 0; bottom: 0;
+            width: 2px; background: var(--water-deep);
+            pointer-events: none;
+            z-index: 2;
+        }
+        .scrubber-thumb {
+            position: absolute; top: 50%;
+            width: 28px; height: 28px;
+            margin-left: -14px; margin-top: -14px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--water-deep);
+            box-shadow: 0 4px 12px rgba(31, 63, 79, 0.35);
+            cursor: grab;
+            z-index: 3;
+            transition: transform 0.15s ease;
+        }
+        .scrubber-thumb:hover { transform: scale(1.1); }
+        .scrubber-thumb:active, .scrubber-thumb.dragging {
+            cursor: grabbing;
+            transform: scale(1.2);
+            transition: none;
+        }
+        .scrubber-thumb::after {
+            content: '';
+            position: absolute; inset: 5px;
+            border-radius: 50%;
+            background: var(--water-mid);
+        }
+
+        .scrubber-foot {
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            margin-top: 8px;
+            font-size: 10px; color: var(--ink-faint);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .scrubber-foot .end { text-align: right; }
+        .scrubber-foot .mid { text-align: center; }
+
+        .scrubber-keys {
+            margin-top: 10px; font-size: 11px; color: var(--ink-faint);
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+        .key {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 22px; height: 22px; padding: 0 6px;
+            background: var(--sky-2); border: 1px solid var(--line);
+            border-radius: 6px; font-family: 'JetBrains Mono', monospace;
+            font-size: 11px; font-weight: 600; color: var(--ink-soft);
         }
 
         /* Card primitive */
-        .card {
-            background: white; border-radius: 20px; padding: 24px;
-            border: 1px solid var(--line);
-        }
+        .card { background: white; border-radius: 20px; padding: 24px; border: 1px solid var(--line); }
 
-        /* Summary cards grid */
-        .summary-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-            margin-bottom: 24px;
-        }
-        @media (max-width: 720px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
-
-        .summary-card {
-            background: white; border-radius: 16px; padding: 18px;
-            border: 1px solid var(--line);
-        }
-        .summary-label {
-            font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-            color: var(--ink-faint); font-weight: 600; margin-bottom: 10px;
-        }
-        .summary-value {
-            display: flex; align-items: baseline; gap: 8px;
-        }
-        .summary-num {
-            font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700;
-            color: var(--ink); letter-spacing: -0.01em;
-        }
-        .summary-aux { font-size: 12px; color: var(--ink-faint); }
-        .summary-detail {
-            font-size: 11px; color: var(--ink-soft); margin-top: 6px;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* Chart card */
-        .chart-card { padding: 24px; margin-bottom: 24px; }
-        .chart-head {
+        /* Daily table */
+        .table-card { padding: 24px; margin-bottom: 24px; }
+        .table-head {
             display: flex; align-items: baseline; justify-content: space-between;
-            margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+            margin-bottom: 16px;
         }
-        .chart-head h3 { font-size: 16px; font-weight: 700; color: var(--ink); }
-        .chart-head .tagline { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
-        .chart-period {
-            font-size: 11px; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace;
+        .table-head h3 { font-size: 16px; font-weight: 700; color: var(--ink); }
+        .table-head a {
+            font-size: 12px; color: var(--water-mid); text-decoration: none; font-weight: 600;
         }
-        .chart-wrap { height: 280px; }
-        #chart-svg { width: 100%; height: 100%; overflow: visible; display: block; }
-        .chart-foot {
-            display: flex; justify-content: space-between;
-            font-size: 10px; color: var(--ink-faint); margin-top: 8px;
-            font-family: 'JetBrains Mono', monospace;
-        }
+        .table-head a:hover { text-decoration: underline; }
 
-        /* SVG state band fills */
-        #chart-svg .state-band-easy     { fill: rgba(136, 200, 208, 0.18); }
-        #chart-svg .state-band-normal   { fill: rgba(123, 163, 122, 0.14); }
-        #chart-svg .state-band-elevated { fill: rgba(212, 168,  90, 0.20); }
-        #chart-svg .state-band-stress   { fill: rgba(196, 107,  92, 0.26); }
+        .row-grid {
+            display: grid;
+            grid-template-columns: 100px 70px 90px 100px 90px 90px 90px;
+            gap: 12px; align-items: center;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+        }
+        .row-head {
+            font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+            color: var(--ink-faint); font-weight: 600;
+            background: var(--sky-2); border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            padding: 10px 14px;
+            cursor: default;
+        }
+        .rows-wrap {
+            max-height: 600px; overflow-y: auto; border-radius: 12px;
+            border: 1px solid var(--line-soft); background: white;
+            margin-top: 8px;
+        }
+        .rows-wrap .row-grid { border-bottom: 1px solid var(--line-soft); }
+        .rows-wrap .row-grid:last-child { border-bottom: none; }
+        .rows-wrap .row-grid:hover { background: rgba(220, 192, 137, 0.10); }
+        .rows-wrap .row-grid.selected {
+            background: rgba(136, 200, 208, 0.18);
+            border-left: 3px solid var(--water-deep);
+        }
+        .row-grid .date { color: var(--ink-soft); font-size: 11px; }
+        .row-grid .score-cell { font-weight: 700; color: var(--ink); }
+        .row-grid .ret { font-weight: 600; }
+        .row-grid .ret.up { color: var(--good); }
+        .row-grid .ret.down { color: var(--bad); }
+        .row-grid .ret-right { text-align: right; }
 
         /* State badge */
         .badge-state {
@@ -175,76 +406,34 @@
         .b-CAUTION  { background: rgba(196, 107,  92, 0.20); color: var(--bad); }
         .b-NEUTRAL  { background: rgba(140, 126, 104, 0.15); color: var(--ink-soft); }
 
-        /* Verdict tokens */
         .v-hit  { color: var(--good); font-weight: 600; }
         .v-miss { color: var(--bad); font-weight: 600; }
         .v-flat { color: var(--ink-faint); }
         .v-none { color: var(--ink-faint); opacity: 0.6; }
 
-        /* Daily table */
-        .table-card { padding: 24px; margin-bottom: 24px; }
-        .table-head {
-            display: flex; align-items: baseline; justify-content: space-between;
-            margin-bottom: 16px;
-        }
-        .table-head h3 { font-size: 16px; font-weight: 700; color: var(--ink); }
-        .table-head a {
-            font-size: 12px; color: var(--water-mid); text-decoration: none; font-weight: 600;
-        }
-        .table-head a:hover { text-decoration: underline; }
-
-        .row-grid {
-            display: grid;
-            grid-template-columns: 100px 80px 90px 100px 1fr 80px 1fr;
-            gap: 12px; align-items: center;
-            padding: 8px 14px;
-            font-size: 13px;
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .row-head {
-            font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
-            color: var(--ink-faint); font-weight: 600;
-            background: var(--sky-2); border-radius: 12px;
-            font-family: 'Inter', sans-serif;
-            padding: 10px 14px;
-        }
-        .rows-wrap {
-            max-height: 600px; overflow-y: auto; border-radius: 12px;
-            border: 1px solid var(--line-soft); background: white;
-            margin-top: 8px;
-        }
-        .rows-wrap .row-grid { border-bottom: 1px solid var(--line-soft); }
-        .rows-wrap .row-grid:last-child { border-bottom: none; }
-        .rows-wrap .row-grid:hover { background: rgba(220, 192, 137, 0.10); }
-        .row-grid .date { color: var(--ink-soft); font-size: 11px; }
-        .row-grid .score-cell { font-weight: 700; color: var(--ink); }
-        .row-grid .ret { font-weight: 600; }
-        .row-grid .ret.up { color: var(--good); }
-        .row-grid .ret.down { color: var(--bad); }
-        .row-grid .ret-right { text-align: right; }
-
         @media (max-width: 768px) {
             .row-grid {
-                grid-template-columns: 80px 60px 70px 60px;
+                grid-template-columns: 80px 50px 70px 70px;
                 gap: 8px; font-size: 11px;
-            }
-            .row-head {
-                grid-template-columns: 80px 60px 70px 60px;
             }
             .hide-sm { display: none; }
         }
 
-        /* Scrollbar */
         .rows-wrap::-webkit-scrollbar { width: 8px; }
         .rows-wrap::-webkit-scrollbar-track { background: var(--sky-1); border-radius: 4px; }
         .rows-wrap::-webkit-scrollbar-thumb { background: var(--sand-warm); border-radius: 4px; }
-        .rows-wrap::-webkit-scrollbar-thumb:hover { background: var(--sand-mid); }
 
-        /* Footer */
         .foot { text-align: center; font-size: 12px; color: var(--ink-faint); padding: 32px 0 16px; }
         .foot a { color: var(--water-mid); text-decoration: none; }
         .foot a:hover { text-decoration: underline; }
         .foot .past { font-size: 11px; opacity: 0.85; margin-bottom: 6px; }
+
+        @media (max-width: 720px) {
+            .scene { min-height: 320px; }
+            .score-num { font-size: clamp(80px, 22vw, 140px); }
+            .chip { font-size: 10px; padding: 4px 9px; }
+            .umbrella { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -274,74 +463,110 @@
 <div class="container">
 
     <div class="page-head">
-        <h1>Tide History</h1>
+        <h1>Drag the tide back in time</h1>
         <p class="sub">
-            Daily Tide Score, Faber trend, regime state, and forward returns —
-            so you can backtest what Tideline said vs what actually happened.
+            Scrub through 180 days of history. The water rises and falls with what the score actually was that day.
             <span id="data-as-of" class="as-of">…</span>
         </p>
     </div>
 
-    <!-- Period selector -->
-    <div class="period-row">
-        <span class="label">Period</span>
-        <button class="period-btn active" data-period="30">Last 30D</button>
-        <button class="period-btn" data-period="60">Last 60D</button>
-        <button class="period-btn" data-period="90">Last 90D</button>
-        <button class="period-btn" data-period="180">Last 180D</button>
-    </div>
-
-    <!-- Summary cards -->
-    <div class="summary-grid">
-        <div class="summary-card">
-            <div class="summary-label">Faber calls 5D</div>
-            <div class="summary-value">
-                <span class="summary-num" id="acc-5d">—</span>
-                <span class="summary-aux" id="acc-5d-n">— resolved</span>
-            </div>
-            <div class="summary-detail" id="acc-5d-detail">—</div>
+    <!-- HERO BEACH SCENE — interactive -->
+    <div class="scene" id="scene">
+        <!-- Date + SPY chips -->
+        <div class="chip-row-tl">
+            <span class="chip" id="chip-date">—</span>
+            <span class="chip" id="chip-spy">SPY —</span>
         </div>
-        <div class="summary-card">
-            <div class="summary-label">Faber calls 20D</div>
-            <div class="summary-value">
-                <span class="summary-num" id="acc-20d">—</span>
-                <span class="summary-aux" id="acc-20d-n">— resolved</span>
-            </div>
-            <div class="summary-detail" id="acc-20d-detail">—</div>
+        <!-- Regime + Faber chips -->
+        <div class="chip-row-tr">
+            <span class="chip regime-NORMAL" id="chip-regime">—</span>
+            <span class="chip faber-GREEN" id="chip-faber">—</span>
         </div>
-        <div class="summary-card">
-            <div class="summary-label">State transitions</div>
-            <div class="summary-value">
-                <span class="summary-num" id="num-transitions">—</span>
-                <span class="summary-aux">in period</span>
-            </div>
-            <div class="summary-detail" id="transitions-detail">—</div>
+        <div class="sun" id="sun"></div>
+        <div class="cloud" id="cloud">
+            <svg viewBox="0 0 140 50" fill="none">
+                <ellipse cx="40"  cy="32" rx="32" ry="18" fill="#FFFFFF" opacity="0.85"/>
+                <ellipse cx="80"  cy="28" rx="28" ry="20" fill="#FFFFFF" opacity="0.85"/>
+                <ellipse cx="105" cy="34" rx="22" ry="14" fill="#FFFFFF" opacity="0.85"/>
+            </svg>
         </div>
-        <div class="summary-card">
-            <div class="summary-label">Tide Score range</div>
-            <div class="summary-value">
-                <span class="summary-num" id="score-range">—</span>
-            </div>
-            <div class="summary-detail" id="score-range-detail">—</div>
+        <div class="sand"></div>
+        <div class="water" id="water"></div>
+        <div class="wave-crest" id="wave-crest">
+            <svg class="wave-svg" viewBox="0 0 800 28" preserveAspectRatio="none">
+                <path d="M0,14 Q100,4 200,14 T400,14 T600,14 T800,14 L800,28 L0,28 Z" fill="#88C8D0"/>
+                <path d="M0,18 Q100,8 200,18 T400,18 T600,18 T800,18" stroke="#DCEEF0" stroke-width="2" fill="none"/>
+            </svg>
+        </div>
+        <svg class="umbrella" width="50" height="80" viewBox="0 0 50 80">
+            <path d="M25 20 L25 78" stroke="#5C5040" stroke-width="2" stroke-linecap="round"/>
+            <path d="M5 22 Q25 -4, 45 22 Z" fill="#C46B5C"/>
+            <path d="M5 22 Q25 8, 45 22 Z" fill="#E8856A" opacity="0.7"/>
+            <path d="M25 22 L25 12" stroke="#1A1410" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="score-readout" id="score-readout">
+            <div class="score-eyebrow" id="score-eyebrow">Today's Tide</div>
+            <div class="score-num" id="score-num">—</div>
+            <div class="score-date" id="score-date">—</div>
         </div>
     </div>
 
-    <!-- Chart -->
-    <div class="card chart-card">
-        <div class="chart-head">
-            <div>
-                <h3>Tide Score over time</h3>
-                <p class="tagline">0 = stress · 50 = neutral · 100 = calm risk-on</p>
+    <!-- WHAT HAPPENED NEXT -->
+    <div class="reveal-row" id="reveal-row">
+        <div class="reveal-card">
+            <div class="reveal-label">5 days later</div>
+            <div class="reveal-value">
+                <span class="reveal-num" id="reveal-5d">—</span>
+                <span class="reveal-tag" id="reveal-5d-tag">—</span>
             </div>
-            <span class="chart-period" id="chart-period">last 30 days</span>
+            <div class="reveal-sub" id="reveal-5d-sub">SPY return</div>
         </div>
-        <div class="chart-wrap">
-            <svg id="chart-svg" viewBox="0 0 1000 280" preserveAspectRatio="none"></svg>
+        <div class="reveal-card">
+            <div class="reveal-label">20 days later</div>
+            <div class="reveal-value">
+                <span class="reveal-num" id="reveal-20d">—</span>
+                <span class="reveal-tag" id="reveal-20d-tag">—</span>
+            </div>
+            <div class="reveal-sub" id="reveal-20d-sub">SPY return</div>
         </div>
-        <div class="chart-foot">
-            <span id="chart-x-start">—</span>
-            <span id="chart-x-mid">—</span>
-            <span id="chart-x-end">—</span>
+        <div class="reveal-card">
+            <div class="reveal-label">SPY close that day</div>
+            <div class="reveal-value">
+                <span class="reveal-num" id="reveal-spy">—</span>
+            </div>
+            <div class="reveal-sub" id="reveal-spy-sub">—</div>
+        </div>
+    </div>
+
+    <!-- SCRUBBER -->
+    <div class="scrubber-card">
+        <div class="scrubber-head">
+            <div class="scrubber-title">
+                <span>🌊</span>
+                <span>Time machine</span>
+                <span class="scrubber-hint" id="scrub-hint">drag the wave thumb · click to jump · ◀ ▶ to step</span>
+            </div>
+            <div class="scrubber-actions">
+                <button class="play-btn" id="play-btn" aria-label="Play through history"><span id="play-icon">▶</span> <span id="play-label">Play</span></button>
+                <button class="today-btn" id="today-btn">Jump to today</button>
+            </div>
+        </div>
+        <div class="scrubber-stage" id="scrubber-stage" tabindex="0">
+            <svg class="scrubber-svg" id="scrubber-svg" viewBox="0 0 1000 96" preserveAspectRatio="none"></svg>
+            <div class="scrubber-cursor" id="scrubber-cursor"></div>
+            <div class="scrubber-thumb" id="scrubber-thumb" role="slider" aria-label="Scrub through tide history" aria-valuemin="0"></div>
+        </div>
+        <div class="scrubber-foot">
+            <span id="scrub-x-start">—</span>
+            <span class="mid" id="scrub-x-mid">—</span>
+            <span class="end" id="scrub-x-end">—</span>
+        </div>
+        <div class="scrubber-keys">
+            <span class="key">←</span> <span class="key">→</span>
+            <span>step a day</span>
+            <span style="margin: 0 6px;">·</span>
+            <span class="key">Home</span> <span class="key">End</span>
+            <span>jump to start / today</span>
         </div>
     </div>
 
@@ -357,7 +582,7 @@
             <div>Faber</div>
             <div class="hide-sm">Regime</div>
             <div class="ret-right">SPY 5D</div>
-            <div class="hide-sm">Verdict 5D</div>
+            <div class="hide-sm">5D verdict</div>
             <div class="hide-sm ret-right">SPY 20D</div>
         </div>
         <div class="rows-wrap" id="rows"></div>
@@ -374,6 +599,10 @@ const HISTORY_URL = window.TIDELINE_HISTORY_URL ||
                     'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/tide_history.json';
 
 let HISTORY = [];
+let selectedIdx = 0;
+let dragging = false;
+let playing = false;
+let playTimer = null;
 
 function fmtPct(p) {
     if (p === null || p === undefined) return '—';
@@ -381,131 +610,167 @@ function fmtPct(p) {
     return `${sign}${p.toFixed(2)}%`;
 }
 
-function tally(slice) {
-    let h5 = 0, m5 = 0, n5 = 0;
-    let h20 = 0, m20 = 0, n20 = 0;
-    for (const r of slice) {
-        if (r.verdict_5d === 'hit')  { h5++; n5++; }
-        else if (r.verdict_5d === 'miss') { m5++; n5++; }
-        if (r.verdict_20d === 'hit')  { h20++; n20++; }
-        else if (r.verdict_20d === 'miss') { m20++; n20++; }
-    }
-    return { h5, m5, n5, h20, m20, n20 };
+function fmtDate(s) {
+    if (!s) return '—';
+    const d = new Date(s + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function renderSummary(slice) {
-    const t = tally(slice);
-    const acc5  = t.n5  ? (t.h5  / t.n5  * 100).toFixed(0) + '%' : '—';
-    const acc20 = t.n20 ? (t.h20 / t.n20 * 100).toFixed(0) + '%' : '—';
-    document.getElementById('acc-5d').textContent  = acc5;
-    document.getElementById('acc-20d').textContent = acc20;
-    document.getElementById('acc-5d-n').textContent  = t.n5  ? `n=${t.n5}`  : 'pending';
-    document.getElementById('acc-20d-n').textContent = t.n20 ? `n=${t.n20}` : 'pending';
-    document.getElementById('acc-5d-detail').textContent  = t.n5  ? `${t.h5} hit · ${t.m5} miss`   : 'awaiting resolution';
-    document.getElementById('acc-20d-detail').textContent = t.n20 ? `${t.h20} hit · ${t.m20} miss` : 'awaiting resolution';
-
-    let tx = 0; let last = null;
-    for (const r of slice) {
-        const cur = r.faber + '|' + r.regime;
-        if (last && cur !== last) tx++;
-        last = cur;
-    }
-    document.getElementById('num-transitions').textContent = tx;
-    document.getElementById('transitions-detail').textContent = `state changes in window`;
-
-    const scores = slice.map(r => r.tide_score);
-    const lo = Math.min(...scores);
-    const hi = Math.max(...scores);
-    const cur = slice[slice.length - 1].tide_score;
-    document.getElementById('score-range').textContent = `${lo}–${hi}`;
-    document.getElementById('score-range-detail').textContent = `current: ${cur}`;
+function tideScoreFromRecord(r) {
+    return r.tide_score; // already computed in payload
 }
 
-function renderChart(slice) {
-    const svg = document.getElementById('chart-svg');
-    const W = 1000, H = 280;
-    const margin = { top: 24, right: 32, bottom: 24, left: 40 };
-    const w = W - margin.left - margin.right;
-    const h = H - margin.top - margin.bottom;
+function applyMood(score) {
+    const sun = document.getElementById('sun');
+    const cloud = document.getElementById('cloud');
+    sun.classList.remove('cloudy', 'stormy');
+    cloud.classList.remove('visible');
+    if (score < 40) { sun.classList.add('stormy'); cloud.classList.add('visible'); }
+    else if (score < 60) { sun.classList.add('cloudy'); cloud.classList.add('visible'); }
+}
 
-    let html = '';
+function setWater(score) {
+    const pct = 25 + (score / 100) * 50;
+    const water = document.getElementById('water');
+    water.style.height = pct + '%';
+    const crest = document.getElementById('wave-crest');
+    crest.style.bottom = `calc(${pct}% - 14px)`;
+    const readout = document.getElementById('score-readout');
+    readout.style.bottom = `calc(${pct}% + 24px)`;
+}
 
-    // gridlines y
-    for (const y of [0, 25, 50, 75, 100]) {
-        const yPx = margin.top + h - (y / 100) * h;
-        html += `<line x1="${margin.left}" y1="${yPx}" x2="${margin.left + w}" y2="${yPx}" stroke="rgba(26,20,16,0.10)" stroke-dasharray="${y === 50 ? '0' : '2 4'}"/>`;
-        html += `<text x="${margin.left - 8}" y="${yPx + 3}" fill="#8C7E68" font-size="10" text-anchor="end" font-family="JetBrains Mono">${y}</text>`;
-    }
+function renderScene(idx) {
+    const r = HISTORY[idx];
+    if (!r) return;
+    const isToday = (idx === HISTORY.length - 1);
+
+    document.getElementById('score-num').textContent = r.tide_score;
+    document.getElementById('score-eyebrow').textContent = isToday ? "Today's Tide" : 'Tide on';
+    document.getElementById('score-date').textContent = fmtDate(r.date);
+    document.getElementById('chip-date').textContent = fmtDate(r.date);
+    document.getElementById('chip-spy').textContent = r.spy_close != null ? `SPY $${r.spy_close.toFixed(2)}` : 'SPY —';
+
+    const cr = document.getElementById('chip-regime');
+    cr.textContent = r.regime;
+    cr.className = 'chip regime-' + r.regime;
+
+    const cf = document.getElementById('chip-faber');
+    cf.textContent = r.faber;
+    cf.className = 'chip faber-' + r.faber;
+
+    applyMood(r.tide_score);
+    setWater(r.tide_score);
+
+    // Reveal row — what happened next
+    const setReveal = (idSuffix, ret, verdict) => {
+        const numEl = document.getElementById('reveal-' + idSuffix);
+        const tagEl = document.getElementById('reveal-' + idSuffix + '-tag');
+        const subEl = document.getElementById('reveal-' + idSuffix + '-sub');
+        if (ret == null) {
+            numEl.textContent = 'Pending';
+            numEl.className = 'reveal-num pending';
+            tagEl.textContent = 'awaiting';
+            tagEl.className = 'reveal-tag tag-none';
+            subEl.textContent = 'too recent to score';
+            return;
+        }
+        numEl.textContent = fmtPct(ret);
+        numEl.className = 'reveal-num ' + (ret >= 0 ? 'up' : 'down');
+        if (verdict === 'hit')       { tagEl.textContent = '✓ hit';  tagEl.className = 'reveal-tag tag-hit'; }
+        else if (verdict === 'miss') { tagEl.textContent = '✗ miss'; tagEl.className = 'reveal-tag tag-miss'; }
+        else if (verdict === 'flat') { tagEl.textContent = '· flat'; tagEl.className = 'reveal-tag tag-flat'; }
+        else                          { tagEl.textContent = '—';     tagEl.className = 'reveal-tag tag-none'; }
+        subEl.textContent = ret >= 0 ? 'SPY rose' : 'SPY fell';
+    };
+    setReveal('5d', r.spy_5d_fwd_return, r.verdict_5d);
+    setReveal('20d', r.spy_20d_fwd_return, r.verdict_20d);
+
+    document.getElementById('reveal-spy').textContent = r.spy_close != null ? '$' + r.spy_close.toFixed(2) : '—';
+    document.getElementById('reveal-spy').className = 'reveal-num';
+    document.getElementById('reveal-spy-sub').textContent = isToday ? 'latest close' : `vs prior bar`;
+}
+
+function renderTimeline() {
+    const svg = document.getElementById('scrubber-svg');
+    const W = 1000, H = 96;
+    const m = { top: 8, right: 4, bottom: 8, left: 4 };
+    const w = W - m.left - m.right;
+    const h = H - m.top - m.bottom;
+
+    if (HISTORY.length < 2) { svg.innerHTML = ''; return; }
 
     // state-band background segments
+    let bands = '';
     let segStart = 0;
-    let segState = slice[0]?.regime;
-    const segRects = [];
-    for (let i = 1; i <= slice.length; i++) {
-        const cur = i < slice.length ? slice[i].regime : null;
+    let segState = HISTORY[0].regime;
+    for (let i = 1; i <= HISTORY.length; i++) {
+        const cur = i < HISTORY.length ? HISTORY[i].regime : null;
         if (cur !== segState) {
-            segRects.push({ start: segStart, end: i - 1, state: segState });
-            segStart = i;
-            segState = cur;
+            const x1 = m.left + (segStart / (HISTORY.length - 1)) * w;
+            const x2 = m.left + ((i - 1) / (HISTORY.length - 1)) * w;
+            const fills = {
+                EASY:     'rgba(136, 200, 208, 0.18)',
+                NORMAL:   'rgba(123, 163, 122, 0.16)',
+                ELEVATED: 'rgba(212, 168,  90, 0.22)',
+                STRESS:   'rgba(196, 107,  92, 0.28)',
+            };
+            bands += `<rect x="${x1}" y="${m.top}" width="${Math.max(x2 - x1, 1)}" height="${h}" fill="${fills[segState] || 'transparent'}"/>`;
+            segStart = i; segState = cur;
         }
     }
-    for (const seg of segRects) {
-        const x1 = margin.left + (seg.start / Math.max(slice.length - 1, 1)) * w;
-        const x2 = margin.left + (seg.end   / Math.max(slice.length - 1, 1)) * w;
-        const cls = `state-band-${(seg.state || 'normal').toLowerCase()}`;
-        html += `<rect x="${x1}" y="${margin.top}" width="${Math.max(x2 - x1, 1)}" height="${h}" class="${cls}"/>`;
-    }
 
-    // line + area
+    // tide line
     let pts = '';
-    for (let i = 0; i < slice.length; i++) {
-        const x = margin.left + (i / Math.max(slice.length - 1, 1)) * w;
-        const y = margin.top + h - (slice[i].tide_score / 100) * h;
-        pts += `${i === 0 ? 'M' : 'L'} ${x} ${y} `;
+    for (let i = 0; i < HISTORY.length; i++) {
+        const x = m.left + (i / (HISTORY.length - 1)) * w;
+        const y = m.top + h - (HISTORY[i].tide_score / 100) * h;
+        pts += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)} `;
     }
-    const last = margin.left + w;
-    html += `<defs><linearGradient id="scoreGrad" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" stop-color="#88C8D0" stop-opacity="0.6"/>
-        <stop offset="100%" stop-color="#88C8D0" stop-opacity="0"/>
-    </linearGradient></defs>`;
-    html += `<path d="${pts} L ${last} ${margin.top + h} L ${margin.left} ${margin.top + h} Z" fill="url(#scoreGrad)"/>`;
-    html += `<path d="${pts}" fill="none" stroke="#1F3F4F" stroke-width="2" stroke-linejoin="round"/>`;
+    const last = m.left + w;
 
-    // last point
-    const lastIdx = slice.length - 1;
-    const lastX = margin.left + (lastIdx / Math.max(slice.length - 1, 1)) * w;
-    const lastY = margin.top + h - (slice[lastIdx].tide_score / 100) * h;
-    html += `<circle cx="${lastX}" cy="${lastY}" r="5" fill="#1F3F4F" stroke="white" stroke-width="2"/>`;
-    html += `<text x="${lastX - 8}" y="${lastY - 12}" fill="#1A1410" font-size="14" font-weight="700" text-anchor="end" font-family="JetBrains Mono">${slice[lastIdx].tide_score}</text>`;
-
-    svg.innerHTML = html;
-
-    document.getElementById('chart-x-start').textContent = slice[0].date;
-    document.getElementById('chart-x-mid').textContent   = slice[Math.floor(slice.length / 2)].date;
-    document.getElementById('chart-x-end').textContent   = slice[slice.length - 1].date;
-    document.getElementById('chart-period').textContent  = `last ${slice.length} days`;
+    svg.innerHTML = `
+        <defs>
+            <linearGradient id="tideGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#88C8D0" stop-opacity="0.7"/>
+                <stop offset="100%" stop-color="#88C8D0" stop-opacity="0"/>
+            </linearGradient>
+        </defs>
+        ${bands}
+        <line x1="${m.left}" y1="${m.top + h/2}" x2="${last}" y2="${m.top + h/2}"
+              stroke="rgba(26,20,16,0.10)" stroke-dasharray="2 4"/>
+        <path d="${pts} L ${last} ${m.top + h} L ${m.left} ${m.top + h} Z" fill="url(#tideGrad)"/>
+        <path d="${pts}" fill="none" stroke="#1F3F4F" stroke-width="2"/>
+    `;
 }
 
-function renderRows(slice) {
+function moveCursor(idx) {
+    const stage = document.getElementById('scrubber-stage');
+    if (!stage) return;
+    const rect = stage.getBoundingClientRect();
+    const ratio = HISTORY.length > 1 ? idx / (HISTORY.length - 1) : 0;
+    const xPx = ratio * rect.width;
+    document.getElementById('scrubber-cursor').style.left = xPx + 'px';
+    document.getElementById('scrubber-thumb').style.left = xPx + 'px';
+}
+
+function renderRows() {
     const wrap = document.getElementById('rows');
     wrap.innerHTML = '';
-    const reversed = [...slice].reverse();
-    for (const r of reversed) {
+    for (let i = HISTORY.length - 1; i >= 0; i--) {
+        const r = HISTORY[i];
         const row = document.createElement('div');
-        row.className = 'row-grid';
-
+        row.className = 'row-grid' + (i === selectedIdx ? ' selected' : '');
+        row.dataset.idx = i;
         const ret5  = r.spy_5d_fwd_return;
         const ret20 = r.spy_20d_fwd_return;
         const v5  = r.verdict_5d;
         const v20 = r.verdict_20d;
-
         const verdictHtml = (v) => {
             if (v === 'hit')  return '<span class="v-hit">✓ hit</span>';
             if (v === 'miss') return '<span class="v-miss">✗ miss</span>';
             if (v === 'flat') return '<span class="v-flat">·  flat</span>';
             return '<span class="v-none">—</span>';
         };
-
         row.innerHTML = `
             <div class="date">${r.date}</div>
             <div class="score-cell">${r.tide_score}</div>
@@ -515,16 +780,108 @@ function renderRows(slice) {
             <div class="hide-sm">${verdictHtml(v5)}</div>
             <div class="hide-sm ret-right">${ret20 === null ? '<span class="v-none">pending</span>' : `<span class="ret ${ret20>=0?'up':'down'}">${fmtPct(ret20)}</span>`}</div>
         `;
+        row.addEventListener('click', () => selectIdx(parseInt(row.dataset.idx, 10), { scroll: false }));
         wrap.appendChild(row);
     }
 }
 
-function renderPeriod(days) {
-    const slice = HISTORY.slice(-days);
-    if (slice.length === 0) return;
-    renderSummary(slice);
-    renderChart(slice);
-    renderRows(slice);
+function highlightRow(idx) {
+    document.querySelectorAll('.rows-wrap .row-grid').forEach((el) => {
+        el.classList.toggle('selected', parseInt(el.dataset.idx, 10) === idx);
+    });
+}
+
+function selectIdx(idx, opts) {
+    opts = opts || {};
+    if (HISTORY.length === 0) return;
+    idx = Math.max(0, Math.min(HISTORY.length - 1, idx));
+    selectedIdx = idx;
+    renderScene(idx);
+    moveCursor(idx);
+    highlightRow(idx);
+    document.getElementById('scrubber-thumb').setAttribute('aria-valuenow', String(idx));
+    document.getElementById('scrubber-thumb').setAttribute('aria-valuetext',
+        `${HISTORY[idx].date}, score ${HISTORY[idx].tide_score}`);
+    if (opts.scroll) {
+        const sel = document.querySelector('.rows-wrap .row-grid.selected');
+        if (sel) sel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+}
+
+function idxFromClientX(clientX) {
+    const stage = document.getElementById('scrubber-stage');
+    const rect = stage.getBoundingClientRect();
+    const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+    const ratio = rect.width > 0 ? x / rect.width : 0;
+    return Math.round(ratio * (HISTORY.length - 1));
+}
+
+function attachScrubber() {
+    const stage = document.getElementById('scrubber-stage');
+    const thumb = document.getElementById('scrubber-thumb');
+    const scene = document.getElementById('scene');
+
+    const beginDrag = (clientX) => {
+        dragging = true;
+        scene.classList.add('dragging');
+        thumb.classList.add('dragging');
+        stopPlay();
+        selectIdx(idxFromClientX(clientX), { scroll: false });
+    };
+    const moveDrag = (clientX) => {
+        if (!dragging) return;
+        selectIdx(idxFromClientX(clientX), { scroll: false });
+    };
+    const endDrag = () => {
+        if (!dragging) return;
+        dragging = false;
+        scene.classList.remove('dragging');
+        thumb.classList.remove('dragging');
+    };
+
+    // Mouse
+    stage.addEventListener('mousedown', (e) => beginDrag(e.clientX));
+    document.addEventListener('mousemove', (e) => moveDrag(e.clientX));
+    document.addEventListener('mouseup', endDrag);
+
+    // Touch
+    stage.addEventListener('touchstart', (e) => { e.preventDefault(); beginDrag(e.touches[0].clientX); }, { passive: false });
+    document.addEventListener('touchmove', (e) => { if (dragging) { e.preventDefault(); moveDrag(e.touches[0].clientX); } }, { passive: false });
+    document.addEventListener('touchend', endDrag);
+    document.addEventListener('touchcancel', endDrag);
+
+    // Keyboard
+    stage.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); selectIdx(selectedIdx - 1, { scroll: true }); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); selectIdx(selectedIdx + 1, { scroll: true }); }
+        if (e.key === 'Home')       { e.preventDefault(); selectIdx(0, { scroll: true }); }
+        if (e.key === 'End')        { e.preventDefault(); selectIdx(HISTORY.length - 1, { scroll: true }); }
+    });
+
+    // Resize repositions cursor
+    window.addEventListener('resize', () => moveCursor(selectedIdx));
+}
+
+function stopPlay() {
+    if (playTimer) { clearInterval(playTimer); playTimer = null; }
+    playing = false;
+    const btn = document.getElementById('play-btn');
+    btn.classList.remove('playing');
+    document.getElementById('play-icon').textContent = '▶';
+    document.getElementById('play-label').textContent = 'Play';
+}
+function startPlay() {
+    if (HISTORY.length < 2) return;
+    if (selectedIdx >= HISTORY.length - 1) selectIdx(0);
+    playing = true;
+    const btn = document.getElementById('play-btn');
+    btn.classList.add('playing');
+    document.getElementById('play-icon').textContent = '⏸';
+    document.getElementById('play-label').textContent = 'Pause';
+    playTimer = setInterval(() => {
+        if (selectedIdx >= HISTORY.length - 1) { stopPlay(); return; }
+        selectIdx(selectedIdx + 1, { scroll: false });
+    }, 60);
 }
 
 async function load() {
@@ -538,24 +895,39 @@ async function load() {
             return;
         }
         document.getElementById('data-as-of').textContent = `· data through ${HISTORY[HISTORY.length - 1].date}`;
-        renderPeriod(30);
+        document.getElementById('scrubber-thumb').setAttribute('aria-valuemax', String(HISTORY.length - 1));
+
+        renderTimeline();
+        renderRows();
+        document.getElementById('scrub-x-start').textContent = HISTORY[0].date;
+        document.getElementById('scrub-x-mid').textContent   = HISTORY[Math.floor(HISTORY.length / 2)].date;
+        document.getElementById('scrub-x-end').textContent   = HISTORY[HISTORY.length - 1].date;
+
+        // Default to today
+        selectIdx(HISTORY.length - 1, { scroll: false });
     } catch (e) {
         console.error(e);
         document.getElementById('rows').innerHTML = `<div style="color: var(--bad); padding: 20px;">Failed to load history: ${e.message}</div>`;
     }
 }
 
-document.querySelectorAll('.period-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.period-btn').forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        const days = parseInt(btn.dataset.period, 10);
-        renderPeriod(days);
-    });
+document.getElementById('today-btn').addEventListener('click', () => {
+    stopPlay();
+    selectIdx(HISTORY.length - 1, { scroll: true });
+});
+document.getElementById('play-btn').addEventListener('click', () => {
+    if (playing) stopPlay(); else startPlay();
 });
 
+attachScrubber();
 load();
-setInterval(load, 5 * 60 * 1000);
+// Refresh every 5 min only when the user is parked at "today" and not interacting,
+// so we never yank them out of mid-scrub.
+setInterval(() => {
+    if (dragging || playing) return;
+    if (HISTORY.length && selectedIdx !== HISTORY.length - 1) return;
+    load();
+}, 5 * 60 * 1000);
 </script>
 </body>
 </html>

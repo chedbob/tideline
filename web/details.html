@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tideline — Stats for Nerds</title>
+    <meta name="description" content="The full breakdown — analogs, lag, dip-buy backtest, macro components.">
+
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Tideline — Stats for Nerds">
+    <meta property="og:description" content="Historical analogs, lag tracker, dip-buy backtest, macro components.">
+    <meta property="og:url" content="https://tideline-b16.pages.dev/details.html">
+    <meta property="og:image" content="https://tideline-b16.pages.dev/og.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tideline — Stats for Nerds">
+    <meta name="twitter:description" content="The full breakdown — analogs, lag, dip-buy backtest.">
+    <meta name="twitter:image" content="https://tideline-b16.pages.dev/og.png">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='32' y2='32'><stop offset='0%25' stop-color='%2388C8D0'/><stop offset='100%25' stop-color='%234A8B96'/></linearGradient></defs><path d='M2 16 Q8 10 14 16 T26 16 L30 16' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M2 22 Q8 16 14 22 T26 22 L30 22' stroke='url(%23g)' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sky-1: #FAF3E0;
+            --sky-2: #F5DEB3;
+            --water-foam: #DCEEF0;
+            --water-shallow: #88C8D0;
+            --water-mid: #4A8B96;
+            --water-deep: #1F3F4F;
+            --water-ink: #0F2A38;
+            --sand-dry: #F0DEB0;
+            --sand-mid: #DCC089;
+            --sand-warm: #C9A674;
+            --sand-wet: #A88254;
+            --sand-shadow: #6B5634;
+            --wood: #8B6F47;
+            --wood-light: #B8956A;
+            --ink: #1A1410;
+            --ink-soft: #5C5040;
+            --ink-faint: #8C7E68;
+            --good: #2F8B59;
+            --good-soft: #7BA37A;
+            --warn: #D4A85A;
+            --bad: #C46B5C;
+            --line: rgba(26, 20, 16, 0.10);
+            --line-soft: rgba(26, 20, 16, 0.06);
+        }
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+        .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
+        html, body { background: var(--sky-1); color: var(--ink); min-height: 100vh; }
+
+        body::before {
+            content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 100;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+            opacity: 0.04; mix-blend-mode: multiply;
+        }
+
+        /* Header — same as index.html */
+        .header {
+            max-width: 1100px; margin: 0 auto; padding: 24px 24px 12px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+        .brand-mark { width: 32px; height: 32px; }
+        nav.tabs { display: flex; gap: 24px; }
+        nav.tabs a {
+            color: var(--ink-soft); text-decoration: none; font-size: 14px; font-weight: 500;
+            position: relative; padding: 4px 0;
+        }
+        nav.tabs a:hover { color: var(--ink); }
+        nav.tabs a.active { color: var(--ink); }
+        nav.tabs a.active::after {
+            content: ''; position: absolute; bottom: -8px; left: 0; right: 0;
+            height: 2px; background: var(--water-mid); border-radius: 2px;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 16px 24px 64px; }
+
+        /* Page header */
+        .page-head {
+            text-align: center; padding: 24px 0 32px;
+        }
+        .page-head h1 {
+            font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -0.02em;
+            color: var(--ink);
+        }
+        .page-head .sub {
+            margin-top: 8px; font-size: 15px; color: var(--ink-soft);
+        }
+
+        /* Section */
+        .section { margin-bottom: 40px; }
+        .section-head {
+            display: flex; align-items: baseline; gap: 14px;
+            margin-bottom: 16px; padding-bottom: 12px;
+            border-bottom: 1px solid var(--line);
+        }
+        .section-head h2 {
+            font-size: 18px; font-weight: 700; color: var(--ink);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-head .section-icon { font-size: 22px; }
+        .section-head .section-sub {
+            font-size: 12px; color: var(--ink-faint); font-weight: 500;
+        }
+
+        /* Card primitive */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid var(--line);
+            transition: transform 0.25s cubic-bezier(.2,.7,.2,1), box-shadow 0.25s;
+        }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(31, 63, 79, 0.08); }
+
+        /* Headlines card */
+        .headline-lead {
+            font-size: 17px; line-height: 1.55; color: var(--ink);
+            margin-bottom: 16px;
+        }
+        .headline-stats {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            margin-bottom: 16px;
+        }
+        .stat-chip {
+            font-family: 'JetBrains Mono', monospace; font-size: 11px;
+            background: var(--sky-2); color: var(--ink-soft);
+            padding: 4px 10px; border-radius: 999px;
+            border: 1px solid var(--line-soft);
+        }
+        .alt-headline {
+            margin-top: 16px; padding-top: 16px;
+            border-top: 1px dashed var(--line);
+            font-size: 14px; color: var(--ink-soft); line-height: 1.55;
+        }
+        .alt-headline-label {
+            font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+            color: var(--ink-faint); font-weight: 600; margin-bottom: 6px;
+        }
+
+        /* Components grid */
+        .comp-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+        }
+        @media (max-width: 720px) { .comp-grid { grid-template-columns: repeat(2, 1fr); } }
+        .comp-card {
+            background: white; border-radius: 16px; padding: 18px;
+            border: 1px solid var(--line);
+        }
+        .comp-icon { font-size: 22px; line-height: 1; margin-bottom: 8px; }
+        .comp-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; margin-bottom: 4px; }
+        .comp-value { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+        .comp-state {
+            display: inline-block;
+            font-size: 10px; font-family: 'JetBrains Mono', monospace;
+            padding: 3px 8px; border-radius: 999px;
+            font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+            background: var(--sky-2); color: var(--ink-soft);
+        }
+        .comp-state.calm, .comp-state.very_loose, .comp-state.loose, .comp-state.normal { background: rgba(123, 163, 122, 0.15); color: var(--good); }
+        .comp-state.moderate, .comp-state.elevated { background: rgba(212, 168, 90, 0.18); color: #886518; }
+        .comp-state.stressed, .comp-state.tight, .comp-state.very_tight, .comp-state.inverted { background: rgba(196, 107, 92, 0.15); color: var(--bad); }
+        .comp-pct {
+            font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--ink-soft);
+            margin-top: 6px;
+        }
+        .comp-bar {
+            height: 4px; background: var(--line-soft); border-radius: 2px; overflow: hidden;
+            margin-top: 6px; position: relative;
+        }
+        .comp-bar-fill {
+            position: absolute; top: 0; bottom: 0; left: 0;
+            background: linear-gradient(90deg, var(--good-soft), var(--warn), var(--bad));
+            border-radius: 2px;
+        }
+
+        /* Lag stats grid */
+        .lag-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 720px) { .lag-grid { grid-template-columns: repeat(2, 1fr); } }
+        .lag-stat {
+            background: white; border-radius: 16px; padding: 18px;
+            border: 1px solid var(--line);
+        }
+        .lag-stat-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; margin-bottom: 6px; }
+        .lag-stat-value { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; color: var(--ink); }
+        .lag-stat-value .unit { font-size: 13px; font-weight: 500; color: var(--ink-soft); margin-left: 4px; }
+        .lag-stat-sub { font-size: 11px; color: var(--ink-soft); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+
+        /* Episode table */
+        .ep-table {
+            background: white; border-radius: 16px; overflow: hidden;
+            border: 1px solid var(--line);
+        }
+        .ep-row {
+            display: grid;
+            grid-template-columns: 100px 90px 90px 80px 1fr;
+            gap: 12px; padding: 10px 16px; align-items: center;
+            font-size: 13px;
+            border-bottom: 1px solid var(--line-soft);
+        }
+        .ep-row:last-child { border-bottom: none; }
+        .ep-row:nth-child(even) { background: rgba(240, 222, 176, 0.18); }
+        .ep-head {
+            font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+            color: var(--ink-faint); font-weight: 600;
+            background: var(--sky-2);
+        }
+        .ep-row .date { color: var(--ink-soft); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+        .ep-row .lag { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+        .ep-row .dd { font-family: 'JetBrains Mono', monospace; }
+        .ep-row .miss-bar {
+            background: var(--line-soft); border-radius: 999px; height: 14px;
+            position: relative; overflow: hidden;
+        }
+        .ep-row .miss-fill {
+            position: absolute; top: 0; bottom: 0; left: 0;
+            background: var(--bad);
+            border-radius: 999px;
+        }
+        .ep-row .miss-text {
+            font-family: 'JetBrains Mono', monospace; font-size: 10px;
+            position: absolute; top: 50%; left: 8px;
+            transform: translateY(-50%); font-weight: 600;
+            color: var(--ink); white-space: nowrap;
+        }
+        @media (max-width: 720px) {
+            .ep-row { grid-template-columns: 80px 70px 70px 1fr; gap: 8px; font-size: 11px; padding: 8px 10px; }
+            .ep-hide-sm { display: none; }
+        }
+
+        /* Dip-buy signal grid */
+        .dip-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+        }
+        @media (max-width: 720px) { .dip-grid { grid-template-columns: 1fr; } }
+        .dip-card {
+            background: white; border-radius: 16px; padding: 20px;
+            border: 1px solid var(--line);
+        }
+        .dip-card.fired { border: 2px solid var(--bad); background: linear-gradient(180deg, rgba(196, 107, 92, 0.05) 0%, white 40%); }
+        .dip-card.survives { border-color: var(--good-soft); }
+        .dip-head {
+            display: flex; align-items: baseline; justify-content: space-between;
+            gap: 8px; margin-bottom: 12px;
+        }
+        .dip-name { font-size: 14px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+        .dip-status {
+            font-size: 10px; font-family: 'JetBrains Mono', monospace;
+            padding: 3px 8px; border-radius: 999px; font-weight: 600;
+            background: var(--sky-2); color: var(--ink-soft);
+            white-space: nowrap;
+        }
+        .dip-status.fired { background: rgba(196, 107, 92, 0.15); color: var(--bad); }
+        .dip-status.survives { background: rgba(123, 163, 122, 0.15); color: var(--good); }
+        .dip-desc { font-size: 12px; color: var(--ink-soft); line-height: 1.5; margin-bottom: 12px; }
+        .dip-stats {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            padding: 12px; background: var(--sky-1); border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        .dip-stat-block {
+            display: flex; flex-direction: column; gap: 2px;
+        }
+        .dip-stat-h {
+            font-size: 9px; font-family: 'JetBrains Mono', monospace;
+            color: var(--ink-faint); letter-spacing: 0.05em;
+        }
+        .dip-stat-hit {
+            font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; color: var(--ink);
+        }
+        .dip-stat-edge {
+            font-family: 'JetBrains Mono', monospace; font-size: 10px;
+        }
+        .dip-stat-edge.pos { color: var(--good); }
+        .dip-stat-edge.neg { color: var(--bad); }
+        .dip-stat-edge.neu { color: var(--ink-faint); }
+        .dip-meta {
+            font-size: 11px; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace;
+            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+        }
+
+        /* Footer */
+        .foot { text-align: center; font-size: 12px; color: var(--ink-faint); padding: 32px 0 16px; }
+        .foot a { color: var(--water-mid); text-decoration: none; }
+        .foot a:hover { text-decoration: underline; }
+
+        .empty { text-align: center; color: var(--ink-faint); padding: 32px; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" fill="none">
+            <path d="M2 16 Q8 10 14 16 T26 16 L30 16" stroke="url(#brandG)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M2 22 Q8 16 14 22 T26 22 L30 22" stroke="url(#brandG)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+            <defs>
+                <linearGradient id="brandG" x1="0" y1="0" x2="32" y2="32">
+                    <stop offset="0%" style="stop-color:#88C8D0"/>
+                    <stop offset="100%" style="stop-color:#4A8B96"/>
+                </linearGradient>
+            </defs>
+        </svg>
+        Tideline
+    </div>
+    <nav class="tabs">
+        <a href="./index.html">Now</a>
+        <a href="./history.html">History</a>
+        <a href="./details.html" class="active">Details</a>
+        <a href="./methodology.html">About</a>
+    </nav>
+</div>
+
+<div class="container">
+
+    <div class="page-head">
+        <h1>Stats for nerds 🤓</h1>
+        <p class="sub">The full breakdown behind today's tide. Updated every 5 minutes.</p>
+    </div>
+
+    <!-- HEADLINES -->
+    <section class="section">
+        <div class="section-head">
+            <h2><span class="section-icon">📰</span> Smart headline</h2>
+            <span class="section-sub">auto-generated from historical analogs</span>
+        </div>
+        <div class="card" id="headline-card">
+            <div class="empty">Loading headline…</div>
+        </div>
+    </section>
+
+    <!-- COMPONENTS -->
+    <section class="section">
+        <div class="section-head">
+            <h2><span class="section-icon">🧪</span> Macro components</h2>
+            <span class="section-sub">the four readings driving the regime state</span>
+        </div>
+        <div class="comp-grid" id="comp-grid">
+            <div class="empty" style="grid-column: span 4;">Loading components…</div>
+        </div>
+    </section>
+
+    <!-- LAG -->
+    <section class="section">
+        <div class="section-head">
+            <h2><span class="section-icon">⏱️</span> Lag tracker</h2>
+            <span class="section-sub">how late Tideline reacts to actual SPY drawdowns</span>
+        </div>
+        <div class="lag-grid" id="lag-grid">
+            <div class="empty" style="grid-column: span 4;">Loading lag stats…</div>
+        </div>
+        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 12px; padding: 0 4px;">
+            Each row = one SPY drawdown ≥3% since 1997. Warn-lag = trading days from peak to first ELEVATED/STRESS state. Drawdown caught = how much of the fall happened before the warning.
+        </div>
+        <div class="ep-table" id="ep-table">
+            <div class="empty">Loading drawdown episodes…</div>
+        </div>
+    </section>
+
+    <!-- DIP-BUY -->
+    <section class="section">
+        <div class="section-head">
+            <h2><span class="section-icon">🎯</span> Dip-buy signals</h2>
+            <span class="section-sub">5 candidate bottom-finders — only 1 survived block bootstrap</span>
+        </div>
+        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 14px; padding: 0 4px;">
+            Each signal pre-declared with a fixed rule. Edge measured vs the conditional baseline (days when SPY was already in ≥3% drawdown). "Survives" = bootstrap CI lower bound exceeds baseline.
+        </div>
+        <div class="dip-grid" id="dip-grid">
+            <div class="empty" style="grid-column: span 2;">Loading dip-buy backtest…</div>
+        </div>
+    </section>
+
+    <div class="foot">
+        <p>Built with <span style="color: var(--water-mid); font-weight: 600;">Tideline</span> · <a href="./index.html">main view</a> · <a href="./history.html">history</a> · <a href="./methodology.html">about</a></p>
+        <p style="margin-top: 8px; opacity: 0.7;">Not investment advice.</p>
+    </div>
+</div>
+
+<script>
+const DATA_URL = 'https://pub-c76f35b3ffa34d9b9e782467ba912b96.r2.dev/latest.json';
+
+const COMP_META = {
+    hy_oas:      { label: 'Credit (BAA10Y)', icon: '💳', unit: '%' },
+    vix:         { label: 'VIX',             icon: '😱', unit: '' },
+    curve_3m10y: { label: '3m-10y Curve',    icon: '📉', unit: '%' },
+    nfci_lagged: { label: 'NFCI (Chicago)',  icon: '🏦', unit: '' },
+};
+
+const SIGNAL_DESC = {
+    TERM_REVERSAL:     'VIX > VIX3M for 3+ days, then ratio falls 2 days in a row.',
+    CAPIT_FOLLOWTHRU:  'SPY −2%+ day with VIX +5pts spike, then SPY +2%+ within 5 days.',
+    CREDIT_PEAK:       'BAA10Y in top 25% of 5y range, then declining 5 days straight.',
+    VIX_PANIC_RELEASE: 'VIX rose >50% in 5d from a calm base (<16), then closes lower 2 days.',
+    DRAWDOWN_VOL_EASE: 'SPY ≤−5% from 60d high AND VIX dropped 3+ pts over 3 days.',
+};
+
+function fmt(v, digits = 2) {
+    if (v == null || (typeof v === 'number' && isNaN(v))) return '—';
+    if (typeof v === 'number') return v.toFixed(digits);
+    return v;
+}
+
+function pp(v) {
+    if (v == null) return '—';
+    const s = v >= 0 ? '+' : '';
+    return `${s}${v.toFixed(1)}pp`;
+}
+
+function pct(v, digits = 1) {
+    if (v == null) return '—';
+    return (v * 100).toFixed(digits) + '%';
+}
+
+function renderHeadline(headlines) {
+    const card = document.getElementById('headline-card');
+    if (!headlines || !headlines.lead) {
+        card.innerHTML = '<div class="empty">No headline available right now.</div>';
+        return;
+    }
+    const lead = headlines.lead;
+    let chips = '';
+    if (lead.stats) {
+        const s = lead.stats;
+        if (s.n_historical != null) chips += `<span class="stat-chip">n=${s.n_historical}</span>`;
+        if (s.median_run_days != null) chips += `<span class="stat-chip">median run ${s.median_run_days}d</span>`;
+        if (s.median_days != null) chips += `<span class="stat-chip">median streak ${s.median_days}d</span>`;
+        if (s.longest_run_days != null) chips += `<span class="stat-chip">longest ${s.longest_run_days}d</span>`;
+        if (s.longest_days != null) chips += `<span class="stat-chip">longest ${s.longest_days}d</span>`;
+        if (s.still_running_after_n != null) chips += `<span class="stat-chip">${s.still_running_after_n} still running after ${s.current_run_days || s.current_streak_days}d</span>`;
+        if (s.longer_than_current != null) chips += `<span class="stat-chip">${s.longer_than_current} ran longer</span>`;
+    }
+    let html = `<div class="headline-lead">${lead.lead}</div>`;
+    if (chips) html += `<div class="headline-stats">${chips}</div>`;
+
+    // alternates
+    const alts = headlines.alternates || [];
+    for (const a of alts.slice(0, 2)) {
+        html += `<div class="alt-headline">
+            <div class="alt-headline-label">Also notable</div>
+            ${a.lead}
+        </div>`;
+    }
+    card.innerHTML = html;
+}
+
+function renderComponents(components) {
+    const grid = document.getElementById('comp-grid');
+    if (!components || Object.keys(components).length === 0) {
+        grid.innerHTML = '<div class="empty" style="grid-column: span 4;">Components not available.</div>';
+        return;
+    }
+    let html = '';
+    for (const key of ['hy_oas', 'vix', 'curve_3m10y', 'nfci_lagged']) {
+        const c = components[key];
+        const meta = COMP_META[key];
+        if (!c || !meta) continue;
+        const unit = c.unit || meta.unit || '';
+        const value = c.value != null ? `${fmt(c.value)}${unit}` : '—';
+        const state = c.state || '';
+        const pct5y = c.percentile_5y;
+        const note = c.note || '';
+
+        let pctRow = '';
+        if (pct5y != null) {
+            const pctVal = (pct5y * 100).toFixed(0);
+            pctRow = `
+                <div class="comp-pct">${pctVal}th percentile · 5y</div>
+                <div class="comp-bar"><div class="comp-bar-fill" style="width: ${pctVal}%"></div></div>`;
+        } else if (note) {
+            pctRow = `<div class="comp-pct" style="opacity: 0.7;">${note}</div>`;
+        }
+
+        html += `
+            <div class="comp-card">
+                <div class="comp-icon">${meta.icon}</div>
+                <div class="comp-label">${meta.label}</div>
+                <div class="comp-value">${value}</div>
+                <div style="margin-top: 6px;"><span class="comp-state ${state}">${state.replace(/_/g, ' ') || '—'}</span></div>
+                ${pctRow}
+            </div>`;
+    }
+    grid.innerHTML = html || '<div class="empty" style="grid-column: span 4;">Components not available.</div>';
+}
+
+function renderLag(lag) {
+    const grid = document.getElementById('lag-grid');
+    const tbl = document.getElementById('ep-table');
+    if (!lag || lag.error) {
+        grid.innerHTML = '<div class="empty" style="grid-column: span 4;">Lag data not available.</div>';
+        tbl.innerHTML = '<div class="empty">No drawdown episodes recorded.</div>';
+        return;
+    }
+    const wAll = lag.warn_lag_all || {};
+    const w12 = lag.warn_lag_12mo || {};
+    const cAll = lag.clear_lag_all || {};
+    const c12 = lag.clear_lag_12mo || {};
+    grid.innerHTML = `
+        <div class="lag-stat">
+            <div class="lag-stat-label">Warn lag · all-time</div>
+            <div class="lag-stat-value">${fmt(wAll.median, 0)}<span class="unit">d median</span></div>
+            <div class="lag-stat-sub">n=${wAll.n || 0} · p25–p75: ${fmt(wAll.p25, 0)}–${fmt(wAll.p75, 0)}d</div>
+        </div>
+        <div class="lag-stat">
+            <div class="lag-stat-label">Warn lag · last 12mo</div>
+            <div class="lag-stat-value">${w12.median != null ? fmt(w12.median, 0) : '—'}<span class="unit">${w12.median != null ? 'd median' : ''}</span></div>
+            <div class="lag-stat-sub">${w12.n ? `n=${w12.n}` : 'no drawdowns'}</div>
+        </div>
+        <div class="lag-stat">
+            <div class="lag-stat-label">Clear lag · all-time</div>
+            <div class="lag-stat-value">${fmt(cAll.median, 0)}<span class="unit">d median</span></div>
+            <div class="lag-stat-sub">n=${cAll.n || 0} · p25–p75: ${fmt(cAll.p25, 0)}–${fmt(cAll.p75, 0)}d</div>
+        </div>
+        <div class="lag-stat">
+            <div class="lag-stat-label">Clear lag · last 12mo</div>
+            <div class="lag-stat-value">${c12.median != null ? fmt(c12.median, 0) : '—'}<span class="unit">${c12.median != null ? 'd median' : ''}</span></div>
+            <div class="lag-stat-sub">${c12.n ? `n=${c12.n}` : 'no recoveries'}</div>
+        </div>
+    `;
+
+    const eps = (lag.warn_episodes || []).slice().reverse();
+    if (!eps.length) {
+        tbl.innerHTML = '<div class="empty">No drawdown episodes recorded.</div>';
+        return;
+    }
+    let rows = `<div class="ep-row ep-head">
+        <div>Peak</div>
+        <div>Drawdown</div>
+        <div>Warn lag</div>
+        <div class="ep-hide-sm">State</div>
+        <div class="ep-hide-sm">Caught vs missed</div>
+    </div>`;
+    for (const e of eps) {
+        const missPct = e.drawdown_done_at_warn_pct != null ? e.drawdown_done_at_warn_pct : 0;
+        const totalPct = e.drawdown_pct || 1;
+        const fillPct = Math.min(100, (missPct / totalPct) * 100);
+        const lagText = e.warn_lag_days != null ? `${e.warn_lag_days}d` : '—';
+        const caught = totalPct - missPct;
+        rows += `<div class="ep-row">
+            <div class="date">${e.peak_date}</div>
+            <div class="dd">−${fmt(e.drawdown_pct, 1)}%</div>
+            <div class="lag">${lagText}</div>
+            <div class="ep-hide-sm"><span class="stat-chip">${e.warn_state || '—'}</span></div>
+            <div class="ep-hide-sm">
+                <div class="miss-bar">
+                    <div class="miss-fill" style="width: ${fillPct}%"></div>
+                    <div class="miss-text">missed −${fmt(missPct, 1)}% / caught −${fmt(caught, 1)}%</div>
+                </div>
+            </div>
+        </div>`;
+    }
+    tbl.innerHTML = rows;
+}
+
+function renderDip(dip) {
+    const grid = document.getElementById('dip-grid');
+    if (!dip || !dip.backtest) {
+        grid.innerHTML = '<div class="empty" style="grid-column: span 2;">Dip-buy data not available.</div>';
+        return;
+    }
+    const order = ['CREDIT_PEAK', 'TERM_REVERSAL', 'CAPIT_FOLLOWTHRU', 'VIX_PANIC_RELEASE', 'DRAWDOWN_VOL_EASE'];
+    let html = '';
+    for (const name of order) {
+        const bt = dip.backtest[name];
+        const live = (dip.live || {})[name] || {};
+        if (!bt) continue;
+        const horizons = bt.horizons || {};
+        const fired = !!live.fired_today;
+
+        // Does ANY horizon survive bootstrap on conditional baseline?
+        let anySurvives = false;
+        for (const k of Object.keys(horizons)) {
+            const h = horizons[k];
+            if (h.conditional_drawdown && h.conditional_drawdown.survives_bootstrap) { anySurvives = true; break; }
+        }
+
+        let cardClass = 'dip-card';
+        if (fired) cardClass += ' fired';
+        else if (anySurvives) cardClass += ' survives';
+
+        let statusLabel = 'dormant';
+        let statusClass = 'dip-status';
+        if (fired) { statusLabel = 'FIRED today'; statusClass = 'dip-status fired'; }
+        else if (anySurvives) { statusLabel = 'survives bootstrap'; statusClass = 'dip-status survives'; }
+
+        let statRows = '';
+        for (const horizonKey of ['H5', 'H10', 'H20']) {
+            const h = horizons[horizonKey];
+            if (!h || h.fire_dates_too_few) {
+                statRows += `<div class="dip-stat-block">
+                    <div class="dip-stat-h">${horizonKey}</div>
+                    <div class="dip-stat-hit">—</div>
+                    <div class="dip-stat-edge neu">n<5</div>
+                </div>`;
+                continue;
+            }
+            const cond = h.conditional_drawdown || {};
+            const edge = cond.edge_pp;
+            const survives = cond.survives_bootstrap;
+            let edgeCls = 'neu';
+            if (edge != null && edge > 0) edgeCls = survives ? 'pos' : 'neu';
+            else if (edge != null && edge < 0) edgeCls = 'neg';
+            const survBadge = survives ? ' ✓' : '';
+            statRows += `<div class="dip-stat-block">
+                <div class="dip-stat-h">${horizonKey}</div>
+                <div class="dip-stat-hit">${pct(h.hit_rate, 1)}</div>
+                <div class="dip-stat-edge ${edgeCls}">${pp(edge)}${survBadge}</div>
+            </div>`;
+        }
+
+        const sinceText = live.days_since_last_fire != null
+            ? `last fired ${live.days_since_last_fire}d ago`
+            : 'never fired in panel';
+
+        html += `
+            <div class="${cardClass}">
+                <div class="dip-head">
+                    <div class="dip-name">${name.replace(/_/g, ' ')}</div>
+                    <span class="${statusClass}">${statusLabel}</span>
+                </div>
+                <div class="dip-desc">${SIGNAL_DESC[name] || ''}</div>
+                <div class="dip-stats">${statRows}</div>
+                <div class="dip-meta">
+                    <span>${bt.total_fires} fires (${bt.first_fire || '—'} → ${bt.last_fire || '—'})</span>
+                    <span>${sinceText}</span>
+                </div>
+            </div>`;
+    }
+    grid.innerHTML = html || '<div class="empty" style="grid-column: span 2;">No signals available.</div>';
+}
+
+async function load() {
+    try {
+        const r = await fetch(DATA_URL, { cache: 'no-cache' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        renderHeadline(d.headlines);
+        renderComponents(d.regime?.zones?.components);
+        renderLag(d.lag);
+        renderDip(d.dip_signals);
+    } catch (e) {
+        console.error(e);
+        document.getElementById('headline-card').innerHTML = `<div class="empty" style="color: var(--bad);">Failed to load: ${e.message}</div>`;
+    }
+}
+
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>

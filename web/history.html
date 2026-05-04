@@ -199,7 +199,7 @@
             color: var(--ink); opacity: 0.7; font-weight: 600;
         }
         .score-num {
-            font-size: clamp(110px, 14vw, 180px);
+            font-size: clamp(84px, 11vw, 140px);
             font-weight: 800;
             letter-spacing: -0.04em; line-height: 0.85;
             color: var(--ink);
@@ -278,7 +278,7 @@
             border-radius: 14px;
             background: linear-gradient(180deg, var(--sky-1) 0%, var(--water-foam) 100%);
             overflow: hidden;
-            cursor: ew-resize;
+            cursor: default;
             border: 1px solid var(--line-soft);
         }
 
@@ -544,7 +544,7 @@
             <div class="scrubber-title">
                 <span>🌊</span>
                 <span>Time machine</span>
-                <span class="scrubber-hint" id="scrub-hint">drag the wave thumb · click to jump · ◀ ▶ to step</span>
+                <span class="scrubber-hint" id="scrub-hint">drag the wave thumb · ◀ ▶ to step a day</span>
             </div>
             <div class="scrubber-actions">
                 <button class="play-btn" id="play-btn" aria-label="Play through history"><span id="play-icon">▶</span> <span id="play-label">Play</span></button>
@@ -636,7 +636,10 @@ function setWater(score) {
     const crest = document.getElementById('wave-crest');
     crest.style.bottom = `calc(${pct}% - 14px)`;
     const readout = document.getElementById('score-readout');
-    readout.style.bottom = `calc(${pct}% + 24px)`;
+    // Cap readout position so the eyebrow text never clips the top of the scene.
+    // Water can rise to 75%, but the readout stops following past 50% from bottom.
+    const readoutPct = Math.min(pct, 50);
+    readout.style.bottom = `calc(${readoutPct}% + 18px)`;
 }
 
 function renderScene(idx) {
@@ -839,18 +842,18 @@ function attachScrubber() {
         thumb.classList.remove('dragging');
     };
 
-    // Mouse
-    stage.addEventListener('mousedown', (e) => beginDrag(e.clientX));
+    // Mouse — drag from the thumb only (no click-to-jump on the track)
+    thumb.addEventListener('mousedown', (e) => { e.preventDefault(); beginDrag(e.clientX); });
     document.addEventListener('mousemove', (e) => moveDrag(e.clientX));
     document.addEventListener('mouseup', endDrag);
 
-    // Touch
-    stage.addEventListener('touchstart', (e) => { e.preventDefault(); beginDrag(e.touches[0].clientX); }, { passive: false });
+    // Touch — same: only the thumb captures touchstart
+    thumb.addEventListener('touchstart', (e) => { e.preventDefault(); beginDrag(e.touches[0].clientX); }, { passive: false });
     document.addEventListener('touchmove', (e) => { if (dragging) { e.preventDefault(); moveDrag(e.touches[0].clientX); } }, { passive: false });
     document.addEventListener('touchend', endDrag);
     document.addEventListener('touchcancel', endDrag);
 
-    // Keyboard
+    // Keyboard — focus the stage to use arrows / Home / End
     stage.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowLeft')  { e.preventDefault(); selectIdx(selectedIdx - 1, { scroll: true }); }
         if (e.key === 'ArrowRight') { e.preventDefault(); selectIdx(selectedIdx + 1, { scroll: true }); }

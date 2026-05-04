@@ -184,7 +184,7 @@
             font-weight: 600;
         }
         .score-num {
-            font-size: clamp(140px, 18vw, 220px);
+            font-size: clamp(110px, 14vw, 170px);
             font-weight: 800;
             letter-spacing: -0.04em; line-height: 0.85;
             color: var(--ink);
@@ -452,9 +452,11 @@ function setWater(score) {
     // Position crest at the top of the water layer
     crest.style.bottom = `calc(${pct}% - 14px)`;
 
-    // Position score readout above the water surface
+    // Position score readout above the water surface, capped so the eyebrow
+    // text never clips the top of the scene at high tide.
     const readout = document.getElementById('score-readout');
-    readout.style.bottom = `calc(${pct}% + 24px)`;
+    const readoutPct = Math.min(pct, 50);
+    readout.style.bottom = `calc(${readoutPct}% + 18px)`;
 }
 
 function arrowFor(prev, curr) {

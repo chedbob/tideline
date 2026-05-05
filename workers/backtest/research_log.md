@@ -351,6 +351,49 @@ No UP prediction. No multi-signal composite. One rule, one call type, ruthlessly
 
 This is the narrowest, most defensible product that still has a scoreboard worth tracking. Anything bigger overstates the evidence.
 
+## Entry 12 — 2026-05-05 — Reopened: dip-buy redesign with rigor
+
+Naive 5-signal `dip_signals` was retired (CREDIT_PEAK last fired 1384d ago — dormant signals are noise on a live UI).
+A simpler `dip_buy` (Faber GREEN + regime NORMAL/EASY + 2-8% pullback) shipped briefly but explicitly disclaimed as a UX filter, not a validated edge: +2.2pp H5, no bootstrap CI, single-panel design, post-hoc parameter choices. User pushed back: rigor before ship.
+
+External review (GPT-5 Thinking) was asked to design two states: DIP_BUY (high-tide pullback worth buying) and CRACKING (early macro weakness pre-CAUTION). Response:
+
+**KILLED before backtest: CRACKING.** Statistical paradox. Pre-conditions require regime ∈ {NORMAL, EASY} (definitionally calm credit + vol), but achieving a 5pp lower-bound DOWN-rate CI at H20 demands structural deterioration — which would already have flipped the regime to ELEVATED/STRESS. The 4-state regime panel itself IS the cracking signal. Asking for a separate predictive cracking signal under calm-regime pre-conditions asks for a signal that fires on benign data and predicts non-benign outcomes, which the prior research log already showed is the *opposite* of what this feature set produces (stress precedes mean reversion).
+
+**Pre-registered DIP_BUY v2 spec (commits BEFORE backtest):**
+
+```
+Pre-conditions (must hold):
+  Faber == GREEN
+  regime ∈ {NORMAL, EASY}
+
+Trigger (all 3 must hold):
+  1. SPY ≤ SPY_20d_high * 0.95          (≥5% off 20-day high)
+  2. BAA10Y 20-day change ≤ 0 bps       (credit flat or tightening)
+  3. VIX / VIX3M ≤ 1.0                  (vol curve in contango)
+
+Mechanism: equity pullbacks without credit deterioration or vol-curve
+inversion are liquidity-driven, not structural. Credit and vol-term
+filters actively exclude the "first crack" false positives that
+preceded historical CAUTION fires.
+```
+
+**Pre-committed predictions:**
+- In-sample (1997-2014): ~45 fires
+- Out-of-sample (2015-2026): ~30 fires
+- H5 edge: +4.0pp
+- H10 edge: +8.5pp  ← primary go criterion
+- H20 edge: +6.0pp
+
+**Pre-committed go criteria (ALL must hold):**
+1. Block bootstrap (Kunsch 1989, 10k iters, L=60): H10 lower-bound CI > calm-uptrend baseline + 3pp
+2. OOS: 2015-2026 H10 edge ≥ 50% of training-window edge, same sign
+3. Frequency: ≥30 fires in training, ≥10 fires OOS
+4. BH-FDR @ q=0.10 across {DIP_BUY × H5/H10/H20} = 3 hypotheses
+5. Pre-registered FAIL action: kill DIP_BUY entirely, ship UX-only with louder ELEVATED/STRESS treatment
+
+**Risk per external review:** pre-2007 VIX3M fallback (63d MA of VIX) may differ enough from the actual VIX3M index that IS and OOS contango checks reflect different regimes. If H10 edge decays below 50% OOS, likely cause is 2022's bear market having anomalously suppressed VIX behavior where contango held even on grinding leg-downs.
+
 
 
 

@@ -664,8 +664,11 @@ function renderScene(idx) {
     applyMood(r.tide_score);
     setWater(r.tide_score);
 
-    // Reveal row — what happened next
-    const setReveal = (idSuffix, ret, verdict) => {
+    // Reveal row — what happened next.
+    // Tideline only makes a directional claim on CAUTION days. GREEN days are
+    // shown with the SPY return but no hit/miss tag — to judge a GREEN day
+    // would be inventing a prediction we never made.
+    const setReveal = (idSuffix, ret, verdict, faberState) => {
         const numEl = document.getElementById('reveal-' + idSuffix);
         const tagEl = document.getElementById('reveal-' + idSuffix + '-tag');
         const subEl = document.getElementById('reveal-' + idSuffix + '-sub');
@@ -682,11 +685,24 @@ function renderScene(idx) {
         if (verdict === 'hit')       { tagEl.textContent = '✓ hit';  tagEl.className = 'reveal-tag tag-hit'; }
         else if (verdict === 'miss') { tagEl.textContent = '✗ miss'; tagEl.className = 'reveal-tag tag-miss'; }
         else if (verdict === 'flat') { tagEl.textContent = '· flat'; tagEl.className = 'reveal-tag tag-flat'; }
-        else                          { tagEl.textContent = '—';     tagEl.className = 'reveal-tag tag-none'; }
-        subEl.textContent = ret >= 0 ? 'SPY rose' : 'SPY fell';
+        else if (verdict === 'no_call') { tagEl.textContent = 'no formal call'; tagEl.className = 'reveal-tag tag-none'; }
+        else                            { tagEl.textContent = '—';              tagEl.className = 'reveal-tag tag-none'; }
+
+        // Sub-text — explain what the verdict means
+        if (verdict === 'hit' || verdict === 'miss' || verdict === 'flat') {
+            // CAUTION day with a real verdict
+            subEl.textContent = `Tideline said DOWN · SPY ${ret >= 0 ? 'rose' : 'fell'}`;
+        } else if (verdict === 'no_call') {
+            const why = faberState === 'GREEN'
+                ? 'GREEN day — Tideline only judges CAUTION days'
+                : 'no directional claim on this day';
+            subEl.textContent = why;
+        } else {
+            subEl.textContent = ret >= 0 ? 'SPY rose' : 'SPY fell';
+        }
     };
-    setReveal('5d', r.spy_5d_fwd_return, r.verdict_5d);
-    setReveal('20d', r.spy_20d_fwd_return, r.verdict_20d);
+    setReveal('5d', r.spy_5d_fwd_return, r.verdict_5d, r.faber);
+    setReveal('20d', r.spy_20d_fwd_return, r.verdict_20d, r.faber);
 
     document.getElementById('reveal-spy').textContent = r.spy_close != null ? '$' + r.spy_close.toFixed(2) : '—';
     document.getElementById('reveal-spy').className = 'reveal-num';
@@ -772,6 +788,7 @@ function renderRows() {
             if (v === 'hit')  return '<span class="v-hit">✓ hit</span>';
             if (v === 'miss') return '<span class="v-miss">✗ miss</span>';
             if (v === 'flat') return '<span class="v-flat">·  flat</span>';
+            if (v === 'no_call') return '<span class="v-none">no call</span>';
             return '<span class="v-none">—</span>';
         };
         row.innerHTML = `

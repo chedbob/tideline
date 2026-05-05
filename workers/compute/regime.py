@@ -329,13 +329,19 @@ def compute_tide_history(df_states: pd.DataFrame, days: int = 90) -> list[dict]:
       spy_5d_fwd_return, spy_20d_fwd_return,
       spy_5d_outcome   ('UP' / 'DOWN' / 'FLAT' / null),
       spy_20d_outcome  (...),
-      verdict_5d       ('hit' / 'miss' / null)   — based on Faber call
+      verdict_5d       ('hit' / 'miss' / 'flat' / 'no_call' / null)
       verdict_20d      (...)
 
-    Verdict logic (matches the bootstrap-validated Faber claim):
-      GREEN   → predicts UP  → hit if forward return > 0
-      CAUTION → predicts DOWN → hit if forward return < 0
-      NEUTRAL → no call      → verdict null
+    Verdict logic — ONLY CAUTION gets a hit/miss verdict, because the
+    bootstrap-validated claim is one-sided ("when CAUTION fires, SPY DOWN
+    rate exceeds baseline"). GREEN is literally "not-CAUTION" — Tideline
+    makes NO directional claim on GREEN days, so judging GREEN by SPY
+    direction would be inventing a prediction we never made.
+
+      CAUTION → predicts DOWN → hit if DOWN, miss if UP, flat if near zero
+      GREEN   → no formal claim → verdict 'no_call'
+      NEUTRAL → no call         → verdict 'no_call'
+      unresolved (insufficient forward data) → verdict null
     """
     df = df_states.copy()
     spy = df["spy"]
@@ -365,11 +371,11 @@ def compute_tide_history(df_states: pd.DataFrame, days: int = 90) -> list[dict]:
         def verdict(call_state, outcome):
             if outcome is None:
                 return None  # not yet resolved
-            if call_state == "GREEN":
-                return "hit" if outcome == "UP" else ("miss" if outcome == "DOWN" else "flat")
             if call_state == "CAUTION":
+                # Only state with a directional claim — judge it.
                 return "hit" if outcome == "DOWN" else ("miss" if outcome == "UP" else "flat")
-            return None  # NEUTRAL = no call
+            # GREEN and NEUTRAL: no formal directional claim, do not judge.
+            return "no_call"
 
         out.append({
             "date": str(date.date()),

@@ -668,7 +668,18 @@ function renderScene(idx) {
     // Tideline only makes a directional claim on CAUTION days. GREEN days are
     // shown with the SPY return but no hit/miss tag — to judge a GREEN day
     // would be inventing a prediction we never made.
+    //
+    // Defensive override: if the cached payload still has hit/miss/flat tags
+    // on GREEN days from a stale cron run, treat them as no_call client-side
+    // so the page is correct immediately.
+    const normalizeVerdict = (verdict, faberState) => {
+        if (faberState !== 'CAUTION' && verdict !== null && verdict !== undefined) {
+            return 'no_call';
+        }
+        return verdict;
+    };
     const setReveal = (idSuffix, ret, verdict, faberState) => {
+        verdict = normalizeVerdict(verdict, faberState);
         const numEl = document.getElementById('reveal-' + idSuffix);
         const tagEl = document.getElementById('reveal-' + idSuffix + '-tag');
         const subEl = document.getElementById('reveal-' + idSuffix + '-sub');
@@ -782,8 +793,10 @@ function renderRows() {
         row.dataset.idx = i;
         const ret5  = r.spy_5d_fwd_return;
         const ret20 = r.spy_20d_fwd_return;
-        const v5  = r.verdict_5d;
-        const v20 = r.verdict_20d;
+        // Same defensive override as the reveal cards: GREEN days never
+        // get judged, regardless of what the (potentially stale) payload says.
+        const v5  = (r.faber !== 'CAUTION' && r.verdict_5d != null)  ? 'no_call' : r.verdict_5d;
+        const v20 = (r.faber !== 'CAUTION' && r.verdict_20d != null) ? 'no_call' : r.verdict_20d;
         const verdictHtml = (v) => {
             if (v === 'hit')  return '<span class="v-hit">✓ hit</span>';
             if (v === 'miss') return '<span class="v-miss">✗ miss</span>';

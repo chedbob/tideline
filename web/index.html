@@ -380,7 +380,7 @@
             <div class="qcard-icon" id="q-dip-icon">🔍</div>
             <div class="qcard-label">Dip-buy</div>
             <div class="qcard-value" id="q-dip-value">—</div>
-            <div class="qcard-sub" id="q-dip-sub">credit-peak signal</div>
+            <div class="qcard-sub" id="q-dip-sub">uptrend dip filter</div>
         </div>
     </div>
 
@@ -524,15 +524,20 @@ async function load() {
         document.getElementById('q-days-value').textContent = days;
         document.getElementById('q-days-sub').textContent = `since ${r.zones.regime_state?.last_transition_date || '—'}`;
 
-        // Dip-buy quick card
-        const dip = data.dip_signals;
-        if (dip && dip.live && dip.live.CREDIT_PEAK) {
-            const fired = dip.live.CREDIT_PEAK.fired_today;
-            document.getElementById('q-dip-icon').textContent = dipIcon(fired);
-            document.getElementById('q-dip-value').textContent = fired ? 'FIRED' : 'DORMANT';
-            document.getElementById('q-dip-sub').textContent = fired
-                ? 'credit-peak signal active today'
-                : `last ${dip.live.CREDIT_PEAK.days_since_last_fire || '—'}d ago`;
+        // Dip-buy quick card — simple uptrend dip filter
+        const dip = data.dip_buy && data.dip_buy.live;
+        if (dip) {
+            const fired = dip.state === 'DIP_BUY';
+            document.getElementById('q-dip-icon').textContent = fired ? '🔥' : '🔍';
+            document.getElementById('q-dip-value').textContent = fired ? 'Setup' : 'No setup';
+            const pb = dip.pullback_20d_pct;
+            if (fired) {
+                document.getElementById('q-dip-sub').textContent = `${pb.toFixed(1)}% off 20d high · uptrend`;
+            } else if (dip.days_since_last_dip_buy != null) {
+                document.getElementById('q-dip-sub').textContent = `last setup ${dip.days_since_last_dip_buy}d ago`;
+            } else {
+                document.getElementById('q-dip-sub').textContent = 'uptrend dip filter';
+            }
         }
     } catch (e) {
         console.error(e);

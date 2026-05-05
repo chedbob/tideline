@@ -427,9 +427,12 @@ def run(api_key: str) -> dict:
     from compute.lag import build_lag_report
     lag_report = build_lag_report(df_states)
 
-    # Dip-buy / bottom signals — backtest + live status
-    from compute.dip_signals import build_dip_signals_payload
-    dip_signals = build_dip_signals_payload(df_states)
+    # Dip-buy: simple classifier — DIP_BUY or QUIET, with a macro filter
+    # that keeps the signal silent during stress. Old 5-signal dip_signals.py
+    # is retained in the codebase for the methodology archive but not emitted
+    # to the live payload — frequency was too low to be useful.
+    from compute.dip_buy import build_payload as build_dip_buy_payload
+    dip_buy = build_dip_buy_payload(df_states)
 
     return {
         "snapshot": snapshot,
@@ -437,7 +440,7 @@ def run(api_key: str) -> dict:
         "tide_history": tide_history,
         "headlines": headlines,
         "lag": lag_report,
-        "dip_signals": dip_signals,
+        "dip_buy": dip_buy,
         "panel_meta": {
             "start": str(df_states.index.min().date()),
             "end": str(df_states.index.max().date()),

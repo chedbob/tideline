@@ -138,7 +138,7 @@ def build_payload() -> dict:
         "tide_history": regime_payload.get("tide_history", []),
         "headlines": regime_payload.get("headlines", {"lead": None, "alternates": []}),
         "lag": regime_payload.get("lag", {}),
-        "dip_signals": regime_payload.get("dip_signals", {}),
+        "dip_buy": regime_payload.get("dip_buy", {}),
         "panel_meta": regime_payload.get("panel_meta", {}),
         "raw": {
             "yahoo": yh,

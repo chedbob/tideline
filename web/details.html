@@ -402,20 +402,50 @@
         </div>
     </section>
 
-    <!-- DIP-BUY -->
+    <!-- RESEARCH RECORD — why there's no second predictive signal -->
     <section class="section">
         <div class="section-head">
-            <h2><span class="section-icon">🎯</span> Dip-buy filter</h2>
-            <span class="section-sub">simple uptrend-only signal · stays quiet during macro warnings</span>
+            <h2><span class="section-icon">📓</span> Research record · what didn't ship</h2>
+            <span class="section-sub">two predictive states tested in 2026, both rejected before launch</span>
         </div>
-        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 14px; padding: 0 4px;">
-            Two outcomes: <strong>DIP_BUY</strong> (textbook setup) or <strong>QUIET</strong> (with a reason).
-            Fires only when broader trend is bullish (Faber GREEN) AND macro is calm (regime NORMAL/EASY) AND
-            SPY is 2-8% below its 20-day high. Pullbacks deeper than 8% are deliberately ignored — that's
-            "could be turning macro" territory and a different question.
-        </div>
-        <div id="dip-card-wrap">
-            <div class="card empty">Loading dip-buy state…</div>
+        <div class="card" style="line-height: 1.7;">
+            <p style="font-size: 14px; color: var(--ink); margin-bottom: 16px;">
+                Tideline ships exactly <strong>one predictive claim</strong> — the <span style="background: rgba(196, 107, 92, 0.15); color: var(--bad); padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace;">CAUTION</span> rule. Two more were tested in 2026. Both failed.
+            </p>
+
+            <div style="background: rgba(196, 107, 92, 0.05); border-left: 3px solid var(--bad); padding: 14px 16px; margin-bottom: 14px; border-radius: 8px;">
+                <div style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--bad); font-weight: 700; margin-bottom: 6px;">Killed before backtest</div>
+                <div style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">CRACKING — early macro weakness signal</div>
+                <div style="font-size: 13px; color: var(--ink-soft);">
+                    External review (GPT-5 Thinking) identified it as a statistical paradox.
+                    The rule would need to fire under calm-regime pre-conditions (NORMAL/EASY)
+                    yet predict structural deterioration — but the moment structural deterioration
+                    arrives, the regime panel definitionally flips to ELEVATED/STRESS. The 4-state
+                    regime panel <em>is</em> the cracking signal.
+                </div>
+            </div>
+
+            <div style="background: rgba(212, 168, 90, 0.06); border-left: 3px solid var(--warn); padding: 14px 16px; margin-bottom: 14px; border-radius: 8px;">
+                <div style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #886518; font-weight: 700; margin-bottom: 6px;">Failed pre-registered backtest</div>
+                <div style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">DIP_BUY v2 — uptrend dip with credit + vol filters</div>
+                <div style="font-size: 13px; color: var(--ink-soft); margin-bottom: 10px;">
+                    Pre-registered spec: SPY ≥5% off 20-day high AND BAA10Y 20-day change ≤ 0
+                    AND VIX/VIX3M ≤ 1.0, all under Faber=GREEN + regime ∈ {NORMAL, EASY}.
+                    Pre-committed: ~45 fires training, ~30 OOS, +8.5pp H10 edge.
+                </div>
+                <div class="mono" style="font-size: 12px; background: white; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line-soft); margin-bottom: 8px;">
+                    <strong>Result:</strong> 1 fire training, 2 fires OOS. Triple filter too strict — when SPY falls ≥5% in calm uptrends, credit and vol-curve almost always tighten with it.
+                </div>
+                <div style="font-size: 12px; color: var(--ink-faint);">
+                    Pre-registered FAIL action triggered: kill the rule, ship UX-only path with louder ELEVATED/STRESS visuals (cracked sand on the beach scene). Old code retained as graveyard artifact per integrity protocol.
+                </div>
+            </div>
+
+            <div style="font-size: 13px; color: var(--ink-soft); padding-top: 6px;">
+                See the verbatim entries (Entry 12, Entry 13) in the
+                <a href="./research_log.md" style="color: var(--water-mid); font-weight: 600;">research log</a>.
+                Failed tests are never deleted.
+            </div>
         </div>
     </section>
 
@@ -594,125 +624,6 @@ function renderLag(lag) {
     tbl.innerHTML = rows;
 }
 
-function renderDip(dip) {
-    const wrap = document.getElementById('dip-card-wrap');
-    if (!dip || !dip.live) {
-        wrap.innerHTML = '<div class="card empty">Dip-buy data not available.</div>';
-        return;
-    }
-    const live = dip.live;
-    const bt = dip.backtest || {};
-    const horizons = bt.horizons || {};
-    const fired = live.state === 'DIP_BUY';
-
-    // Pullback gauge: 0 to 12% scale, with the 2-8% fire zone shaded.
-    const GAUGE_MAX = 12;
-    const pb = Math.max(0, Math.min(GAUGE_MAX, live.pullback_20d_pct || 0));
-    const fireStartPct = (2 / GAUGE_MAX) * 100;
-    const fireEndPct = (8 / GAUGE_MAX) * 100;
-    const markerPct = (pb / GAUGE_MAX) * 100;
-
-    // Backtest table rows
-    const horizonKeys = ['H5', 'H10', 'H20'];
-    const rowDip = [], rowBase = [], rowEdge = [], rowMedDip = [], rowMedBase = [];
-    for (const k of horizonKeys) {
-        const h = horizons[k];
-        if (!h || h.insufficient_data) {
-            rowDip.push('—'); rowBase.push('—'); rowEdge.push('<span class="dip-bt-edge neu">—</span>');
-            rowMedDip.push('—'); rowMedBase.push('—');
-            continue;
-        }
-        rowDip.push(pct(h.dip_buy_up_rate, 1));
-        rowBase.push(pct(h.baseline_up_rate, 1));
-        const edgeCls = h.edge_pp > 0 ? 'pos' : (h.edge_pp < 0 ? 'neg' : 'neu');
-        rowEdge.push(`<span class="dip-bt-edge ${edgeCls}">${pp(h.edge_pp)}</span>`);
-        rowMedDip.push(`+${h.dip_buy_median_ret_pct.toFixed(2)}%`);
-        rowMedBase.push(`+${h.baseline_median_ret_pct.toFixed(2)}%`);
-    }
-
-    const heroIcon = fired ? '🔥' : '🔍';
-    const heroState = fired ? 'DIP-BUY SETUP' : 'QUIET';
-    const heroClass = fired ? 'dip-hero-state fired' : 'dip-hero-state';
-    const cardClass = fired ? 'dip-card fired' : 'dip-card';
-
-    const sinceText = (!fired && live.days_since_last_dip_buy != null)
-        ? `last setup fired ${live.days_since_last_dip_buy} days ago`
-        : (fired ? 'fired today' : 'no recent setups');
-
-    wrap.innerHTML = `
-        <div class="${cardClass}">
-            <div class="dip-hero">
-                <div class="dip-hero-icon">${heroIcon}</div>
-                <div class="dip-hero-text">
-                    <div class="${heroClass}">${heroState}</div>
-                    <div class="dip-hero-reason">${live.reason}</div>
-                </div>
-            </div>
-
-            <div class="dip-gauge">
-                <div class="dip-gauge-label">
-                    <span>SPY pullback from 20d high</span>
-                    <span>${(live.pullback_20d_pct || 0).toFixed(1)}%</span>
-                </div>
-                <div class="dip-gauge-track">
-                    <div class="dip-gauge-zone-fire" style="left: ${fireStartPct}%; width: ${fireEndPct - fireStartPct}%"></div>
-                    <div class="dip-gauge-marker" style="left: ${markerPct}%"></div>
-                </div>
-                <div class="dip-gauge-axis">
-                    <span>0%</span><span>2% (fire zone start)</span><span>8% (end)</span><span>12%</span>
-                </div>
-                <div class="dip-gauge-zonelabel">green band = fire zone (2-8% pullback)</div>
-            </div>
-
-            <div class="dip-bt-section-title">Backtest · ${bt.panel_range ? bt.panel_range.join(' → ') : '—'}</div>
-            <table class="dip-bt-table">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>5d</th>
-                        <th>10d</th>
-                        <th>20d</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Dip-buy hit rate</td>
-                        <td>${rowDip[0]}</td><td>${rowDip[1]}</td><td>${rowDip[2]}</td>
-                    </tr>
-                    <tr>
-                        <td>Baseline hit rate (calm uptrend, no dip)</td>
-                        <td>${rowBase[0]}</td><td>${rowBase[1]}</td><td>${rowBase[2]}</td>
-                    </tr>
-                    <tr>
-                        <td>Hit-rate edge</td>
-                        <td>${rowEdge[0]}</td><td>${rowEdge[1]}</td><td>${rowEdge[2]}</td>
-                    </tr>
-                    <tr>
-                        <td>Dip-buy median return</td>
-                        <td>${rowMedDip[0]}</td><td>${rowMedDip[1]}</td><td>${rowMedDip[2]}</td>
-                    </tr>
-                    <tr>
-                        <td>Baseline median return</td>
-                        <td>${rowMedBase[0]}</td><td>${rowMedBase[1]}</td><td>${rowMedBase[2]}</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="dip-bt-honest">
-                <strong>Honest read:</strong> the hit-rate edge over a calm-uptrend baseline is
-                small (a couple of points at best). What the dip filter <em>does</em> improve is
-                median return per trade — typically 1.5-2x the baseline. You're not winning more
-                often; you're winning more when you're right, because you're buying lower.
-            </div>
-
-            <div class="dip-meta">
-                <span>${bt.total_dip_days || 0} dip-buy days · ${bt.total_baseline_days || 0} baseline days</span>
-                <span>last fire: ${bt.last_fire || '—'}</span>
-                <span>${sinceText}</span>
-            </div>
-        </div>`;
-}
-
 async function load() {
     try {
         const r = await fetch(DATA_URL, { cache: 'no-cache' });
@@ -721,7 +632,6 @@ async function load() {
         renderHeadline(d.headlines);
         renderComponents(d.regime?.zones?.components);
         renderLag(d.lag);
-        renderDip(d.dip_buy);
     } catch (e) {
         console.error(e);
         document.getElementById('headline-card').innerHTML = `<div class="empty" style="color: var(--bad);">Failed to load: ${e.message}</div>`;

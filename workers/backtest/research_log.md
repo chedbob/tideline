@@ -394,6 +394,60 @@ preceded historical CAUTION fires.
 
 **Risk per external review:** pre-2007 VIX3M fallback (63d MA of VIX) may differ enough from the actual VIX3M index that IS and OOS contango checks reflect different regimes. If H10 edge decays below 50% OOS, likely cause is 2022's bear market having anomalously suppressed VIX behavior where contango held even on grinding leg-downs.
 
+## Entry 13 — 2026-05-05 — DIP_BUY v2 FAILED — pre-registered fire-frequency gate
+
+Backtest result against pre-committed criteria from Entry 12:
+
+```
+FIRES — train (1997-2014): 1   (committed ~45)
+FIRES — OOS   (2015-2026): 2   (committed ~30, min 10)
+BASELINE — train: 1,240 calm-uptrend non-fire days
+BASELINE — OOS:   1,038 calm-uptrend non-fire days
+```
+
+| Criterion | Required | Observed | Pass? |
+|---|---|---|---|
+| A. H10 bootstrap LB > baseline+3pp | yes | LB=+35.9pp | ✓ (illusory — see note) |
+| **B1. ≥10 fires OOS** | **yes** | **2 fires** | **✗** |
+| **B2. ≥30 fires training** | **yes** | **1 fire** | **✗** |
+| B3. OOS H10 edge ≥ 50% of training | yes | edges based on n=1, n=2 — undefined | n/a |
+| D. BH-FDR q=0.10 H10 passes | yes | p=0.0000 | ✓ (illusory) |
+
+**OVERALL: FAIL.** Per pre-registered FAIL action: kill DIP_BUY v2 entirely, ship UX-only path.
+
+### Why the bootstrap "PASS" is illusory
+
+H10 bootstrap CI [+35.9, +45.6] looks robust but is meaningless: the resampling pool contains only 3 fire days across the full panel. Block bootstrap with replacement on n=3 produces tight CIs that reflect the variance of resampling 3 outcomes, not the variance of the underlying signal. Sample-size gates B1/B2 exist precisely to catch this — they correctly fail this rule.
+
+### Diagnosis
+
+The triple filter is too strict. Required SIMULTANEOUSLY:
+1. SPY ≥5% off 20-day high (rare alone in calm uptrends — typical max-drawdown-while-calm is 3-4%)
+2. AND BAA10Y 20-day change ≤ 0 (unusual when SPY is mid-pullback; credit usually widens with equity stress)
+3. AND VIX/VIX3M ≤ 1.0 (contango usually breaks during equity selloffs)
+
+When all three hold, by construction we've found a "stress dip with no stress signs" — which is statistically rare. The few times it does occur are too sparse to validate.
+
+### Pattern confirmed across the full research arc
+
+- Entry 1-5: composite directional product, multiple framings, none survived.
+- Entry 8: simple Faber CAUTION → DOWN @20d survived (and only barely).
+- Entry 12-13: DIP_BUY v2 with credit + vol-curve filter survives bootstrap math but fails sample size.
+
+The data supports exactly **one** binary directional signal (Faber CAUTION → DOWN). The feature set is not rich enough to support a second.
+
+### Implemented FAIL action (per Entry 12 commitment)
+
+1. Predictive `dip_buy` removed from `latest.json` payload.
+2. Homepage emoji card replaced: macro-warning visual triggered by regime ∈ {ELEVATED, STRESS} instead of a custom dip-buy state.
+3. /details Dip-buy section replaced with explanation of why no second predictive signal ships, plus the failed-spec record (this entry, with Entry 12 spec for completeness).
+4. Closed-loop scoreboard surfaced more prominently for the ONE validated claim (Faber CAUTION DOWN @20d).
+5. Old `workers/compute/dip_buy.py` retained in repo as a graveyard artifact per CLAUDE.md "Graveyard permanent" rule. Not called from publish.
+
+### Honest framing for users
+
+"We tested two more predictive states (DIP_BUY and CRACKING). CRACKING was killed before backtest as a statistical paradox. DIP_BUY v2 was rigorously pre-registered, backtested, and **failed the fire-frequency gate**. We are publishing the failure verbatim and the rule does not ship. The one predictive claim Tideline makes (Faber CAUTION → DOWN @20d) is unchanged."
+
 
 
 

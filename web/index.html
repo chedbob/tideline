@@ -243,6 +243,83 @@
         .qcard-value { font-size: 22px; font-weight: 700; line-height: 1.1; color: var(--ink); }
         .qcard-sub { font-size: 12px; color: var(--ink-soft); }
 
+        /* Scoreboard — surface the closed loop */
+        .scoreboard {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid var(--line);
+            margin-bottom: 24px;
+        }
+        .scoreboard-head {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: 18px; flex-wrap: wrap; gap: 8px;
+        }
+        .scoreboard-head h3 { font-size: 16px; font-weight: 700; color: var(--ink); }
+        .scoreboard-head a {
+            font-size: 12px; color: var(--water-mid);
+            text-decoration: none; font-weight: 600;
+        }
+        .scoreboard-head a:hover { text-decoration: underline; }
+        .claim-card {
+            background: linear-gradient(135deg, rgba(136, 200, 208, 0.10) 0%, rgba(74, 139, 150, 0.06) 100%);
+            border: 1px solid rgba(74, 139, 150, 0.15);
+            border-radius: 14px; padding: 16px 18px;
+            margin-bottom: 18px;
+        }
+        .claim-text {
+            font-size: 14px; line-height: 1.6; color: var(--ink);
+        }
+        .claim-text strong { font-weight: 700; }
+        .claim-pill {
+            display: inline-flex; align-items: center;
+            padding: 1px 8px; border-radius: 999px;
+            background: rgba(196, 107, 92, 0.18); color: var(--bad);
+            font-size: 11px; font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.05em;
+        }
+        .score-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+        }
+        @media (max-width: 720px) { .score-grid { grid-template-columns: repeat(2, 1fr); } }
+        .score-stat {
+            background: var(--sky-1); border-radius: 14px; padding: 14px 16px;
+        }
+        .score-stat-label {
+            font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+            color: var(--ink-faint); font-weight: 600; margin-bottom: 6px;
+        }
+        .score-stat-value {
+            font-size: 22px; font-weight: 700; color: var(--ink); line-height: 1.1;
+            letter-spacing: -0.01em;
+        }
+        .score-stat-value.good { color: var(--good); }
+        .score-stat-value.bad { color: var(--bad); }
+        .score-stat-value.neutral { color: var(--ink-soft); }
+        .score-stat-sub { font-size: 11px; color: var(--ink-soft); margin-top: 4px; }
+
+        /* Cracked-sand treatment — only when regime is ELEVATED or STRESS */
+        .scene.cracked .sand::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(105deg, transparent 48%, rgba(107, 86, 52, 0.55) 49%, rgba(107, 86, 52, 0.55) 50%, transparent 51%),
+                linear-gradient(75deg,  transparent 48%, rgba(107, 86, 52, 0.45) 49%, rgba(107, 86, 52, 0.45) 50%, transparent 51%),
+                linear-gradient(155deg, transparent 48%, rgba(107, 86, 52, 0.40) 49%, rgba(107, 86, 52, 0.40) 50%, transparent 51%);
+            background-size: 80px 60px, 100px 70px, 60px 50px;
+            background-position: 10px 8px, 30px 28px, 50px 14px;
+            mix-blend-mode: multiply;
+            opacity: 0;
+            transition: opacity 1s ease;
+            pointer-events: none;
+        }
+        .scene.cracked.warn .sand::before { opacity: 0.7; }
+        .scene.cracked.storm .sand::before { opacity: 1; }
+        .scene.cracked .sand {
+            background: linear-gradient(180deg, var(--sand-warm) 0%, var(--sand-wet) 60%, var(--sand-shadow) 100%);
+        }
+
         /* History strip */
         .history-strip {
             background: white;
@@ -377,10 +454,46 @@
             <div class="qcard-sub" id="q-days-sub">trading days</div>
         </div>
         <div class="qcard">
-            <div class="qcard-icon" id="q-dip-icon">🔍</div>
-            <div class="qcard-label">Dip-buy</div>
-            <div class="qcard-value" id="q-dip-value">—</div>
-            <div class="qcard-sub" id="q-dip-sub">uptrend dip filter</div>
+            <div class="qcard-icon" id="q-track-icon">🎯</div>
+            <div class="qcard-label">Track record</div>
+            <div class="qcard-value" id="q-track-value">—</div>
+            <div class="qcard-sub" id="q-track-sub">CAUTION rule live</div>
+        </div>
+    </div>
+
+    <!-- SCOREBOARD — the closed loop, made visible -->
+    <div class="scoreboard">
+        <div class="scoreboard-head">
+            <h3>Live track record · the only predictive claim</h3>
+            <a href="./details.html">how this works →</a>
+        </div>
+        <div class="claim-card">
+            <div class="claim-text">
+                When SPY drops below its 200-day moving average <strong>and</strong> the 50-day average is also below the 200-day, Tideline issues a <span class="claim-pill">CAUTION</span> call.
+                Historically (1997-2026, n=1,541 days), SPY went down in the next 20 trading days <strong>46% of the time vs 37% baseline</strong> — block-bootstrap 95% CI [37.7%, 55.8%].
+            </div>
+        </div>
+        <div class="score-grid">
+            <div class="score-stat">
+                <div class="score-stat-label">Live calls resolved</div>
+                <div class="score-stat-value mono" id="sb-resolved">—</div>
+                <div class="score-stat-sub" id="sb-resolved-sub">since launch</div>
+            </div>
+            <div class="score-stat">
+                <div class="score-stat-label">Live DOWN-rate</div>
+                <div class="score-stat-value mono" id="sb-rate">—</div>
+                <div class="score-stat-sub mono" id="sb-rate-sub">vs 37% baseline</div>
+            </div>
+            <div class="score-stat">
+                <div class="score-stat-label">Edge vs baseline</div>
+                <div class="score-stat-value mono" id="sb-edge">—</div>
+                <div class="score-stat-sub" id="sb-edge-sub">historical: +9.1pp</div>
+            </div>
+            <div class="score-stat">
+                <div class="score-stat-label">Status</div>
+                <div class="score-stat-value mono" id="sb-status">—</div>
+                <div class="score-stat-sub" id="sb-status-sub">—</div>
+            </div>
         </div>
     </div>
 
@@ -433,13 +546,19 @@ function relTime(iso) {
     return Math.floor(h / 24) + 'd ago';
 }
 
-function applyMood(score) {
+function applyMood(score, regime) {
     const sun = document.getElementById('sun');
     const cloud = document.getElementById('cloud');
+    const scene = document.getElementById('scene');
     sun.classList.remove('cloudy', 'stormy');
     cloud.classList.remove('visible');
+    scene.classList.remove('cracked', 'warn', 'storm');
     if (score < 40) { sun.classList.add('stormy'); cloud.classList.add('visible'); }
     else if (score < 60) { sun.classList.add('cloudy'); cloud.classList.add('visible'); }
+    // Cracked-sand treatment when macro regime is showing stress.
+    // ELEVATED → warn (sand crackles appear). STRESS → storm (sand fully cracked).
+    if (regime === 'ELEVATED') scene.classList.add('cracked', 'warn');
+    else if (regime === 'STRESS') scene.classList.add('cracked', 'storm');
 }
 
 function setWater(score) {
@@ -505,7 +624,7 @@ async function load() {
 
         document.getElementById('narrative').textContent = narrative(score, z0, z1);
 
-        applyMood(score);
+        applyMood(score, z1);
         setWater(score);
 
         // Quick cards
@@ -524,21 +643,8 @@ async function load() {
         document.getElementById('q-days-value').textContent = days;
         document.getElementById('q-days-sub').textContent = `since ${r.zones.regime_state?.last_transition_date || '—'}`;
 
-        // Dip-buy quick card — simple uptrend dip filter
-        const dip = data.dip_buy && data.dip_buy.live;
-        if (dip) {
-            const fired = dip.state === 'DIP_BUY';
-            document.getElementById('q-dip-icon').textContent = fired ? '🔥' : '🔍';
-            document.getElementById('q-dip-value').textContent = fired ? 'Setup' : 'No setup';
-            const pb = dip.pullback_20d_pct;
-            if (fired) {
-                document.getElementById('q-dip-sub').textContent = `${pb.toFixed(1)}% off 20d high · uptrend`;
-            } else if (dip.days_since_last_dip_buy != null) {
-                document.getElementById('q-dip-sub').textContent = `last setup ${dip.days_since_last_dip_buy}d ago`;
-            } else {
-                document.getElementById('q-dip-sub').textContent = 'uptrend dip filter';
-            }
-        }
+        // Track-record card — populated by the scoreboard render below
+        // (icon and copy stay as-is; scoreboard does the heavy lifting)
     } catch (e) {
         console.error(e);
         document.getElementById('live-text').textContent = 'Offline';
@@ -546,12 +652,81 @@ async function load() {
     }
 }
 
+function renderScoreboard(history) {
+    // Tally CAUTION fires across the history window.
+    // verdict_20d is hit/miss/flat for CAUTION days, no_call/null otherwise.
+    const cautionDays = history.filter(r => r.faber === 'CAUTION');
+    const resolved = cautionDays.filter(r => ['hit','miss','flat'].includes(r.verdict_20d));
+    const pending = cautionDays.filter(r => r.verdict_20d == null);
+    const hits = resolved.filter(r => r.verdict_20d === 'hit').length;
+
+    const resolvedEl = document.getElementById('sb-resolved');
+    const resolvedSubEl = document.getElementById('sb-resolved-sub');
+    const rateEl = document.getElementById('sb-rate');
+    const rateSubEl = document.getElementById('sb-rate-sub');
+    const edgeEl = document.getElementById('sb-edge');
+    const edgeSubEl = document.getElementById('sb-edge-sub');
+    const statusEl = document.getElementById('sb-status');
+    const statusSubEl = document.getElementById('sb-status-sub');
+
+    const trackValueEl = document.getElementById('q-track-value');
+    const trackSubEl = document.getElementById('q-track-sub');
+    const trackIconEl = document.getElementById('q-track-icon');
+
+    resolvedEl.textContent = resolved.length;
+    resolvedSubEl.textContent = pending.length
+        ? `${pending.length} more pending @20d`
+        : (resolved.length ? 'all resolved' : 'CAUTION rule has not fired live yet');
+
+    if (resolved.length === 0) {
+        rateEl.textContent = '—';
+        rateEl.className = 'score-stat-value mono neutral';
+        rateSubEl.textContent = 'no calls to score yet';
+        edgeEl.textContent = '—';
+        edgeEl.className = 'score-stat-value mono neutral';
+        edgeSubEl.textContent = 'historical: +9.1pp (1997-2026)';
+        statusEl.textContent = 'Standby';
+        statusEl.className = 'score-stat-value mono neutral';
+        statusSubEl.textContent = 'awaiting first CAUTION';
+        trackValueEl.textContent = 'Standby';
+        trackIconEl.textContent = '🎯';
+        trackSubEl.textContent = 'CAUTION not fired live yet';
+        return;
+    }
+
+    const downRate = hits / resolved.length;
+    const baseline = 0.369;
+    const edgePp = (downRate - baseline) * 100;
+
+    rateEl.textContent = `${(downRate * 100).toFixed(0)}%`;
+    rateSubEl.textContent = `vs 37% baseline · n=${resolved.length}`;
+
+    edgeEl.textContent = `${edgePp >= 0 ? '+' : ''}${edgePp.toFixed(1)}pp`;
+    edgeEl.className = 'score-stat-value mono ' + (edgePp >= 5 ? 'good' : edgePp <= 0 ? 'bad' : 'neutral');
+    edgeSubEl.textContent = 'historical: +9.1pp (1997-2026)';
+
+    let label, cls, sub;
+    if (resolved.length < 30) { label = 'Diagnostic'; cls = 'neutral'; sub = `n<30 — small sample`; }
+    else if (edgePp >= 5)     { label = 'On track'; cls = 'good'; sub = 'edge tracking historical'; }
+    else if (edgePp >= 0)     { label = 'Marginal'; cls = 'neutral'; sub = 'edge weaker than historical'; }
+    else                      { label = 'Decay'; cls = 'bad'; sub = 'live edge below baseline'; }
+    statusEl.textContent = label;
+    statusEl.className = 'score-stat-value mono ' + cls;
+    statusSubEl.textContent = sub;
+
+    trackValueEl.textContent = `${(downRate * 100).toFixed(0)}%`;
+    trackSubEl.textContent = `${hits}/${resolved.length} CAUTION calls hit @20d`;
+    trackIconEl.textContent = edgePp >= 0 ? '🎯' : '⚠️';
+}
+
 async function loadHistory() {
     try {
         const r = await fetch(HISTORY_URL, { cache: 'no-cache' });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const d = await r.json();
-        const h = (d.history || []).slice(-90);
+        const fullHist = d.history || [];
+        renderScoreboard(fullHist);
+        const h = fullHist.slice(-90);
         if (h.length < 5) return;
 
         const W = 800, H = 140, M = { top: 8, right: 8, bottom: 8, left: 8 };

@@ -433,12 +433,13 @@ def run(api_key: str) -> dict:
     from compute.lag import build_lag_report
     lag_report = build_lag_report(df_states)
 
-    # Dip-buy: simple classifier — DIP_BUY or QUIET, with a macro filter
-    # that keeps the signal silent during stress. Old 5-signal dip_signals.py
-    # is retained in the codebase for the methodology archive but not emitted
-    # to the live payload — frequency was too low to be useful.
-    from compute.dip_buy import build_payload as build_dip_buy_payload
-    dip_buy = build_dip_buy_payload(df_states)
+    # No predictive dip-buy signal. Two attempts (5-signal dip_signals.py
+    # and uptrend-only dip_buy.py) are retained in the codebase as graveyard
+    # artifacts but NOT emitted to the live payload. DIP_BUY v2 was
+    # rigorously pre-registered (research_log.md Entry 12) and FAILED the
+    # fire-frequency go criterion (Entry 13). Per pre-registered FAIL action,
+    # we ship UX-only: macro warning is driven by regime ∈ {ELEVATED, STRESS},
+    # which IS the cracking signal, definitionally.
 
     return {
         "snapshot": snapshot,
@@ -446,7 +447,6 @@ def run(api_key: str) -> dict:
         "tide_history": tide_history,
         "headlines": headlines,
         "lag": lag_report,
-        "dip_buy": dip_buy,
         "panel_meta": {
             "start": str(df_states.index.min().date()),
             "end": str(df_states.index.max().date()),

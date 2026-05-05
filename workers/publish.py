@@ -138,7 +138,8 @@ def build_payload() -> dict:
         "tide_history": regime_payload.get("tide_history", []),
         "headlines": regime_payload.get("headlines", {"lead": None, "alternates": []}),
         "lag": regime_payload.get("lag", {}),
-        "dip_buy": regime_payload.get("dip_buy", {}),
+        # No predictive dip-buy ships — failed pre-registered backtest.
+        # See research_log.md Entry 12 (spec) and Entry 13 (failure).
         "panel_meta": regime_payload.get("panel_meta", {}),
         "raw": {
             "yahoo": yh,

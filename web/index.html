@@ -595,10 +595,6 @@ function regimeIcon(state) {
     return { EASY: '🏖️', NORMAL: '⚓', ELEVATED: '⚠️', STRESS: '🌊' }[state] || '⚓';
 }
 
-function dipIcon(fired) {
-    return fired ? '🔥' : '🔍';
-}
-
 let prevScore = null;
 
 async function load() {
